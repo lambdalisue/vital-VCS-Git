@@ -1,0 +1,64 @@
+let s:V = vital#of('vital')
+call s:V.unload() " make sure that the following modules are not cached version
+let s:R = s:V.import('VCS.Git.Parser')
+
+
+Describe Vital.VCS.Git.Parser
+
+  Context .parse_record({line})
+    It should return {'foo': 'bar'} for 'foo=bar'
+      let obj = s:R.parse_record('foo=bar')
+      let expected = {'foo': 'bar'}
+      Assert Equals(obj, expected)
+    End
+
+    It should return {'foo': {'bar': {'hoge': 'piyo'}}} for 'foo.bar.hoge=piyo'
+      let obj = s:R.parse_record('foo.bar.hoge=piyo')
+      let expected = {'foo': {'bar': {'hoge': 'piyo'}}}
+      Assert Equals(obj, expected)
+    End
+
+    It should ignore '.' in value
+      let obj = s:R.parse_record('foo.bar.hoge=piyo.piyo')
+      let expected = {'foo': {'bar': {'hoge': 'piyo.piyo'}}}
+      Assert Equals(obj, expected)
+    End
+
+    It should ignore '=' in value
+      let obj = s:R.parse_record('foo.bar.hoge=piyo=piyo')
+      let expected = {'foo': {'bar': {'hoge': 'piyo=piyo'}}}
+      Assert Equals(obj, expected)
+    End
+
+    It should throw an exception for invalid line
+      let parser = s:R
+      Throws /vital: VCS.Git.Parser: Parsing a record failed:/ parser.parse_record('foobar')
+    End
+  End
+
+  Context .parse({config})
+    It should parse formatted config text ('git config --local -l')
+      let config = join([
+            \ 'foo=bar',
+            \ 'foo.bar.hoge=piyo',
+            \ 'foo.bar.foo=piyo.piyo',
+            \ 'foo.bar.bar=piyo=piyo',
+            \], "\n")
+      let obj = s:R.parse(config)
+      " Note:
+      "   'foo=bar' will be overwritten by 'foo.bar.*' but it is assumed
+      "   behavior. the test is meant to be.
+      let expected = {
+            \ 'foo': {
+            \   'bar': {
+            \     'hoge': 'piyo',
+            \     'foo': 'piyo.piyo',
+            \     'bar': 'piyo=piyo',
+            \   },
+            \ },
+            \}
+      Assert Equals(obj, expected)
+    End
+
+  End
+End

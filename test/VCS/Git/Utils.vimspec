@@ -1,0 +1,190 @@
+let s:V = vital#of('vital')
+call s:V.unload() " make sure that the following modules are not cached version
+let s:P = s:V.import('System.Filepath')
+let s:F = s:V.import('System.File')
+let s:U = s:V.import('VCS.Git.Utils')
+
+" FIXME:
+" <sfile> is not available in vimspec thus replace the following code whenever
+" vim-themis support <sfile> in vimspec
+let s:repository_root = g:vital_vcs_git_repository_root
+let s:repo1 = s:P.join([s:repository_root, 'test', 'VCS', 'Git', 'data', 'v1'])
+let s:repo2 = s:P.join([s:repository_root, 'test', 'VCS', 'Git', 'data', 'v2'])
+
+
+Describe Vital.VCS.Git.Utils
+  Before each
+    let s:saved_cwd = getcwd()
+  End
+  After each
+    execute 'cd' s:saved_cwd
+  End
+
+  Context .abspath({base} [, {mods}])
+    Before each
+      execute 'cd' s:repo1
+    End
+
+    It should return an absolute path of a file
+      let path = s:U.abspath('README.md')
+      let expected = s:P.join([s:repo1, 'README.md'])
+      Assert Equals(path, expected)
+    End
+
+    It should return an absolute path of a directory
+      let path = s:U.abspath('foo')
+      let expected = s:P.join([s:repo1, 'foo'])
+      Assert Equals(path, expected)
+    End
+
+    It should return an absolute path of parent direcotry of a file when {mods} is ':p:h' 
+      let path = s:U.abspath(s:P.join('foo', 'bar.txt'), ':p:h')
+      let expected = s:P.join([s:repo1, 'foo'])
+      Assert Equals(path, expected)
+    End
+
+    It should return an empty string for an empty path
+      let path = s:U.abspath('')
+      let expected = ''
+      Assert Equals(path, expected)
+    End
+  End
+
+  Context .force_dirpath({path})
+    Before each
+      execute 'cd' s:repo1
+    End
+
+    It should return an absolute path of a parent directory of a file
+      let path = s:U.force_dirpath('README.md')
+      let expected = s:repo1
+      Assert Equals(path, expected)
+    End
+
+    It should return an absolute path of a directory
+      let path = s:U.force_dirpath('foo')
+      let expected = s:P.join([s:repo1, 'foo'])
+      Assert Equals(path, expected)
+    End
+  End
+
+  Context .find_git({path})
+
+    It should return an absolute path of '.git' directory found in a specified directory
+      execute 'cd' s:repo1
+      let path = s:U.find_git('.')
+      let expected = s:P.join([s:repo1, '.git'])
+      Assert Equals(path, expected)
+    End
+
+    It should return an absolute path of '.git' directory found in a ancestor directory of a specified directory
+      execute 'cd' s:repo1
+      let path = s:U.find_git('foo')
+      let expected = s:P.join([s:repo1, '.git'])
+      Assert Equals(path, expected)
+    End
+
+    It should return an absolute path of '.git' directory found in a parent directory of a specified file
+      execute 'cd' s:repo1
+      let path = s:U.find_git('README.md')
+      let expected = s:P.join([s:repo1, '.git'])
+      Assert Equals(path, expected)
+    End
+
+    It should return an absolute path of '.git' directory found in an ancestor directory of a specified file
+      execute 'cd' s:repo1
+      let path = s:U.find_git(s:P.join(['foo', 'bar.txt']))
+      let expected = s:P.join([s:repo1, '.git'])
+      Assert Equals(path, expected)
+    End
+
+    It should return an absolute path of '.git' file found in a specified directory
+      execute 'cd' s:repo2
+      let path = s:U.find_git('.')
+      let expected = s:P.join([s:repo2, '.git'])
+      Assert Equals(path, expected)
+    End
+
+    It should return an absolute path of '.git' file found in a ancestor directory of a specified directory
+      execute 'cd' s:repo2
+      let path = s:U.find_git('foo')
+      let expected = s:P.join([s:repo2, '.git'])
+      Assert Equals(path, expected)
+    End
+
+    It should return an absolute path of '.git' file found in a parent directory of a specified file
+      execute 'cd' s:repo2
+      let path = s:U.find_git('README.md')
+      let expected = s:P.join([s:repo2, '.git'])
+      Assert Equals(path, expected)
+    End
+
+    It should return an absolute path of '.git' file found in an ancestor directory of a specified file
+      execute 'cd' s:repo2
+      let path = s:U.find_git(s:P.join(['foo', 'bar.txt']))
+      let expected = s:P.join([s:repo2, '.git'])
+      Assert Equals(path, expected)
+    End
+
+  End
+  
+  Context .find_repository({path})
+
+    It should return an absolute path of '.git' directory found in a specified directory
+      execute 'cd' s:repo1
+      let path = s:U.find_repository('.')
+      let expected = s:P.join([s:repo1, '.git'])
+      Assert Equals(path, expected)
+    End
+
+    It should return an absolute path of '.git' directory found in a ancestor directory of a specified directory
+      execute 'cd' s:repo1
+      let path = s:U.find_repository('foo')
+      let expected = s:P.join([s:repo1, '.git'])
+      Assert Equals(path, expected)
+    End
+
+    It should return an absolute path of '.git' directory found in a parent directory of a specified file
+      execute 'cd' s:repo1
+      let path = s:U.find_repository('README.md')
+      let expected = s:P.join([s:repo1, '.git'])
+      Assert Equals(path, expected)
+    End
+
+    It should return an absolute path of '.git' directory found in an ancestor directory of a specified file
+      execute 'cd' s:repo1
+      let path = s:U.find_repository(s:P.join(['foo', 'bar.txt']))
+      let expected = s:P.join([s:repo1, '.git'])
+      Assert Equals(path, expected)
+    End
+
+    It should return an absolute path of a directory pointed in '.git' file found in a specified directory
+      execute 'cd' s:repo2
+      let path = s:U.find_repository('.')
+      let expected = s:repo2 . '.git'
+      Assert Equals(path, expected)
+    End
+
+    It should return an absolute path of a directory pointed in '.git' file found in a ancestor directory of a specified directory
+      execute 'cd' s:repo2
+      let path = s:U.find_repository('foo')
+      let expected = s:repo2 . '.git'
+      Assert Equals(path, expected)
+    End
+
+    It should return an absolute path of a directory pointed in '.git' file found in a parent directory of a specified file
+      execute 'cd' s:repo2
+      let path = s:U.find_repository('README.md')
+      let expected = s:repo2 . '.git'
+      Assert Equals(path, expected)
+    End
+
+    It should return an absolute path of a directory pointed in '.git' file found in an ancestor directory of a specified file
+      execute 'cd' s:repo2
+      let path = s:U.find_repository(s:P.join(['foo', 'bar.txt']))
+      let expected = s:repo2 . '.git'
+      Assert Equals(path, expected)
+    End
+
+  End
+End
