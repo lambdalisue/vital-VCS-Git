@@ -1,0 +1,27 @@
+Initial
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+# On branch master
+#
+# Initial commit
+#
+# Changes to be committed:
+#   (use "git rm --cached <file>..." to unstage)
+#
+#	new file:   .travis.yml
+#	new file:   README.md
+#	new file:   autoload/vital/__latest__/VCS/Git.vim
+#	new file:   autoload/vital/__latest__/VCS/Git/Parser.vim
+#	new file:   autoload/vital/__latest__/VCS/Git/Repository.vim
+#	new file:   autoload/vital/__latest__/VCS/Git/Utils.vim
+#	new file:   test/.themisrc
+#	new file:   test/VCS/Git.vimspec
+#	new file:   test/VCS/Git/Parser.vimspec
+#	new file:   test/VCS/Git/Utils.vimspec
+#	new file:   test/VCS/Git/data/v1/README.txt
+#	new file:   test/VCS/Git/data/v1/foo/bar.txt
+#	new file:   test/VCS/Git/data/v2.git
+#	new file:   test/VCS/Git/data/v2/README.txt
+#	new file:   test/VCS/Git/data/v2/foo/bar.txt
+#

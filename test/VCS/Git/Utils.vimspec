@@ -11,6 +11,27 @@ let s:repository_root = g:vital_vcs_git_repository_root
 let s:repo1 = s:P.join([s:repository_root, 'test', 'VCS', 'Git', 'data', 'v1'])
 let s:repo2 = s:P.join([s:repository_root, 'test', 'VCS', 'Git', 'data', 'v2'])
 
+" Note:
+"   '.git' file and directory is required to test but git does not allowed to
+"   add that kinds of directory thus create it from 'dotgit' file and
+"   directory
+function! s:copy(src, dst)
+  if !isdirectory(a:src)
+    call s:F.copy(a:src, a:dst)
+  else
+    call s:F.mkdir_nothrow(a:dst, 'p')
+    for name in split(globpath(a:src, '*'))
+      call s:copy(s:P.join(a:src, name), s:P.join(a:dst, name))
+    endfor
+  endif
+endfunction
+if isdirectory(s:P.join(s:repo1, 'dotgit'))
+  call s:copy(s:P.join(s:repo1, 'dotgit'), s:P.join(s:repo1, '.git'))
+endif
+if filereadable(s:P.join(s:repo2, 'dotgit'))
+  call s:copy(s:P.join(s:repo2, 'dotgit'), s:P.join(s:repo2, '.git'))
+endif
+
 
 Describe VCS.Git.Utils
   Before each
