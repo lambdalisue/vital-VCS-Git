@@ -12,7 +12,7 @@ let s:repo1 = s:P.join([s:repository_root, 'test', 'VCS', 'Git', 'data', 'v1'])
 let s:repo2 = s:P.join([s:repository_root, 'test', 'VCS', 'Git', 'data', 'v2'])
 
 
-Describe Vital.VCS.Git.Utils
+Describe VCS.Git.Utils
   Before each
     let s:saved_cwd = getcwd()
   End

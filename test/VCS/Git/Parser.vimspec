@@ -3,7 +3,7 @@ call s:V.unload() " make sure that the following modules are not cached version
 let s:R = s:V.import('VCS.Git.Parser')
 
 
-Describe Vital.VCS.Git.Parser
+Describe VCS.Git.Parser
 
   Context .parse_record({line})
     It should return {'foo': 'bar'} for 'foo=bar'
