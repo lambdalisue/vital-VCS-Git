@@ -119,20 +119,18 @@ function! s:is_worktree(...) " {{{
   let opts = { 'cwd': path }
   return s:exec_bool(['rev-parse', '--is-inside-work-tree'], opts)
 endfunction " }}}
-function! s:has_outgoing(...) " {{{
+function! s:count_outgoing(...) " {{{
   let path = get(a:000, 0, '')
   let opts = { 'cwd': path }
-  let result = s:exec(['log', '--oneline', '-n', '1', '@{upstream}..'], opts)
-  let outgoing = substitute(result.stdout, '^[\s\r\n]+|[\s\r\n]+$', '', '')
-  return result.status == 0 && strlen(outgoing) > 0
+  let result = s:exec(['log', '--oneline', '@{upstream}..'], opts)
+  return result.status == 0 ? len(split(result.stdout, '\r?\n')) : 0
 endfunction " }}}
-function! s:has_incoming(...) " {{{
+function! s:count_incoming(...) " {{{
   " Note: 'fetch' must be executed prier to this
   let path = get(a:000, 0, '')
   let opts = { 'cwd': path }
-  let result = s:exec(['log', '--oneline', '-n', '1', '..@{upstream}'], opts)
-  let incoming = substitute(result.stdout, '^[\s\r\n]+|[\s\r\n]+$', '', '')
-  return result.status == 0 && strlen(incoming) > 0
+  let result = s:exec(['log', '--oneline', '..@{upstream}'], opts)
+  return result.status == 0 ? len(split(result.stdout, '\r?\n')) : 0
 endfunction " }}}
 
 " path

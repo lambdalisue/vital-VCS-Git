@@ -136,18 +136,18 @@ Describe VCS.Git
     End
   End
 
-  Context .has_outgoing([{path}])
-    It should return 0/1
+  Context .count_outgoing([{path}])
+    It should return number
       let path = s:ROOT
-      let result = s:G.has_outgoing(path)
+      let result = s:G.count_outgoing(path)
       Assert IsNumber(result)
     End
   End
 
-  Context .has_incoming([{path}])
-    It should return 0/1
+  Context .count_incoming([{path}])
+    It should return number
       let path = s:ROOT
-      let result = s:G.has_incoming(path)
+      let result = s:G.count_incoming(path)
       Assert IsNumber(result)
     End
   End
