@@ -70,6 +70,7 @@ function! s:system(args, ...) " {{{
   " remove invalid options for system()
   unlet opts.stdin
   unlet opts.cwd
+  echo args
   let stdout = s:Process.system(args, opts)
   " remove trailing newline
   let stdout = substitute(stdout, '\v%(\r?\n)$', '', '')

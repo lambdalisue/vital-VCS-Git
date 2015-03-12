@@ -63,7 +63,7 @@ Describe VCS.Git.StatusParser
       let expected = {
             \ 'index': 'U',
             \ 'worktree': 'U',
-            \ 'path': '"f o o/bar/hoge.vim"',
+            \ 'path': 'f o o/bar/hoge.vim',
             \ 'record': record,
             \ 'sign': 'UU',
             \ 'is_conflicted': 1,
@@ -115,8 +115,8 @@ Describe VCS.Git.StatusParser
       let expected = {
             \ 'index': 'R',
             \ 'worktree': ' ',
-            \ 'path': '"f o o/bar/hoge.vim"',
-            \ 'path2': '"f o o/bar/piyo.vim"',
+            \ 'path': 'f o o/bar/hoge.vim',
+            \ 'path2': 'f o o/bar/piyo.vim',
             \ 'record': record,
             \ 'sign': 'R ',
             \ 'is_conflicted': 0,
