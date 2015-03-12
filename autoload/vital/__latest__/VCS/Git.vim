@@ -127,6 +127,7 @@ function! s:has_outgoing(...) " {{{
   return result.status == 0 && strlen(outgoing) > 0
 endfunction " }}}
 function! s:has_incoming(...) " {{{
+  " Note: 'fetch' must be executed prier to this
   let path = get(a:000, 0, '')
   let opts = { 'cwd': path }
   let result = s:exec(['log', '--oneline', '-n', '1', '..@{upstream}'], opts)
