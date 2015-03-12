@@ -5,7 +5,7 @@ A fundamental git manipulation library.
 
 - Version:  0.1.0
 - Author:   Alisue <lambdalisue@hashnote.net>
-- Support:  Vim 7.3 and above (See [https://travis-ci.org/lambdalisue/vital-VCS-Git](travis-ci))
+- Support:  Vim 7.3 and above (See [travis-ci](https://travis-ci.org/lambdalisue/vital-VCS-Git))
 
 
 INTRODUCTIONS
