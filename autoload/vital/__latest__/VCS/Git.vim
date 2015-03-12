@@ -207,6 +207,23 @@ function! s:get_system_config(...) " {{{
   return s:ConfigParser.parse(result.stdout)
 endfunction " }}}
 
+" action
+function! s:add(filepattern, ...) " {{{
+  let options = get(a:000, 0, [])
+  return s:exec(['add', options, '--', a:filepattern])
+endfunction " }}}
+function! s:rm(filepattern, ...) " {{{
+  let options = get(a:000, 0, [])
+  return s:exec(['rm', options, '--', a:filepattern])
+endfunction " }}}
+function! s:reset(filepattern, ...) " {{{
+  let options = get(a:000, 0, [])
+  return s:exec(['reset', options, '--', a:filepattern])
+endfunction " }}}
+function! s:checkout(filepattern, ...) " {{{
+  let options = get(a:000, 0, [])
+  return s:exec(['checkout', options, '--', a:filepattern])
+endfunction " }}}
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
