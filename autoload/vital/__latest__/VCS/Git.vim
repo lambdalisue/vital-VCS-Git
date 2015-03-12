@@ -62,11 +62,15 @@ function! s:system(args, ...) " {{{
     let saved_cwd = getcwd()
     silent execute 'lcd ' fnameescape(expand(opts.cwd))
   endif
-  if s:Process.has_vimproc()
-    let stdout = s:Process.system(args, opts.stdin, opts.timeout)
-  else
-    let stdout = s:Process.system(args, opts.stdin)
+
+  " prevent E677
+  if strlen(opts.stdin)
+    let opts.input = opts.stdin
   endif
+  " remove invalid options for system()
+  unlet opts.stdin
+  unlet opts.cwd
+  let stdout = s:Process.system(args, opts)
   " remove trailing newline
   let stdout = substitute(stdout, '\v%(\r?\n)$', '', '')
   let status = s:Process.get_last_status()
