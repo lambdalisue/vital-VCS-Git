@@ -195,6 +195,13 @@ Describe VCS.Git
     End
   End
 
+  Context .get_remote_branch_name([{path}])
+    It should return a string (branch name)
+      let result = s:G.get_remote_branch_name(s:ROOT)
+      Assert IsString(result)
+    End
+  End
+
   Context .get_status([{path}])
     It should return a dictionary
       let result = s:G.get_status(s:ROOT)

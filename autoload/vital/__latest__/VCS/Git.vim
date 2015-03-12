@@ -174,6 +174,15 @@ function! s:get_branch_name(...) " {{{
   let opts = { 'cwd': path }
   return s:exec_line(['rev-parse', '--abbrev-ref', 'HEAD'], opts)
 endfunction " }}}
+function! s:get_remote_branch_name(...) " {{{
+  let path = get(a:000, 0, '')
+  let opts = { 'cwd': path }
+  " it seems the following is faster than 'rev-parse --abbrev-ref --symbolic-full-name @{u}'
+  " ref: http://stackoverflow.com/questions/171550/find-out-which-remote-branch-a-local-branch-is-tracking
+  let symbolic_ref = s:exec_line(['symbolic-ref', '-q', 'HEAD'], opts)
+  let remote_name = s:exec_line(['for-each-ref', '--format="%(upstream:short)"', symbolic_ref], opts)
+  return remote_name
+endfunction " }}}
 function! s:get_status(...) " {{{
   let path = get(a:000, 0, '')
   let opts = { 'cwd': path }
