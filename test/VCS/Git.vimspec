@@ -1,5 +1,214 @@
 let s:V = vital#of('vital')
-call s:V.unload()
+let s:P = s:V.import('System.Filepath')
+let s:L = s:V.import('Data.List')
+call s:V.unload() " make sure that the following modules are not cached version
+let s:G = s:V.import('VCS.Git')
+
+let s:ROOT = getcwd()
 
 Describe VCS.Git
+  Context .system({args} [, {opts}]})
+    It should execute system command
+      let result = s:G.system(['echo', '-n', 'hello'])
+      Assert Equals(result.status, 0)
+      Assert Equals(result.stdout, 'hello')
+    End
+
+    It should execute system command with nested {args}
+      let result = s:G.system(['echo', ['-n', ['hello']]])
+      Assert Equals(result.status, 0)
+      Assert Equals(result.stdout, 'hello')
+    End
+
+    It should execute system command on a specified working directory
+      let saved_cwd = fnamemodify(getcwd(), ':p')
+      let cwd = fnamemodify(expand("$HOME"), ':p')
+      if saved_cwd ==# cwd
+        let cwd = expand("%:p")
+      endif
+      " 'pwd' command does not include the last separator thus remove it
+      " for comparison
+      let cwd = s:P.remove_last_separator(cwd)
+
+      " FIXME Windows does not have 'pwd'
+      let result = s:G.system(['pwd'], { 'cwd': cwd })
+      Assert Equals(result.status, 0)
+      Assert Equals(result.stdout, cwd)
+      Assert Equals(fnamemodify(getcwd(), ':p'), saved_cwd)
+    End
+  End
+
+  " Note:
+  "   The following tests required to be executed on a directory of a git
+  "   repository root
+  Context .exec({args} [, {opts}])
+    It should execute git command and return a dictionary
+      let result = s:G.exec(['rev-parse', '--show-toplevel'])
+      let expect = {
+            \ 'status': 0,
+            \ 'stdout': printf("%s", s:ROOT),
+            \}
+      Assert Equals(result, expect)
+    End
+
+    It should execute git command on a specified directory
+      let saved_cwd = getcwd()
+      silent execute 'lcd ' expand('$HOME')
+
+      let opts = { 'cwd': s:ROOT }
+      let result = s:G.exec(['rev-parse', '--show-toplevel'], opts)
+      let expect = {
+            \ 'status': 0,
+            \ 'stdout': printf("%s", s:ROOT),
+            \}
+      Assert Equals(result, expect)
+
+      silent execute 'lcd ' saved_cwd
+    End
+
+    It should execute git command on a parent directory of a specified file
+      let saved_cwd = getcwd()
+      silent execute 'lcd ' expand('$HOME')
+
+      let opts = { 'cwd': s:P.join([s:ROOT, 'test', 'VCS', 'Git.vimspec']) }
+      let result = s:G.exec(['rev-parse', '--show-prefix'], opts)
+      let expect = {
+            \ 'status': 0,
+            \ 'stdout': s:P.join(['test', 'VCS']) . s:P.separator(),
+            \}
+      Assert Equals(result, expect)
+
+      silent execute 'lcd ' saved_cwd
+    End
+  End
+
+  Context .exec_bool({args} [, {opts}])
+    It should return 1 for valid command
+      let result = s:G.exec_bool(['rev-parse', '--is-inside-work-tree'])
+      Assert Equals(result, 1)
+    End
+
+    It should return 0 for invalid command
+      let result = s:G.exec_bool(['invalid-action'])
+      Assert Equals(result, 0)
+    End
+  End
+
+  Context .exec_path({args} [, {opts}])
+    It should return a path without trailing separator for valid command
+      let result = s:G.exec_path(['rev-parse', '--show-toplevel'])
+      let expect = s:ROOT
+      Assert Equals(result, expect)
+      Assert True(result . '/' =~ '.*/$')
+      Assert True(result !~ '.*/$')
+    End
+
+    It should return '' for invalid command
+      let result = s:G.exec_path(['invalid-action'])
+      Assert Equals(result, '')
+    End
+  End
+
+  Context .exec_line({args} [, {opts}])
+    It should return a single line stdout for valid command
+      let result = s:G.exec_line(['rev-parse', '--show-toplevel'])
+      let expect = s:ROOT
+      Assert Equals(result, expect)
+    End
+
+    It should return '' for invalid command
+      let result = s:G.exec_line(['invalid-action'])
+      Assert Equals(result, '')
+    End
+  End
+
+  Context .is_worktree([{path}])
+    It should return 1 for git working directory
+      let path = s:ROOT
+      let result = s:G.is_worktree(path)
+      Assert Equals(result, 1)
+    End
+
+    It should return 0 for non git working directory
+      let path = expand('$HOME')
+      let result = s:G.is_worktree(path)
+      Assert Equals(result, 0)
+    End
+  End
+
+  Context .get_repository_path([{path}])
+    It should return a '.git' directory path of a repository which {path} belongs
+      let path = s:ROOT
+      let expect = s:P.join([s:ROOT, '.git'])
+      let result = s:G.get_repository_path(path)
+      Assert Equals(result, expect)
+    End
+  End
+
+  Context .get_worktree_path([{path}])
+    It should return an absolute path of a directory of a repository root which {path} belongs
+      let path = s:ROOT
+      let expect = s:ROOT
+      let result = s:G.get_worktree_path(path)
+      Assert Equals(result, expect)
+    End
+  End
+
+  Context .get_relative_path([{path}])
+    It should return a relative path of {path} from the repository
+      let relpath = s:P.join(['test', 'VCS', 'Git.vimspec'])
+      let abspath = s:P.join([s:ROOT, relpath])
+      let result = s:G.get_relative_path(abspath)
+      Assert Equals(result, relpath)
+    End
+  End
+
+  Context .get_absolute_path([{path}])
+    It should return an absolute path of a relative {path} from the repository
+      let relpath = s:P.join(['test', 'VCS', 'Git.vimspec'])
+      let abspath = s:P.join([s:ROOT, relpath])
+      let result = s:G.get_absolute_path(relpath)
+      Assert Equals(result, abspath)
+    End
+  End
+
+  Context .get_branch_name([{path}])
+    It should return 'master' for branch name
+      let result = s:G.get_branch_name(s:ROOT)
+      Assert Equals(result, 'master')
+    End
+  End
+
+  Context .get_status([{path}])
+    It should return a dictionary
+      let result = s:G.get_status(s:ROOT)
+      Assert IsDict(result)
+    End
+  End
+
+  Context .get_config([{path}])
+    It should return a dictionary
+      let result = s:G.get_config(s:ROOT)
+      Assert IsDict(result)
+    End
+  End
+  Context .get_local_config([{path}])
+    It should return a dictionary
+      let result = s:G.get_local_config(s:ROOT)
+      Assert IsDict(result)
+    End
+  End
+  Context .get_global_config([{path}])
+    It should return a dictionary
+      let result = s:G.get_global_config(s:ROOT)
+      Assert IsDict(result)
+    End
+  End
+  Context .get_system_config([{path}])
+    It should return a dictionary
+      let result = s:G.get_system_config(s:ROOT)
+      Assert IsDict(result)
+    End
+  End
+
 End

@@ -1,0 +1,167 @@
+let s:V = vital#of('vital')
+call s:V.unload() " make sure that the following modules are not cached version
+let s:R = s:V.import('VCS.Git.StatusParser')
+
+
+Describe VCS.Git.StatusParser
+
+  Context .parse_record({line})
+    It should be able to parse 'M  foo/bar/hoge.vim'
+      let record = 'M  foo/bar/hoge.vim'
+      let result = s:R.parse_record(record)
+      let expected = {
+            \ 'index': 'M',
+            \ 'worktree': ' ',
+            \ 'path': 'foo/bar/hoge.vim',
+            \ 'record': record
+            \}
+      Assert Equals(result, expected)
+    End
+    It should be able to parse ' M foo/bar/hoge.vim'
+      let record = ' M foo/bar/hoge.vim'
+      let result = s:R.parse_record(record)
+      let expected = {
+            \ 'index': ' ',
+            \ 'worktree': 'M',
+            \ 'path': 'foo/bar/hoge.vim',
+            \ 'record': record
+            \}
+      Assert Equals(result, expected)
+    End
+    It should be able to parse 'UU foo/bar/hoge.vim'
+      let record = 'UU foo/bar/hoge.vim'
+      let result = s:R.parse_record(record)
+      let expected = {
+            \ 'index': 'U',
+            \ 'worktree': 'U',
+            \ 'path': 'foo/bar/hoge.vim',
+            \ 'record': record
+            \}
+      Assert Equals(result, expected)
+    End
+    It should be able to parse 'UU "f o o/bar/hoge.vim"'
+      let record = 'UU "f o o/bar/hoge.vim"'
+      let result = s:R.parse_record(record)
+      let expected = {
+            \ 'index': 'U',
+            \ 'worktree': 'U',
+            \ 'path': '"f o o/bar/hoge.vim"',
+            \ 'record': record
+            \}
+      Assert Equals(result, expected)
+    End
+    It should be able to parse 'R  foo/bar/hoge.vim -> foo/bar/piyo.vim'
+      let record = 'R  foo/bar/hoge.vim -> foo/bar/piyo.vim'
+      let result = s:R.parse_record(record)
+      let expected = {
+            \ 'index': 'R',
+            \ 'worktree': ' ',
+            \ 'path': 'foo/bar/hoge.vim',
+            \ 'path2': 'foo/bar/piyo.vim',
+            \ 'record': record
+            \}
+      Assert Equals(result, expected)
+    End
+    It should be able to parse 'R  "f o o/bar/hoge.vim" -> "f o o/bar/piyo.vim"'
+      let record = 'R  "f o o/bar/hoge.vim" -> "f o o/bar/piyo.vim"'
+      let result = s:R.parse_record(record)
+      let expected = {
+            \ 'index': 'R',
+            \ 'worktree': ' ',
+            \ 'path': '"f o o/bar/hoge.vim"',
+            \ 'path2': '"f o o/bar/piyo.vim"',
+            \ 'record': record
+            \}
+      Assert Equals(result, expected)
+    End
+    It should return the translation of symbol if 'translate_symbol = 1' is specified
+      let record = 'M  foo/bar/hoge.vim'
+      let result = s:R.parse_record(record, { 'translate_symbol': 1 })
+      let expected = {
+            \ 'index': 'modified',
+            \ 'worktree': 'unmodified',
+            \ 'path': 'foo/bar/hoge.vim',
+            \ 'record': record
+            \}
+      Assert Equals(result, expected)
+    End
+  End
+
+  Context .parse({status})
+    It should parse formatted status text ('git status --short')
+      let status = join([
+            \ ' M foo/bar/hoge1.vim',
+            \ 'M  foo/bar/hoge2.vim',
+            \ 'UU foo/bar/hoge3.vim',
+            \ 'R  foo/bar/hoge4.vim -> foo/bar/hoge5.vim',
+            \], "\n")
+      let result = s:R.parse(status)
+      let expected = {
+            \ 'foo/bar/hoge1.vim': {
+            \   'index': ' ',
+            \   'worktree': 'M',
+            \   'path': 'foo/bar/hoge1.vim',
+            \   'record': ' M foo/bar/hoge1.vim',
+            \ },
+            \ 'foo/bar/hoge2.vim': {
+            \   'index': 'M',
+            \   'worktree': ' ',
+            \   'path': 'foo/bar/hoge2.vim',
+            \   'record': 'M  foo/bar/hoge2.vim',
+            \ },
+            \ 'foo/bar/hoge3.vim': {
+            \   'index': 'U',
+            \   'worktree': 'U',
+            \   'path': 'foo/bar/hoge3.vim',
+            \   'record': 'UU foo/bar/hoge3.vim',
+            \ },
+            \ 'foo/bar/hoge4.vim': {
+            \   'index': 'R',
+            \   'worktree': ' ',
+            \   'path': 'foo/bar/hoge4.vim',
+            \   'path2': 'foo/bar/hoge5.vim',
+            \   'record': 'R  foo/bar/hoge4.vim -> foo/bar/hoge5.vim',
+            \ },
+            \}
+      Assert Equals(result, expected)
+    End
+
+    It should parse formatted status text ('git status --short') with translation ('translate_symbol = 1')
+      let status = join([
+            \ ' M foo/bar/hoge1.vim',
+            \ 'M  foo/bar/hoge2.vim',
+            \ 'UU foo/bar/hoge3.vim',
+            \ 'R  foo/bar/hoge4.vim -> foo/bar/hoge5.vim',
+            \], "\n")
+      let result = s:R.parse(status, { 'translate_symbol': 1 })
+      let expected = {
+            \ 'foo/bar/hoge1.vim': {
+            \   'index': 'unmodified',
+            \   'worktree': 'modified',
+            \   'path': 'foo/bar/hoge1.vim',
+            \   'record': ' M foo/bar/hoge1.vim',
+            \ },
+            \ 'foo/bar/hoge2.vim': {
+            \   'index': 'modified',
+            \   'worktree': 'unmodified',
+            \   'path': 'foo/bar/hoge2.vim',
+            \   'record': 'M  foo/bar/hoge2.vim',
+            \ },
+            \ 'foo/bar/hoge3.vim': {
+            \   'index': 'updated but unmerged',
+            \   'worktree': 'updated but unmerged',
+            \   'path': 'foo/bar/hoge3.vim',
+            \   'record': 'UU foo/bar/hoge3.vim',
+            \ },
+            \ 'foo/bar/hoge4.vim': {
+            \   'index': 'renamed',
+            \   'worktree': 'unmodified',
+            \   'path': 'foo/bar/hoge4.vim',
+            \   'path2': 'foo/bar/hoge5.vim',
+            \   'record': 'R  foo/bar/hoge4.vim -> foo/bar/hoge5.vim',
+            \ },
+            \}
+      Assert Equals(result, expected)
+    End
+  End
+End

@@ -1,5 +1,5 @@
 "******************************************************************************
-" Git config parser
+" Git config parser (parser for 'git config --local -l')
 "
 " Author:   Alisue <lambdalisue@hashnote.net>
 " URL:      http://hashnote.net/
@@ -38,7 +38,7 @@ endfunction
 function! s:parse_record(line) abort
   let m = matchlist(a:line, s:parameter_pattern)
   if len(m) < 3
-    throw 'vital: VCS.Git.Parser: Parsing a record failed: ' . a:line
+    throw 'vital: VCS.Git.ConfigParser: Parsing a record failed: ' . a:line
   endif
   " create a nested object
   let keys = split(m[1], '\.')

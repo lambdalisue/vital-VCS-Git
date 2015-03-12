@@ -1,9 +1,9 @@
 let s:V = vital#of('vital')
 call s:V.unload() " make sure that the following modules are not cached version
-let s:R = s:V.import('VCS.Git.Parser')
+let s:R = s:V.import('VCS.Git.ConfigParser')
 
 
-Describe VCS.Git.Parser
+Describe VCS.Git.ConfigParser
 
   Context .parse_record({line})
     It should return {'foo': 'bar'} for 'foo=bar'
@@ -32,7 +32,7 @@ Describe VCS.Git.Parser
 
     It should throw an exception for invalid line
       let parser = s:R
-      Throws /vital: VCS.Git.Parser: Parsing a record failed:/ parser.parse_record('foobar')
+      Throws /vital: VCS.Git.ConfigParser: Parsing a record failed:/ parser.parse_record('foobar')
     End
   End
 
