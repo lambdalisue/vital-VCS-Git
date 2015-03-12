@@ -1,12 +1,11 @@
-vital-VCS-Git
+vital-VCS-Git [![Build Status](https://travis-ci.org/lambdalisue/vital-VCS-Git.svg)](https://travis-ci.org/lambdalisue/vital-VCS-Git)
 ==============================================================================
-[![Build Status](https://travis-ci.org/lambdalisue/vital-VCS-Git.svg)](https://travis-ci.org/lambdalisue/vital-VCS-Git)
 
 A fundamental git manipulation library.
 
 - Version:  0.1.0
 - Author:   Alisue <lambdalisue@hashnote.net>
-- Support:  Vim 7.4 and above
+- Support:  Vim 7.3 and above (See [https://travis-ci.org/lambdalisue/vital-VCS-Git](travis-ci))
 
 
 INTRODUCTIONS
