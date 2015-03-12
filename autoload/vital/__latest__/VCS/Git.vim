@@ -119,6 +119,20 @@ function! s:is_worktree(...) " {{{
   let opts = { 'cwd': path }
   return s:exec_bool(['rev-parse', '--is-inside-work-tree'], opts)
 endfunction " }}}
+function! s:has_outgoing(...) " {{{
+  let path = get(a:000, 0, '')
+  let opts = { 'cwd': path }
+  let result = s:exec(['log', '--oneline', '-n', '1', '@{upstream}..'], opts)
+  let outgoing = substitute(result.stdout, '^[\s\r\n]+|[\s\r\n]+$', '', '')
+  return result.status == 0 && strlen(outgoing) > 0
+endfunction " }}}
+function! s:has_incoming(...) " {{{
+  let path = get(a:000, 0, '')
+  let opts = { 'cwd': path }
+  let result = s:exec(['log', '--oneline', '-n', '1', '..@{upstream}'], opts)
+  let incoming = substitute(result.stdout, '^[\s\r\n]+|[\s\r\n]+$', '', '')
+  return result.status == 0 && strlen(incoming) > 0
+endfunction " }}}
 
 " path
 function! s:get_repository_path(...) " {{{

@@ -136,6 +136,22 @@ Describe VCS.Git
     End
   End
 
+  Context .has_outgoing([{path}])
+    It should return 0/1
+      let path = s:ROOT
+      let result = s:G.has_outgoing(path)
+      Assert IsNumber(result)
+    End
+  End
+
+  Context .has_incoming([{path}])
+    It should return 0/1
+      let path = s:ROOT
+      let result = s:G.has_incoming(path)
+      Assert IsNumber(result)
+    End
+  End
+
   Context .get_repository_path([{path}])
     It should return a '.git' directory path of a repository which {path} belongs
       let path = s:ROOT
