@@ -68,10 +68,31 @@ function! s:parse(status, ...) abort " {{{
   let opts = extend({
         \ 'fail_silently': 0,
         \}, get(a:000, 0, {}))
-  let obj = {}
+  let obj = {
+        \ 'all': [],
+        \ 'conflicted': [],
+        \ 'staged': [],
+        \ 'unstaged': [],
+        \ 'untracked': [],
+        \ 'ignored': [],
+        \}
   for line in split(a:status, '\v%(\r?\n)+')
     let result = s:parse_record(line, opts)
-    let obj[result.path] = result
+    call add(obj.all, result)
+    if result.is_conflicted
+      call add(obj.conflicted, result)
+    elseif result.is_staged && result.is_unstaged
+      call add(obj.staged, result)
+      call add(obj.unstaged, result)
+    elseif result.is_staged
+      call add(obj.staged, result)
+    elseif result.is_unstaged
+      call add(obj.unstaged, result)
+    elseif result.is_untracked
+      call add(obj.untracked, result)
+    elseif result.is_ignored
+      call add(obj.ignored, result)
+    endif
   endfor
   return obj
 endfunction " }}}
