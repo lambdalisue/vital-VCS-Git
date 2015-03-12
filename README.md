@@ -6,7 +6,7 @@ A fundamental git manipulation library.
 
 - Version:  0.1.0
 - Author:   Alisue <lambdalisue@hashnote.net>
-- Support:  Vim 7.3 and above
+- Support:  Vim 7.4 and above
 
 
 INTRODUCTIONS
