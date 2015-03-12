@@ -12,26 +12,12 @@ set cpo&vim
 
 " Vital ======================================================================
 let s:const = {}
-" status symbols
-" ref: http://git-scm.com/docs/git-status
-let s:const.symbols = {
-      \ ' ': 'unmodified',
-      \ 'M': 'modified',
-      \ 'A': 'added',
-      \ 'D': 'deleted',
-      \ 'R': 'renamed',
-      \ 'C': 'copied',
-      \ 'U': 'updated but unmerged',
-      \ '?': 'untracked',
-      \ '!': 'ignored',
-      \}
-" a regex which much the following expressions
-"   XY PATH
-"   XY "P A T H"
-"   XY PATH1 -> PATH2
-"   XY "P A T H 1" -> "P A T H 2"
-" ref: http://git-scm.com/docs/git-status
 let s:const.status_pattern = '\v^(.)(.)\s("[^"]+"|[^ ]+)%(\s-\>\s("[^"]+"|[^ ]+)|)$'
+let s:const.conflicted_pattern = '\v^%(DD|AU|UD|UA|DU|AA|UU)$'
+let s:const.staged_pattern = '\v^%([MARC][ MD]|D[ M])$'
+let s:const.unstaged_pattern = '\v^%([ MARC][MD]|DM)$'
+let s:const.untracked_pattern = '\v^\?\?$'
+let s:const.ignored_pattern = '\v^!!$'
 
 function! s:_vital_loaded(V) dict abort
   " define constant variables
@@ -39,9 +25,9 @@ function! s:_vital_loaded(V) dict abort
 endfunction
 
 
-function! s:parse_record(line, ...) abort
+function! s:parse_record(line, ...) abort " {{{
   let opts = extend({
-        \ 'translate_symbol': 0,
+        \ 'fail_silently': 0,
         \}, get(a:000, 0, {}))
   let m = matchlist(a:line, s:const.status_pattern)
   let result = {}
@@ -52,26 +38,35 @@ function! s:parse_record(line, ...) abort
     let result.path = m[3]
     let result.path2 = m[4]
     let result.record = a:line
+    let result.sign = m[1] . m[2]
+    let result.is_conflicted = s:is_conflicted(result.sign)
+    let result.is_staged = s:is_staged(result.sign)
+    let result.is_unstaged = s:is_unstaged(result.sign)
+    let result.is_untracked = s:is_untracked(result.sign)
+    let result.is_ignored = s:is_ignored(result.sign)
   elseif len(m) > 4 && m[3] !=# ''
     " 'XY PATH' pattern
     let result.index = m[1]
     let result.worktree = m[2]
     let result.path = m[3]
     let result.record = a:line
+    let result.sign = m[1] . m[2]
+    let result.is_conflicted = s:is_conflicted(result.sign)
+    let result.is_staged = s:is_staged(result.sign)
+    let result.is_unstaged = s:is_unstaged(result.sign)
+    let result.is_untracked = s:is_untracked(result.sign)
+    let result.is_ignored = s:is_ignored(result.sign)
   else
+    if opts.fail_silently
+      return {}
+    endif
     throw 'vital: VCS.Git.StatusParser: Parsing a record failed: ' . a:line
   endif
-  " translate symbol
-  if opts.translate_symbol
-    let result.index = get(s:const.symbols, result.index, result.index)
-    let result.worktree = get(s:const.symbols, result.worktree, result.worktree)
-  endif
   return result
-endfunction
-
-function! s:parse(status, ...) abort
+endfunction " }}}
+function! s:parse(status, ...) abort " {{{
   let opts = extend({
-        \ 'translate_symbol': 0,
+        \ 'fail_silently': 0,
         \}, get(a:000, 0, {}))
   let obj = {}
   for line in split(a:status, '\v%(\r?\n)+')
@@ -79,7 +74,23 @@ function! s:parse(status, ...) abort
     let obj[result.path] = result
   endfor
   return obj
-endfunction
+endfunction " }}}
+
+function! s:is_conflicted(sign) " {{{
+  return a:sign =~# s:const.conflicted_pattern
+endfunction " }}}
+function! s:is_staged(sign) " {{{
+  return a:sign =~# s:const.staged_pattern
+endfunction " }}}
+function! s:is_unstaged(sign) " {{{
+  return a:sign =~# s:const.unstaged_pattern
+endfunction " }}}
+function! s:is_untracked(sign) " {{{
+  return a:sign =~# s:const.untracked_pattern
+endfunction " }}}
+function! s:is_ignored(sign) " {{{
+  return a:sign =~# s:const.ignored_pattern
+endfunction " }}}
 
 let &cpo = s:save_cpo
 unlet s:save_cpo

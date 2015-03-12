@@ -13,7 +13,13 @@ Describe VCS.Git.StatusParser
             \ 'index': 'M',
             \ 'worktree': ' ',
             \ 'path': 'foo/bar/hoge.vim',
-            \ 'record': record
+            \ 'record': record,
+            \ 'sign': 'M ',
+            \ 'is_conflicted': 0,
+            \ 'is_staged': 1,
+            \ 'is_unstaged': 0,
+            \ 'is_untracked': 0,
+            \ 'is_ignored': 0,
             \}
       Assert Equals(result, expected)
     End
@@ -24,7 +30,13 @@ Describe VCS.Git.StatusParser
             \ 'index': ' ',
             \ 'worktree': 'M',
             \ 'path': 'foo/bar/hoge.vim',
-            \ 'record': record
+            \ 'record': record,
+            \ 'sign': ' M',
+            \ 'is_conflicted': 0,
+            \ 'is_staged': 0,
+            \ 'is_unstaged': 1,
+            \ 'is_untracked': 0,
+            \ 'is_ignored': 0,
             \}
       Assert Equals(result, expected)
     End
@@ -35,7 +47,13 @@ Describe VCS.Git.StatusParser
             \ 'index': 'U',
             \ 'worktree': 'U',
             \ 'path': 'foo/bar/hoge.vim',
-            \ 'record': record
+            \ 'record': record,
+            \ 'sign': 'UU',
+            \ 'is_conflicted': 1,
+            \ 'is_staged': 0,
+            \ 'is_unstaged': 0,
+            \ 'is_untracked': 0,
+            \ 'is_ignored': 0,
             \}
       Assert Equals(result, expected)
     End
@@ -46,7 +64,13 @@ Describe VCS.Git.StatusParser
             \ 'index': 'U',
             \ 'worktree': 'U',
             \ 'path': '"f o o/bar/hoge.vim"',
-            \ 'record': record
+            \ 'record': record,
+            \ 'sign': 'UU',
+            \ 'is_conflicted': 1,
+            \ 'is_staged': 0,
+            \ 'is_unstaged': 0,
+            \ 'is_untracked': 0,
+            \ 'is_ignored': 0,
             \}
       Assert Equals(result, expected)
     End
@@ -58,7 +82,13 @@ Describe VCS.Git.StatusParser
             \ 'worktree': ' ',
             \ 'path': 'foo/bar/hoge.vim',
             \ 'path2': 'foo/bar/piyo.vim',
-            \ 'record': record
+            \ 'record': record,
+            \ 'sign': 'R ',
+            \ 'is_conflicted': 0,
+            \ 'is_staged': 1,
+            \ 'is_unstaged': 0,
+            \ 'is_untracked': 0,
+            \ 'is_ignored': 0,
             \}
       Assert Equals(result, expected)
     End
@@ -70,18 +100,13 @@ Describe VCS.Git.StatusParser
             \ 'worktree': ' ',
             \ 'path': '"f o o/bar/hoge.vim"',
             \ 'path2': '"f o o/bar/piyo.vim"',
-            \ 'record': record
-            \}
-      Assert Equals(result, expected)
-    End
-    It should return the translation of symbol if 'translate_symbol = 1' is specified
-      let record = 'M  foo/bar/hoge.vim'
-      let result = s:R.parse_record(record, { 'translate_symbol': 1 })
-      let expected = {
-            \ 'index': 'modified',
-            \ 'worktree': 'unmodified',
-            \ 'path': 'foo/bar/hoge.vim',
-            \ 'record': record
+            \ 'record': record,
+            \ 'sign': 'R ',
+            \ 'is_conflicted': 0,
+            \ 'is_staged': 1,
+            \ 'is_unstaged': 0,
+            \ 'is_untracked': 0,
+            \ 'is_ignored': 0,
             \}
       Assert Equals(result, expected)
     End
@@ -102,18 +127,36 @@ Describe VCS.Git.StatusParser
             \   'worktree': 'M',
             \   'path': 'foo/bar/hoge1.vim',
             \   'record': ' M foo/bar/hoge1.vim',
+            \   'sign': ' M',
+            \   'is_conflicted': 0,
+            \   'is_staged': 0,
+            \   'is_unstaged': 1,
+            \   'is_untracked': 0,
+            \   'is_ignored': 0,
             \ },
             \ 'foo/bar/hoge2.vim': {
             \   'index': 'M',
             \   'worktree': ' ',
             \   'path': 'foo/bar/hoge2.vim',
             \   'record': 'M  foo/bar/hoge2.vim',
+            \   'sign': 'M ',
+            \   'is_conflicted': 0,
+            \   'is_staged': 1,
+            \   'is_unstaged': 0,
+            \   'is_untracked': 0,
+            \   'is_ignored': 0,
             \ },
             \ 'foo/bar/hoge3.vim': {
             \   'index': 'U',
             \   'worktree': 'U',
             \   'path': 'foo/bar/hoge3.vim',
             \   'record': 'UU foo/bar/hoge3.vim',
+            \   'sign': 'UU',
+            \   'is_conflicted': 1,
+            \   'is_staged': 0,
+            \   'is_unstaged': 0,
+            \   'is_untracked': 0,
+            \   'is_ignored': 0,
             \ },
             \ 'foo/bar/hoge4.vim': {
             \   'index': 'R',
@@ -121,47 +164,257 @@ Describe VCS.Git.StatusParser
             \   'path': 'foo/bar/hoge4.vim',
             \   'path2': 'foo/bar/hoge5.vim',
             \   'record': 'R  foo/bar/hoge4.vim -> foo/bar/hoge5.vim',
+            \   'sign': 'R ',
+            \   'is_conflicted': 0,
+            \   'is_staged': 1,
+            \   'is_unstaged': 0,
+            \   'is_untracked': 0,
+            \   'is_ignored': 0,
             \ },
             \}
       Assert Equals(result, expected)
     End
+  End
 
-    It should parse formatted status text ('git status --short') with translation ('translate_symbol = 1')
-      let status = join([
-            \ ' M foo/bar/hoge1.vim',
-            \ 'M  foo/bar/hoge2.vim',
-            \ 'UU foo/bar/hoge3.vim',
-            \ 'R  foo/bar/hoge4.vim -> foo/bar/hoge5.vim',
-            \], "\n")
-      let result = s:R.parse(status, { 'translate_symbol': 1 })
-      let expected = {
-            \ 'foo/bar/hoge1.vim': {
-            \   'index': 'unmodified',
-            \   'worktree': 'modified',
-            \   'path': 'foo/bar/hoge1.vim',
-            \   'record': ' M foo/bar/hoge1.vim',
-            \ },
-            \ 'foo/bar/hoge2.vim': {
-            \   'index': 'modified',
-            \   'worktree': 'unmodified',
-            \   'path': 'foo/bar/hoge2.vim',
-            \   'record': 'M  foo/bar/hoge2.vim',
-            \ },
-            \ 'foo/bar/hoge3.vim': {
-            \   'index': 'updated but unmerged',
-            \   'worktree': 'updated but unmerged',
-            \   'path': 'foo/bar/hoge3.vim',
-            \   'record': 'UU foo/bar/hoge3.vim',
-            \ },
-            \ 'foo/bar/hoge4.vim': {
-            \   'index': 'renamed',
-            \   'worktree': 'unmodified',
-            \   'path': 'foo/bar/hoge4.vim',
-            \   'path2': 'foo/bar/hoge5.vim',
-            \   'record': 'R  foo/bar/hoge4.vim -> foo/bar/hoge5.vim',
-            \ },
-            \}
-      Assert Equals(result, expected)
+
+  let conflicted_signs = ['DD', 'AU', 'UD', 'UA', 'DU', 'AA', 'UU']
+  let staged_signs = [
+        \ 'M ', 'A ', 'D ', 'R ', 'C ',
+        \]
+  let unstaged_signs = [
+        \ ' M', ' D',
+        \]
+  let both_signs = [
+        \ 'MM', 'MD',
+        \ 'AM', 'AD',
+        \ 'DM',
+        \ 'RM', 'RD',
+        \ 'CM', 'CD',
+        \]
+  let untracked_signs = ['??']
+  let ignored_signs = ['!!']
+
+  Context .is_conflicted({sign})
+    It should return 1 for 'DD', 'AU', 'UD', 'UA', 'DU', 'AA', 'UU'
+      for sign in conflicted_signs
+        let result = s:R.is_conflicted(sign)
+        Assert Equals(result, 1)
+      endfor
+    End
+
+    It should return 0 for 'M ', 'A ', 'D ', 'R ', 'C '
+      for sign in staged_signs
+        let result = s:R.is_conflicted(sign)
+        Assert Equals(result, 0)
+      endfor
+    End
+
+    It should return 0 for ' M', ' D'
+      for sign in unstaged_signs
+        let result = s:R.is_conflicted(sign)
+        Assert Equals(result, 0)
+      endfor
+    End
+
+    It should return 0 for 'MM', 'MD', 'AM', 'AD', 'DM', etc.
+      for sign in both_signs
+        let result = s:R.is_conflicted(sign)
+        Assert Equals(result, 0)
+      endfor
+    End
+
+    It should return 0 for '??'
+      for sign in untracked_signs
+        let result = s:R.is_conflicted(sign)
+        Assert Equals(result, 0)
+      endfor
+    End
+
+    It should return 0 for '!!'
+      for sign in ignored_signs
+        let result = s:R.is_conflicted(sign)
+        Assert Equals(result, 0)
+      endfor
+    End
+  End
+
+  Context .is_staged({sign})
+    It should return 0 for 'DD', 'AU', 'UD', 'UA', 'DU', 'AA', 'UU'
+      for sign in conflicted_signs
+        let result = s:R.is_staged(sign)
+        Assert Equals(result, 0)
+      endfor
+    End
+
+    It should return 1 for 'M ', 'A ', 'D ', 'R ', 'C '
+      for sign in staged_signs
+        let result = s:R.is_staged(sign)
+        Assert Equals(result, 1)
+      endfor
+    End
+
+    It should return 0 for ' M', ' D'
+      for sign in unstaged_signs
+        let result = s:R.is_staged(sign)
+        Assert Equals(result, 0)
+      endfor
+    End
+
+    It should return 1 for 'MM', 'MD', 'AM', 'AD', 'DM', etc.
+      for sign in both_signs
+        let result = s:R.is_staged(sign)
+        Assert Equals(result, 1)
+      endfor
+    End
+
+
+    It should return 0 for '??'
+      for sign in untracked_signs
+        let result = s:R.is_staged(sign)
+        Assert Equals(result, 0)
+      endfor
+    End
+
+    It should return 0 for '!!'
+      for sign in ignored_signs
+        let result = s:R.is_staged(sign)
+        Assert Equals(result, 0)
+      endfor
+    End
+  End
+
+  Context .is_unstaged({sign})
+    It should return 0 for 'DD', 'AU', 'UD', 'UA', 'DU', 'AA', 'UU'
+      for sign in conflicted_signs
+        let result = s:R.is_unstaged(sign)
+        Assert Equals(result, 0)
+      endfor
+    End
+
+    It should return 0 for 'M ', 'A ', 'D ', 'R ', 'C '
+      for sign in staged_signs
+        let result = s:R.is_unstaged(sign)
+        Assert Equals(result, 0)
+      endfor
+    End
+
+    It should return 1 for ' M', ' D'
+      for sign in unstaged_signs
+        let result = s:R.is_unstaged(sign)
+        Assert Equals(result, 1)
+      endfor
+    End
+
+    It should return 1 for 'MM', 'MD', 'AM', 'AD', 'DM', etc.
+      for sign in both_signs
+        let result = s:R.is_unstaged(sign)
+        Assert Equals(result, 1)
+      endfor
+    End
+
+
+    It should return 0 for '??'
+      for sign in untracked_signs
+        let result = s:R.is_unstaged(sign)
+        Assert Equals(result, 0)
+      endfor
+    End
+
+    It should return 0 for '!!'
+      for sign in ignored_signs
+        let result = s:R.is_unstaged(sign)
+        Assert Equals(result, 0)
+      endfor
+    End
+  End
+
+  Context .is_untracked({sign})
+    It should return 0 for 'DD', 'AU', 'UD', 'UA', 'DU', 'AA', 'UU'
+      for sign in conflicted_signs
+        let result = s:R.is_untracked(sign)
+        Assert Equals(result, 0)
+      endfor
+    End
+
+    It should return 0 for 'M ', 'A ', 'D ', 'R ', 'C '
+      for sign in staged_signs
+        let result = s:R.is_untracked(sign)
+        Assert Equals(result, 0)
+      endfor
+    End
+
+    It should return 0 for ' M', ' D'
+      for sign in unstaged_signs
+        let result = s:R.is_untracked(sign)
+        Assert Equals(result, 0)
+      endfor
+    End
+
+    It should return 0 for 'MM', 'MD', 'AM', 'AD', 'DM', etc.
+      for sign in both_signs
+        let result = s:R.is_untracked(sign)
+        Assert Equals(result, 0)
+      endfor
+    End
+
+
+    It should return 1 for '??'
+      for sign in untracked_signs
+        let result = s:R.is_untracked(sign)
+        Assert Equals(result, 1)
+      endfor
+    End
+
+    It should return 0 for '!!'
+      for sign in ignored_signs
+        let result = s:R.is_untracked(sign)
+        Assert Equals(result, 0)
+      endfor
+    End
+  End
+
+  Context .is_ignored({sign})
+    It should return 0 for 'DD', 'AU', 'UD', 'UA', 'DU', 'AA', 'UU'
+      for sign in conflicted_signs
+        let result = s:R.is_ignored(sign)
+        Assert Equals(result, 0)
+      endfor
+    End
+
+    It should return 0 for 'M ', 'A ', 'D ', 'R ', 'C '
+      for sign in staged_signs
+        let result = s:R.is_ignored(sign)
+        Assert Equals(result, 0)
+      endfor
+    End
+
+    It should return 0 for ' M', ' D'
+      for sign in unstaged_signs
+        let result = s:R.is_ignored(sign)
+        Assert Equals(result, 0)
+      endfor
+    End
+
+    It should return 0 for 'MM', 'MD', 'AM', 'AD', 'DM', etc.
+      for sign in both_signs
+        let result = s:R.is_ignored(sign)
+        Assert Equals(result, 0)
+      endfor
+    End
+
+
+    It should return 0 for '??'
+      for sign in untracked_signs
+        let result = s:R.is_ignored(sign)
+        Assert Equals(result, 0)
+      endfor
+    End
+
+    It should return 1 for '!!'
+      for sign in ignored_signs
+        let result = s:R.is_ignored(sign)
+        Assert Equals(result, 1)
+      endfor
     End
   End
 End
