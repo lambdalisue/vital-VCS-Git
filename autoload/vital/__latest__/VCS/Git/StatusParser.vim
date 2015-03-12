@@ -12,7 +12,8 @@ set cpo&vim
 
 " Vital ======================================================================
 let s:const = {}
-let s:const.status_pattern = '\v^(.)(.)\s("[^"]+"|[^ ]+)%(\s-\>\s("[^"]+"|[^ ]+)|)$'
+let s:const.status_pattern = '\v^([ MARCU\?!])([ MDUA\?!])\s("[^"]+"|[^ ]+)%(\s-\>\s("[^"]+"|[^ ]+)|)$'
+let s:const.status_pattern2 = '\v^([ MARCU\?!])([ MDUA\?!])\s("[^"]+"|.+)$'
 let s:const.conflicted_pattern = '\v^%(DD|AU|UD|UA|DU|AA|UU)$'
 let s:const.staged_pattern = '\v^%([MARC][ MD]|D[ M])$'
 let s:const.unstaged_pattern = '\v^%([ MARC][MD]|DM)$'
@@ -29,40 +30,42 @@ function! s:parse_record(line, ...) abort " {{{
   let opts = extend({
         \ 'fail_silently': 0,
         \}, get(a:000, 0, {}))
-  let m = matchlist(a:line, s:const.status_pattern)
-  let result = {}
-  if len(m) > 5 && m[4] !=# ''
-    " 'XY PATH1 -> PATH2' pattern
-    let result.index = m[1]
-    let result.worktree = m[2]
-    let result.path = m[3]
-    let result.path2 = m[4]
-    let result.record = a:line
-    let result.sign = m[1] . m[2]
-    let result.is_conflicted = s:is_conflicted(result.sign)
-    let result.is_staged = s:is_staged(result.sign)
-    let result.is_unstaged = s:is_unstaged(result.sign)
-    let result.is_untracked = s:is_untracked(result.sign)
-    let result.is_ignored = s:is_ignored(result.sign)
-  elseif len(m) > 4 && m[3] !=# ''
-    " 'XY PATH' pattern
-    let result.index = m[1]
-    let result.worktree = m[2]
-    let result.path = m[3]
-    let result.record = a:line
-    let result.sign = m[1] . m[2]
-    let result.is_conflicted = s:is_conflicted(result.sign)
-    let result.is_staged = s:is_staged(result.sign)
-    let result.is_unstaged = s:is_unstaged(result.sign)
-    let result.is_untracked = s:is_untracked(result.sign)
-    let result.is_ignored = s:is_ignored(result.sign)
-  else
-    if opts.fail_silently
-      return {}
+  for pattern in [s:const.status_pattern, s:const.status_pattern2]
+    let m = matchlist(a:line, pattern)
+    let result = {}
+    if len(m) > 5 && m[4] !=# ''
+      " 'XY PATH1 -> PATH2' pattern
+      let result.index = m[1]
+      let result.worktree = m[2]
+      let result.path = m[3]
+      let result.path2 = m[4]
+      let result.record = a:line
+      let result.sign = m[1] . m[2]
+      let result.is_conflicted = s:is_conflicted(result.sign)
+      let result.is_staged = s:is_staged(result.sign)
+      let result.is_unstaged = s:is_unstaged(result.sign)
+      let result.is_untracked = s:is_untracked(result.sign)
+      let result.is_ignored = s:is_ignored(result.sign)
+      return result
+    elseif len(m) > 4 && m[3] !=# ''
+      " 'XY PATH' pattern
+      let result.index = m[1]
+      let result.worktree = m[2]
+      let result.path = m[3]
+      let result.record = a:line
+      let result.sign = m[1] . m[2]
+      let result.is_conflicted = s:is_conflicted(result.sign)
+      let result.is_staged = s:is_staged(result.sign)
+      let result.is_unstaged = s:is_unstaged(result.sign)
+      let result.is_untracked = s:is_untracked(result.sign)
+      let result.is_ignored = s:is_ignored(result.sign)
+      return result
     endif
-    throw 'vital: VCS.Git.StatusParser: Parsing a record failed: ' . a:line
+  endfor
+  if opts.fail_silently
+    return {}
   endif
-  return result
+  throw 'vital: VCS.Git.StatusParser: Parsing a record failed: ' . a:line
 endfunction " }}}
 function! s:parse(status, ...) abort " {{{
   let opts = extend({
