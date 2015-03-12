@@ -238,6 +238,10 @@ function! s:checkout(filepattern, ...) " {{{
   let options = get(a:000, 0, [])
   return s:exec(['checkout', options, '--', a:filepattern])
 endfunction " }}}
+function! s:fetch(...) " {{{
+  let options = get(a:000, 0, [])
+  return s:exec(['fetch', options])
+endfunction " }}}
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
