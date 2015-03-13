@@ -48,7 +48,7 @@ function! s:system(args, ...) " {{{
         \}, get(a:000, 0, {}))
   let saved_cwd = ''
   if opts.cwd !=# ''
-    let saved_cwd = getcwd()
+    let saved_cwd = fnamemodify('.', ':p')
     silent execute 'lcd ' fnameescape(expand(opts.cwd))
   endif
 
