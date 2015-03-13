@@ -122,37 +122,21 @@ Describe VCS.Git
     End
   End
 
-  Context .is_worktree([{path}])
+  Context .detect([{path}, {options}])
     It should return 1 for git working directory
       let path = s:ROOT
-      let result = s:G.is_worktree(path)
+      let result = s:G.detect(path)
       Assert Equals(result, 1)
     End
 
     It should return 0 for non git working directory
       let path = expand('$HOME')
-      let result = s:G.is_worktree(path)
+      let result = s:G.detect(path)
       Assert Equals(result, 0)
     End
   End
 
-  Context .count_outgoing([{path}])
-    It should return number
-      let path = s:ROOT
-      let result = s:G.count_outgoing(path)
-      Assert IsNumber(result)
-    End
-  End
-
-  Context .count_incoming([{path}])
-    It should return number
-      let path = s:ROOT
-      let result = s:G.count_incoming(path)
-      Assert IsNumber(result)
-    End
-  End
-
-  Context .get_repository_path([{path}])
+  Context .get_repository_path([{path}, {options}])
     It should return a '.git' directory path of a repository which {path} belongs
       let path = s:ROOT
       let expect = s:P.join([s:ROOT, '.git'])
@@ -161,7 +145,7 @@ Describe VCS.Git
     End
   End
 
-  Context .get_worktree_path([{path}])
+  Context .get_worktree_path([{path}, {options}])
     It should return an absolute path of a directory of a repository root which {path} belongs
       let path = s:ROOT
       let expect = s:ROOT
@@ -170,7 +154,7 @@ Describe VCS.Git
     End
   End
 
-  Context .get_relative_path([{path}])
+  Context .get_relative_path([{path}, {options}])
     It should return a relative path of {path} from the repository
       let relpath = s:P.join(['test', 'VCS', 'Git.vimspec'])
       let abspath = s:P.join([s:ROOT, relpath])
@@ -179,7 +163,7 @@ Describe VCS.Git
     End
   End
 
-  Context .get_absolute_path([{path}])
+  Context .get_absolute_path([{path}, {options}])
     It should return an absolute path of a relative {path} from the repository
       let relpath = s:P.join(['test', 'VCS', 'Git.vimspec'])
       let abspath = s:P.join([s:ROOT, relpath])
@@ -188,57 +172,5 @@ Describe VCS.Git
     End
   End
 
-  Context .get_branch_name([{path}])
-    It should return a string (branch name)
-      let result = s:G.get_branch_name(s:ROOT)
-      Assert IsString(result)
-    End
-  End
-
-  Context .get_remote_branch_name([{path}])
-    It should return a string (branch name)
-      let result = s:G.get_remote_branch_name(s:ROOT)
-      Assert IsString(result)
-    End
-  End
-
-  Context .get_status([{path}])
-    It should return a dictionary
-      let result = s:G.get_status(s:ROOT)
-      Assert IsDict(result)
-    End
-  End
-
-  Context .get_config([{path}])
-    It should return a dictionary
-      let result = s:G.get_config(s:ROOT)
-      Assert IsDict(result)
-    End
-  End
-  Context .get_local_config([{path}])
-    It should return a dictionary
-      let result = s:G.get_local_config(s:ROOT)
-      Assert IsDict(result)
-    End
-  End
-  Context .get_global_config([{path}])
-    It should return a dictionary
-      let result = s:G.get_global_config(s:ROOT)
-      Assert IsDict(result)
-    End
-  End
-  Context .get_system_config([{path}])
-    It should return a dictionary
-      let result = s:G.get_system_config(s:ROOT)
-      Assert IsDict(result)
-    End
-  End
-
-  Context .get_last_commit_message([{path}])
-    It should return a string
-      let result = s:G.get_last_commit_message(s:ROOT)
-      Assert IsString(result)
-    End
-  End
 
 End
