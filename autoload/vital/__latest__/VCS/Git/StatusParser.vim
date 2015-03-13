@@ -1,5 +1,5 @@
 "******************************************************************************
-" Git status (--short) parser
+" Git status (--porcelain) parser
 "
 " Author:   Alisue <lambdalisue@hashnote.net>
 " URL:      http://hashnote.net/

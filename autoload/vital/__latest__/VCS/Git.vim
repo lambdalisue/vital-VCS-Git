@@ -186,7 +186,7 @@ endfunction " }}}
 function! s:get_status(...) " {{{
   let path = get(a:000, 0, '')
   let opts = { 'cwd': path }
-  let result = s:exec(['status', '--short'], opts)
+  let result = s:exec(['status', '--porcelain'], opts)
   if result.status != 0
     return {}
   endif
@@ -227,6 +227,15 @@ function! s:get_system_config(...) " {{{
     return {}
   endif
   return s:ConfigParser.parse(result.stdout)
+endfunction " }}}
+function! s:get_last_commit_message(...) " {{{
+  let path = get(a:000, 0, '')
+  let opts = { 'cwd': path }
+  let result = s:exec(['log', '-1', '--pretty=%B'], opts)
+  if result.status != 0
+    return ''
+  endif
+  return result.stdout
 endfunction " }}}
 
 " action

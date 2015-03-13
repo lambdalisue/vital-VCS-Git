@@ -234,4 +234,11 @@ Describe VCS.Git
     End
   End
 
+  Context .get_last_commit_message([{path}])
+    It should return a string
+      let result = s:G.get_last_commit_message(s:ROOT)
+      Assert IsString(result)
+    End
+  End
+
 End

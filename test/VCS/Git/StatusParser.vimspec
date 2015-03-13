@@ -130,7 +130,7 @@ Describe VCS.Git.StatusParser
   End
 
   Context .parse({status})
-    It should parse formatted status text ('git status --short')
+    It should parse formatted status text ('git status --porcelain')
       let status = join([
             \ ' M foo/bar/hoge1.vim',
             \ 'M  foo/bar/hoge2.vim',
