@@ -12,13 +12,13 @@ set cpo&vim
 
 " Vital ======================================================================
 let s:const = {}
-let s:const.status_pattern = '\v^([ MARCU\?!])([ MDUA\?!])\s("[^"]+"|[^ ]+)%(\s-\>\s("[^"]+"|[^ ]+)|)$'
-let s:const.status_pattern2 = '\v^([ MARCU\?!])([ MDUA\?!])\s("[^"]+"|.+)$'
+let s:const.status_pattern     = '\v^([ MDARCU\?!])([ MDUA\?!])\s("[^"]+"|[^ ]+)%(\s-\>\s("[^"]+"|[^ ]+)|)$'
+let s:const.status_pattern2    = '\v^([ MDARCU\?!])([ MDUA\?!])\s("[^"]+"|.+)$'
 let s:const.conflicted_pattern = '\v^%(DD|AU|UD|UA|DU|AA|UU)$'
-let s:const.staged_pattern = '\v^%([MARC][ MD]|D[ M])$'
-let s:const.unstaged_pattern = '\v^%([ MARC][MD]|DM)$'
-let s:const.untracked_pattern = '\v^\?\?$'
-let s:const.ignored_pattern = '\v^!!$'
+let s:const.staged_pattern     = '\v^%([MARC][ MD]|D[ M])$'
+let s:const.unstaged_pattern   = '\v^%([ MARC][MD]|DM)$'
+let s:const.untracked_pattern  = '\v^\?\?$'
+let s:const.ignored_pattern    = '\v^!!$'
 
 function! s:_vital_loaded(V) dict abort
   " define constant variables
@@ -65,7 +65,7 @@ function! s:parse_record(line, ...) abort " {{{
   if opts.fail_silently
     return {}
   endif
-  throw 'vital: VCS.Git.StatusParser: Parsing a record failed: ' . a:line
+  throw printf('vital: VCS.Git.StatusParser: Parsing a record failed: "%s"', a:line)
 endfunction " }}}
 function! s:parse(status, ...) abort " {{{
   let opts = extend({

@@ -228,25 +228,37 @@ function! s:get_last_commit_message(...) " {{{
 endfunction " }}}
 
 " action
-function! s:add(filepattern, ...) " {{{
+function! s:add(...) " {{{
   let options = get(a:000, 0, [])
-  return s:exec(['add', options, '--', a:filepattern])
+  return s:exec(['add', options])
 endfunction " }}}
-function! s:rm(filepattern, ...) " {{{
+function! s:rm(...) " {{{
   let options = get(a:000, 0, [])
-  return s:exec(['rm', options, '--', a:filepattern])
+  return s:exec(['rm', options])
 endfunction " }}}
-function! s:reset(filepattern, ...) " {{{
+function! s:reset(...) " {{{
   let options = get(a:000, 0, [])
-  return s:exec(['reset', options, '--', a:filepattern])
+  return s:exec(['reset', options])
 endfunction " }}}
-function! s:checkout(filepattern, ...) " {{{
+function! s:checkout(...) " {{{
   let options = get(a:000, 0, [])
-  return s:exec(['checkout', options, '--', a:filepattern])
+  return s:exec(['checkout', options])
 endfunction " }}}
 function! s:fetch(...) " {{{
   let options = get(a:000, 0, [])
   return s:exec(['fetch', options])
+endfunction " }}}
+function! s:push(...) " {{{
+  let options = get(a:000, 0, [])
+  return s:exec(['push', options])
+endfunction " }}}
+function! s:pull(...) " {{{
+  let options = get(a:000, 0, [])
+  return s:exec(['pull', options])
+endfunction " }}}
+function! s:clone(...) " {{{
+  let options = get(a:000, 0, [])
+  return s:exec(['clone', options])
 endfunction " }}}
 
 let &cpo = s:save_cpo
