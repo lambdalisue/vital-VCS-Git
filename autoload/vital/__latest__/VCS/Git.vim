@@ -38,17 +38,6 @@ function! s:_vital_depends() abort " {{{
 endfunction " }}}
 
 
-" Private ====================================================================
-function! s:_ensure_dirname(path) abort " {{{
-  let path = fnameescape(a:path)
-  if isdirectory(path)
-    return fnamemodify(path, ':p')
-  else
-    return fnamemodify(path, ':p:h')
-  endif
-endfunction " }}}
-
-
 " Public =====================================================================
 function! s:system(args, ...) " {{{
   let args = s:List.flatten(a:args)
@@ -84,7 +73,7 @@ function! s:exec(args, ...) " {{{
   let opts = extend({}, get(a:000, 0, {}))
   " ensure cwd is directory
   if has_key(opts, 'cwd')
-    let opts.cwd = s:_ensure_dirname(opts.cwd)
+    let opts.cwd = s:Prelude.path2directory(opts.cwd)
   endif
   return s:system(args, opts)
 endfunction " }}}
