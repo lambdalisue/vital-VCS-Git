@@ -12,12 +12,16 @@ Describe VCS.Git
       let result = s:G.system(['echo', '-n', 'hello'])
       Assert Equals(result.status, 0)
       Assert Equals(result.stdout, 'hello')
+      Assert Equals(result.args, ['echo', '-n', 'hello'])
+      Assert Equals(result.opts, {'stdin': '', 'timeout': 0, 'cwd': ''})
     End
 
     It should execute system command with nested {args}
       let result = s:G.system(['echo', ['-n', ['hello']]])
       Assert Equals(result.status, 0)
       Assert Equals(result.stdout, 'hello')
+      Assert Equals(result.args, ['echo', '-n', 'hello'])
+      Assert Equals(result.opts, {'stdin': '', 'timeout': 0, 'cwd': ''})
     End
 
     It should execute system command on a specified working directory
@@ -34,6 +38,8 @@ Describe VCS.Git
       let result = s:G.system(['pwd'], { 'cwd': cwd })
       Assert Equals(result.status, 0)
       Assert Equals(result.stdout, cwd)
+      Assert Equals(result.args, ['pwd'])
+      Assert Equals(result.opts, {'stdin': '', 'timeout': 0, 'cwd': cwd})
       Assert Equals(fnamemodify(getcwd(), ':p'), saved_cwd)
     End
   End
@@ -47,6 +53,8 @@ Describe VCS.Git
       let expect = {
             \ 'status': 0,
             \ 'stdout': printf("%s", s:ROOT),
+            \ 'args': ['git', '-c', 'color.ui=false', 'rev-parse', '--show-toplevel'],
+            \ 'opts': {'stdin': '', 'timeout': 0, 'cwd': fnamemodify(expand(s:G.config.exec_cwd), ':p:h')},
             \}
       Assert Equals(result, expect)
     End
@@ -60,6 +68,8 @@ Describe VCS.Git
       let expect = {
             \ 'status': 0,
             \ 'stdout': printf("%s", s:ROOT),
+            \ 'args': ['git', '-c', 'color.ui=false', 'rev-parse', '--show-toplevel'],
+            \ 'opts': {'stdin': '', 'timeout': 0, 'cwd': s:ROOT},
             \}
       Assert Equals(result, expect)
 
@@ -70,11 +80,32 @@ Describe VCS.Git
       let saved_cwd = getcwd()
       silent execute 'lcd ' expand('$HOME')
 
-      let opts = { 'cwd': s:P.join([s:ROOT, 'test', 'VCS', 'Git.vimspec']) }
+      let cwd = s:P.join([s:ROOT, 'test', 'VCS', 'Git.vimspec'])
+      let opts = { 'cwd': cwd }
       let result = s:G.exec(['rev-parse', '--show-prefix'], opts)
       let expect = {
             \ 'status': 0,
             \ 'stdout': s:P.join(['test', 'VCS']) . s:P.separator(),
+            \ 'args': ['git', '-c', 'color.ui=false', 'rev-parse', '--show-prefix'],
+            \ 'opts': {'stdin': '', 'timeout': 0, 'cwd': fnamemodify(cwd, ':h')},
+            \}
+      Assert Equals(result, expect)
+
+      silent execute 'lcd ' saved_cwd
+    End
+
+    It should execute git command on a root directory of the repository if 'cwd_to_worktree_top = 1'
+      let saved_cwd = getcwd()
+      silent execute 'lcd ' expand('$HOME')
+
+      let cwd = s:P.join([s:ROOT, 'test', 'VCS', 'Git.vimspec'])
+      let opts = { 'cwd': cwd, 'cwd_to_worktree_top': 1 }
+      let result = s:G.exec(['rev-parse', '--show-prefix'], opts)
+      let expect = {
+            \ 'status': 0,
+            \ 'stdout': '',
+            \ 'args': ['git', '-c', 'color.ui=false', 'rev-parse', '--show-prefix'],
+            \ 'opts': {'stdin': '', 'timeout': 0, 'cwd': s:ROOT},
             \}
       Assert Equals(result, expect)
 

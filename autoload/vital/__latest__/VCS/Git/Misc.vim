@@ -15,6 +15,7 @@ function! s:_vital_loaded(V) dict abort " {{{
   let s:StatusParser = a:V.import('VCS.Git.StatusParser')
   let s:ConfigParser = a:V.import('VCS.Git.ConfigParser')
 
+  let s:config = deepcopy(s:Git.config)
   let self.config = s:config
 endfunction " }}}
 function! s:_vital_depends() abort " {{{
@@ -25,25 +26,25 @@ function! s:_vital_depends() abort " {{{
 endfunction " }}}
 
 function! s:count_commits_ahead_of_remote(...) " {{{
-  let path = get(a:000, 0, '')
+  let path = get(a:000, 0, s:config.misc_path)
   let opts = extend({ 'cwd': path }, get(a:000, 1, {}))
   let result = s:Git.exec(['log', '--oneline', '@{upstream}..'], opts)
   return result.status == 0 ? len(split(result.stdout, '\v%(\r?\n)')) : 0
 endfunction " }}}
 function! s:count_commits_behind_remote(...) " {{{
-  let path = get(a:000, 0, '')
+  let path = get(a:000, 0, s:config.misc_path)
   let opts = extend({ 'cwd': path }, get(a:000, 1, {}))
   let result = s:Git.exec(['log', '--oneline', '..@{upstream}'], opts)
   return result.status == 0 ? len(split(result.stdout, '\v%(\r?\n)')) : 0
 endfunction " }}}
 
 function! s:get_local_branch_name(...) " {{{
-  let path = get(a:000, 0, '')
+  let path = get(a:000, 0, s:config.misc_path)
   let opts = extend({ 'cwd': path }, get(a:000, 1, {}))
   return s:Git.exec_line(['rev-parse', '--abbrev-ref', 'HEAD'], opts)
 endfunction " }}}
 function! s:get_remote_branch_name(...) " {{{
-  let path = get(a:000, 0, '')
+  let path = get(a:000, 0, s:config.misc_path)
   let opts = extend({ 'cwd': path }, get(a:000, 1, {}))
   " it seems the following is faster than 'rev-parse --abbrev-ref --symbolic-full-name @{u}'
   " ref: http://stackoverflow.com/questions/171550/find-out-which-remote-branch-a-local-branch-is-tracking
@@ -57,7 +58,7 @@ function! s:get_remote_branch_name(...) " {{{
 endfunction " }}}
 
 function! s:get_parsed_status(...) " {{{
-  let path = get(a:000, 0, '')
+  let path = get(a:000, 0, s:config.misc_path)
   let opts = extend({ 'cwd': path }, get(a:000, 1, {}))
   let result = s:Git.exec(['status', '--porcelain'], opts)
   if result.status != 0
@@ -66,7 +67,7 @@ function! s:get_parsed_status(...) " {{{
   return s:StatusParser.parse(result.stdout)
 endfunction " }}}
 function! s:get_parsed_config(...) " {{{
-  let path = get(a:000, 0, '')
+  let path = get(a:000, 0, s:config.misc_path)
   let opts = extend({ 'cwd': path, 'scope': '' }, get(a:000, 1, {}))
   if opts.scope ==# ''
     let result = s:Git.exec(['config', '-l'], opts)
@@ -86,7 +87,7 @@ function! s:get_parsed_config(...) " {{{
 endfunction " }}}
 
 function! s:get_last_commit_hashref(...) " {{{
-  let path = get(a:000, 0, '')
+  let path = get(a:000, 0, s:config.misc_path)
   let opts = extend({ 'cwd': path, 'short': 0 }, get(a:000, 1, {}))
   if opts.short
     return s:Git.exec_line(['rev-parse', '--short', 'HEAD'], opts)
@@ -95,7 +96,7 @@ function! s:get_last_commit_hashref(...) " {{{
   endif
 endfunction " }}}
 function! s:get_last_commit_message(...) " {{{
-  let path = get(a:000, 0, '')
+  let path = get(a:000, 0, s:config.misc_path)
   let opts = extend({ 'cwd': path }, get(a:000, 1, {}))
   let result = s:Git.exec(['log', '-1', '--pretty=%B'], opts)
   if result.status != 0

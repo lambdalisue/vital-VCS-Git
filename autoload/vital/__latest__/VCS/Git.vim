@@ -14,6 +14,9 @@ set cpo&vim
 let s:config = {}
 let s:config.executable = 'git'
 let s:config.arguments = ['-c', 'color.ui=false']
+let s:config.exec_cwd = '%'
+let s:config.exec_cwd_to_worktree_top = 0
+let s:config.misc_path = '%'
 
 function! s:_vital_loaded(V) dict abort " {{{
   let s:V = a:V
@@ -33,7 +36,6 @@ function! s:_vital_depends() abort " {{{
         \]
 endfunction " }}}
 
-
 function! s:system(args, ...) " {{{
   let args = s:List.flatten(a:args)
   let opts = extend({
@@ -47,6 +49,7 @@ function! s:system(args, ...) " {{{
     silent execute 'lcd ' fnameescape(expand(opts.cwd))
   endif
 
+  let original_opts = deepcopy(opts)
   " prevent E677
   if strlen(opts.stdin)
     let opts.input = opts.stdin
@@ -61,15 +64,20 @@ function! s:system(args, ...) " {{{
   if saved_cwd !=# ''
     silent execute 'lcd ' fnameescape(saved_cwd)
   endif
-  return { 'stdout': stdout, 'status': status }
+  return { 'stdout': stdout, 'status': status, 'args': args, 'opts': original_opts }
 endfunction " }}}
 function! s:exec(args, ...) " {{{
   let args = [s:config.executable, s:config.arguments, a:args]
-  let opts = extend({}, get(a:000, 0, {}))
-  " ensure cwd is directory
-  if has_key(opts, 'cwd')
-    let opts.cwd = s:Prelude.path2directory(opts.cwd)
+  let opts = extend({
+        \ 'cwd': s:config.exec_cwd,
+        \ 'cwd_to_worktree_top': s:config.exec_cwd_to_worktree_top,
+        \ }, get(a:000, 0, {}))
+  if opts.cwd_to_worktree_top
+    let opts.cwd = s:get_worktree_path(opts.cwd)
   endif
+  unlet opts.cwd_to_worktree_top
+  " ensure cwd is directory
+  let opts.cwd = s:Prelude.path2directory(opts.cwd)
   return s:system(args, opts)
 endfunction " }}}
 function! s:exec_bool(args, ...) " {{{
@@ -99,25 +107,29 @@ endfunction " }}}
 
 " Fundemental Misc
 function! s:detect(...) " {{{
-  let path = get(a:000, 0, '')
-  let opts = { 'cwd': path }
+  let path = get(a:000, 0, s:config.misc_path)
+  let opts = extend({ 'cwd': path }, get(a:000, 1, {}))
+  let opts.cwd_to_worktree_top = 0
   return s:exec_bool(['rev-parse', '--is-inside-work-tree'], opts)
 endfunction " }}}
 function! s:get_repository_path(...) " {{{
-  let path = get(a:000, 0, '')
-  let opts = { 'cwd': path }
+  let path = get(a:000, 0, s:config.misc_path)
+  let opts = extend({ 'cwd': path }, get(a:000, 1, {}))
+  let opts.cwd_to_worktree_top = 0
   " --git-dir sometime does not return absolute path
   let result = s:exec_path(['rev-parse', '--git-dir'], opts)
   return s:Path.remove_last_separator(fnamemodify(result, ':p'))
 endfunction " }}}
 function! s:get_worktree_path(...) " {{{
-  let path = get(a:000, 0, '')
-  let opts = { 'cwd': path }
+  let path = get(a:000, 0, s:config.misc_path)
+  let opts = extend({ 'cwd': path }, get(a:000, 1, {}))
+  let opts.cwd_to_worktree_top = 0
   return s:exec_path(['rev-parse', '--show-toplevel'], opts)
 endfunction " }}}
 function! s:get_relative_path(...) " {{{
-  let path = get(a:000, 0, '')
-  let opts = { 'cwd': path }
+  let path = get(a:000, 0, s:config.misc_path)
+  let opts = extend({ 'cwd': path }, get(a:000, 1, {}))
+  let opts.cwd_to_worktree_top = 0
   let result = s:exec(['rev-parse', '--show-prefix'], opts)
   if result.status != 0
     return ''
@@ -132,8 +144,10 @@ function! s:get_relative_path(...) " {{{
   endif
 endfunction " }}}
 function! s:get_absolute_path(...) " {{{
-  let path = get(a:000, 0, '')
-  let root = s:get_worktree_path(path)
+  let path = get(a:000, 0, s:config.misc_path)
+  let opts = get(a:000, 1, {})
+  let opts.cwd_to_worktree_top = 0
+  let root = s:get_worktree_path(path, opts)
   return s:Path.remove_last_separator(s:Path.join(root, fnameescape(path)))
 endfunction " }}}
 
