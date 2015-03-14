@@ -204,20 +204,20 @@ Describe VCS.Git
   End
 
   Context .{command}({args} [, {options}])
+    let fnames = [
+          \ 'exec',
+          \ 'init', 'add', 'rm', 'mv', 'status', 'commit', 'clean',
+          \ 'log', 'diff', 'show',
+          \ 'branch', 'checkout', 'merge', 'rebase', 'tag',
+          \ 'clone', 'fetch', 'pull', 'push', 'remote',
+          \ 'reset', 'rebase', 'bisect', 'grep', 'stash', 'prune',
+          \ 'rev_parse', 'ls_tree', 'cat_file', 'archive', 'gc',
+          \ 'fsck', 'config', 'help',
+          \]
     It should be defined
-      let fnames = [
-            \ 'exec',
-            \ 'init', 'add', 'rm', 'mv', 'status', 'commit', 'clean',
-            \ 'log', 'diff', 'show',
-            \ 'branch', 'checkout', 'merge', 'rebase', 'tag',
-            \ 'clone', 'fetch', 'pull', 'push', 'remote',
-            \ 'reset', 'rebase', 'bisect', 'grep', 'stash', 'prune',
-            \ 'rev_parse', 'ls_tree', 'cat_file', 'archive', 'gc',
-            \ 'fsck', 'config', 'help',
-            \]
-      let G = s:G
+      let Git = s:G
       for fname in fnames
-        Assert HasKey(G, fname)
+        Assert HasKey(Git, fname)
       endfor
     End
   End

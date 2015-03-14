@@ -172,7 +172,7 @@ function! s:_define_commands() " {{{
     let exec = join([
           \ printf("function! %s%s(args, ...)", sid, fname),
           \ "  let options = get(a:000, 0, {})",
-          \ printf("  return s:exec([%s, a:args], options)", name),
+          \ printf("  return s:exec(['%s', a:args], options)", name),
           \ "endfunction",
           \], "\n")
     execute exec
