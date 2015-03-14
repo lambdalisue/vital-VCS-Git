@@ -151,153 +151,34 @@ function! s:get_absolute_path(...) " {{{
   return s:Path.remove_last_separator(s:Path.join(root, fnameescape(path)))
 endfunction " }}}
 
-" Basic Commands
-function! s:init(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['init', options])
+" Define Git commands
+function! s:_get_SID()
+    return matchstr(expand('<sfile>'), '<SNR>\d\+_\ze_get_SID$')
+endfunction
+function! s:_define_commands() " {{{
+  let fnames = [
+        \ 'init', 'add', 'rm', 'mv', 'status', 'commit', 'clean',
+        \ 'log', 'diff', 'show',
+        \ 'branch', 'checkout', 'merge', 'rebase', 'tag',
+        \ 'clone', 'fetch', 'pull', 'push', 'remote',
+        \ 'reset', 'rebase', 'bisect', 'grep', 'stash', 'prune',
+        \ 'rev_parse', 'ls_tree', 'cat_file', 'archive', 'gc',
+        \ 'fsck', 'config', 'help',
+        \]
+  let sid = s:_get_SID()
+  for fname in fnames
+    " define function dynamically
+    let name = substitute(fname, '_', '-', 'g')"
+    let exec = join([
+          \ printf("function! %s%s(args, ...)", sid, fname),
+          \ "  let options = get(a:000, 0, {})",
+          \ printf("  return s:exec([%s, a:args], options)", name),
+          \ "endfunction",
+          \], "\n")
+    execute exec
+  endfor
 endfunction " }}}
-function! s:add(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['add', options])
-endfunction " }}}
-function! s:rm(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['rm', options])
-endfunction " }}}
-function! s:mv(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['mv', options])
-endfunction " }}}
-function! s:status(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['status', options])
-endfunction " }}}
-function! s:commit(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['commit', options])
-endfunction " }}}
-function! s:clean(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['clean', options])
-endfunction " }}}
-
-" History Commands
-function! s:log(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['log', options])
-endfunction " }}}
-function! s:diff(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['diff', options])
-endfunction " }}}
-function! s:show(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['show', options])
-endfunction " }}}
-
-" Branching Commands
-function! s:branch(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['branch', options])
-endfunction " }}}
-function! s:checkout(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['checkout', options])
-endfunction " }}}
-function! s:merge(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['merge', options])
-endfunction " }}}
-function! s:rebase(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['rebase', options])
-endfunction " }}}
-function! s:tag(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['tag', options])
-endfunction " }}}
-
-" Remote Commands
-function! s:clone(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['clone', options])
-endfunction " }}}
-function! s:fetch(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['fetch', options])
-endfunction " }}}
-function! s:pull(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['pull', options])
-endfunction " }}}
-function! s:push(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['push', options])
-endfunction " }}}
-function! s:remote(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['remote', options])
-endfunction " }}}
-
-" Advanced Commands
-function! s:reset(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['reset', options])
-endfunction " }}}
-function! s:rebase(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['rebase', options])
-endfunction " }}}
-function! s:bisect(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['bisect', options])
-endfunction " }}}
-function! s:grep(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['grep', options])
-endfunction " }}}
-function! s:stash(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['stash', options])
-endfunction " }}}
-function! s:prune(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['prune', options])
-endfunction " }}}
-
-" Misc Commands
-function! s:rev_parse(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['rev-parse', options])
-endfunction " }}}
-function! s:ls_tree(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['ls-tree', options])
-endfunction " }}}
-function! s:cat_file(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['cat-file', options])
-endfunction " }}}
-function! s:archive(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['archive', options])
-endfunction " }}}
-function! s:gc(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['gc', options])
-endfunction " }}}
-function! s:fsck(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['fsck', options])
-endfunction " }}}
-function! s:config(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['config', options])
-endfunction " }}}
-function! s:help(...) " {{{
-  let options = get(a:000, 0, [])
-  return s:exec(['help', options])
-endfunction " }}}
+call s:_define_commands()
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
