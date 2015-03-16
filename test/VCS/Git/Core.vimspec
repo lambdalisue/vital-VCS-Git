@@ -251,7 +251,7 @@ Describe VCS.Git.Core
             \ 'status': 0,
             \ 'stdout': s:P.join(['test', 'VCS']) . s:P.separator(),
             \ 'args': ['git', '-c', 'color.ui=false', 'rev-parse', '--show-prefix'],
-            \ 'opts': {'stdin': '', 'timeout': 0, 'cwd': fnamemodify(cwd, ':h')},
+            \ 'opts': {'stdin': '', 'timeout': 0, 'cwd': cwd},
             \}
       Assert Equals(result, expect)
 
