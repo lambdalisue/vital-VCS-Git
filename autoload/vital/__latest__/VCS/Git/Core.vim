@@ -11,9 +11,9 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 " Vital ======================================================================
-let s:config = {}
-let s:config.executable = 'git'
-let s:config.arguments = ['-c', 'color.ui=false']
+let s:_config = {}
+let s:_config.executable = 'git'
+let s:_config.arguments = ['-c', 'color.ui=false']
 
 function! s:_vital_loaded(V) dict abort " {{{
   let s:V = a:V
@@ -22,7 +22,6 @@ function! s:_vital_loaded(V) dict abort " {{{
   let s:List    = a:V.import('Data.List')
   let s:Path    = a:V.import('System.Filepath')
   let s:INI     = a:V.import('Text.INI')
-  let self.config = s:config
 endfunction " }}}
 function! s:_vital_depends() abort " {{{
   return [
@@ -36,6 +35,12 @@ endfunction " }}}
 function! s:_fnamemodify(path, mods) " {{{
   let path = a:path !=# '' ? fnamemodify(a:path, a:mods) : ''
   return s:Path.remove_last_separator(path)
+endfunction " }}}
+
+function! s:config(...) " {{{
+  let config = get(a:000, 0, {})
+  let s:_config = extend(s:_config, config)
+  return s:_config
 endfunction " }}}
 
 " Repository
@@ -65,6 +70,7 @@ function! s:find_repository(worktree) " {{{
   endif
   return ''
 endfunction " }}}
+
 function! s:get_relative_path(worktree, path) " {{{
   if !s:Path.is_absolute(a:path)
     return a:path
@@ -72,7 +78,6 @@ function! s:get_relative_path(worktree, path) " {{{
   let prefix = a:worktree . s:Path.separator()
   return substitute(a:path, prefix, '', '')
 endfunction " }}}
-
 function! s:get_absolute_path(worktree, path) " {{{
   if !s:Path.is_relative(a:path)
     return a:path
@@ -81,6 +86,9 @@ function! s:get_absolute_path(worktree, path) " {{{
 endfunction " }}}
 
 " Meta (without using 'git rev-parse'. read '.git/*' directory)
+function! s:get_index_updated_time(repository) " {{{
+  return getftime(s:Path.join(a:repository, 'index'))
+endfunction " }}}
 function! s:get_current_branch(repository) " {{{
   let filename = s:Path.join(a:repository, 'HEAD')
   if !filereadable(filename)
@@ -189,7 +197,7 @@ function! s:system(args, ...) " {{{
   return { 'stdout': stdout, 'status': status, 'args': args, 'opts': original_opts }
 endfunction " }}}
 function! s:exec(args, ...) " {{{
-  let args = [s:config.executable, s:config.arguments, a:args]
+  let args = [s:_config.executable, s:_config.arguments, a:args]
   let opts = get(a:000, 0, {})
   return s:system(args, opts)
 endfunction " }}}

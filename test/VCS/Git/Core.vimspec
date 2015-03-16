@@ -10,6 +10,21 @@ let s:C = s:V.import('VCS.Git.Core')
 let s:ROOT = getcwd()
 
 Describe VCS.Git.Core
+
+  Context .config({config})
+    It should return a config dictionary
+      let config = s:C.config()
+      Assert IsDict(config)
+    End
+
+    It should extend a config dictionary
+      let config = s:C.config({'foo': 'bar'})
+      Assert IsDict(config)
+      Assert HasKey(config, 'foo')
+      Assert Equals(config.foo, 'bar')
+    End
+  End
+
   Context .find_worktree({path})
     It should return a top directory path of the working directory
       let path = s:P.join([s:ROOT, 'autoload', 'vital'])
@@ -74,6 +89,14 @@ Describe VCS.Git.Core
       let exp = path
       let ret = s:C.get_absolute_path(worktree, path)
       Assert Equals(ret, exp)
+    End
+  End
+
+  Context .get_index_updated_time(repository)
+    It should return a number which indicate the updated time of repository index
+      let path = s:P.join([s:ROOT, '.git'])
+      let ret = s:C.get_index_updated_time(path)
+      Assert IsNumber(ret)
     End
   End
 

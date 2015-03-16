@@ -11,174 +11,150 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 " Vital ======================================================================
-let s:config = {}
-let s:config.executable = 'git'
-let s:config.arguments = ['-c', 'color.ui=false']
-let s:config.exec_cwd = '%'
-let s:config.exec_cwd_to_worktree_top = 0
-let s:config.misc_path = '%'
-
 function! s:_vital_loaded(V) dict abort " {{{
   let s:V = a:V
-  let s:Prelude = a:V.import('Prelude')
-  let s:Process = a:V.import('Process')
-  let s:List = a:V.import('Data.List')
-  let s:Path = a:V.import('System.Filepath')
-
-  let self.config = s:config
+  let s:SimpleCache = s:V.import('System.Cache.Simple')
+  let s:Core = s:V.import('VCS.Git.Core')
+  let s:Misc = s:V.import('VCS.Git.Misc')
+  let s:Finder = s:V.import('VCS.Git.Finder')
 endfunction " }}}
 function! s:_vital_depends() abort " {{{
   return [
-        \ 'Prelude',
-        \ 'Process',
-        \ 'Data.List',
-        \ 'System.Filepath',
+        \ 'System.Cache.Simple',
+        \ 'VCS.Git.Core',
+        \ 'VCS.Git.Misc',
+        \ 'VCS.Git.Finder',
         \]
 endfunction " }}}
 
-function! s:system(args, ...) " {{{
-  let args = s:List.flatten(a:args)
-  let opts = extend({
-        \ 'stdin': '',
-        \ 'timeout': 0,
-        \ 'cwd': '',
-        \}, get(a:000, 0, {}))
-  let saved_cwd = ''
-  if opts.cwd !=# ''
-    let saved_cwd = fnamemodify('.', ':p')
-    silent execute 'lcd ' fnameescape(expand(opts.cwd))
+" Methods ====================================================================
+function! s:new(worktree, repository) " {{{
+  if !exists('s:cache')
+    let s:cache = s:SimpleCache.new()
   endif
-
-  let original_opts = deepcopy(opts)
-  " prevent E677
-  if strlen(opts.stdin)
-    let opts.input = opts.stdin
+  let git = s:cache.get(a:worktree, {})
+  if !empty(git)
+    return git
   endif
-  " remove invalid options for system()
-  unlet opts.stdin
-  unlet opts.cwd
-  let stdout = s:Process.system(args, opts)
-  " remove trailing newline
-  let stdout = substitute(stdout, '\v%(\r?\n)$', '', '')
-  let status = s:Process.get_last_status()
-  if saved_cwd !=# ''
-    silent execute 'lcd ' fnameescape(saved_cwd)
-  endif
-  return { 'stdout': stdout, 'status': status, 'args': args, 'opts': original_opts }
+  let git = extend(deepcopy(s:git), {
+        \ 'worktree': a:worktree,
+        \ 'repository': a:repository,
+        \ 'cache': s:SimpleCache.new(),
+        \})
+  call s:cache.set(a:worktree, git)
+  return git
 endfunction " }}}
-function! s:exec(args, ...) " {{{
-  let args = [s:config.executable, s:config.arguments, a:args]
-  let opts = extend({
-        \ 'cwd': s:config.exec_cwd,
-        \ 'cwd_to_worktree_top': s:config.exec_cwd_to_worktree_top,
-        \ }, get(a:000, 0, {}))
-  if opts.cwd_to_worktree_top
-    let opts.cwd = s:get_worktree_path(opts.cwd)
+function! s:find(path) " {{{
+  let found = s:Finder.find(a:path)
+  if empty(found)
+    return {}
   endif
-  unlet opts.cwd_to_worktree_top
-  " ensure cwd is directory
-  let opts.cwd = s:Prelude.path2directory(opts.cwd)
-  return s:system(args, opts)
-endfunction " }}}
-function! s:exec_bool(args, ...) " {{{
-  let args = a:args
-  let opts = get(a:000, 0, {})
-  let result = s:exec(args, opts)
-  return result.status == 0 && result.stdout ==# 'true'
-endfunction " }}}
-function! s:exec_path(args, ...) " {{{
-  let args = a:args
-  let opts = get(a:000, 0, {})
-  let result = s:exec(args, opts)
-  if result.status != 0
-    return ''
-  endif
-  return s:Path.remove_last_separator(fnameescape(result.stdout))
-endfunction " }}}
-function! s:exec_line(args, ...) " {{{
-  let args = a:args
-  let opts = get(a:000, 0, {})
-  let result = s:exec(args, opts)
-  if result.status != 0
-    return ''
-  endif
-  return result.stdout
+  return s:new(found.worktree, found.repository)
 endfunction " }}}
 
-" Fundemental Misc
-function! s:detect(...) " {{{
-  let path = get(a:000, 0, s:config.misc_path)
-  let opts = extend({ 'cwd': path }, get(a:000, 1, {}))
-  let opts.cwd_to_worktree_top = 0
-  return s:exec_bool(['rev-parse', '--is-inside-work-tree'], opts)
-endfunction " }}}
-function! s:get_repository_path(...) " {{{
-  let path = get(a:000, 0, s:config.misc_path)
-  let opts = extend({ 'cwd': path }, get(a:000, 1, {}))
-  let opts.cwd_to_worktree_top = 0
-  " --git-dir sometime does not return absolute path
-  let result = s:exec_path(['rev-parse', '--git-dir'], opts)
-  return s:Path.remove_last_separator(fnamemodify(result, ':p'))
-endfunction " }}}
-function! s:get_worktree_path(...) " {{{
-  let path = get(a:000, 0, s:config.misc_path)
-  let opts = extend({ 'cwd': path }, get(a:000, 1, {}))
-  let opts.cwd_to_worktree_top = 0
-  return s:exec_path(['rev-parse', '--show-toplevel'], opts)
-endfunction " }}}
-function! s:get_relative_path(...) " {{{
-  let path = get(a:000, 0, s:config.misc_path)
-  let opts = extend({ 'cwd': path }, get(a:000, 1, {}))
-  let opts.cwd_to_worktree_top = 0
-  let result = s:exec(['rev-parse', '--show-prefix'], opts)
-  if result.status != 0
-    return ''
+" Object =====================================================================
+let s:git = {}
+function! s:git._get_cache(name) " {{{
+  let uptime = self.get_index_updated_time()
+  let cached = self.cache.get(a:name, {})
+  if !empty(cached) && get(cached, 'actime', 0) >= uptime
+    return cached
   endif
-  if isdirectory(path)
-    return s:Path.remove_last_separator(fnameescape(result.stdout))
-  else
-    return s:Path.remove_last_separator(s:Path.join(
-          \ fnameescape(result.stdout),
-          \ fnamemodify(fnameescape(path), ':t')
-          \))
-  endif
+  return {}
 endfunction " }}}
-function! s:get_absolute_path(...) " {{{
-  let path = get(a:000, 0, s:config.misc_path)
-  let opts = get(a:000, 1, {})
-  let opts.cwd_to_worktree_top = 0
-  let root = s:get_worktree_path(path, opts)
-  return s:Path.remove_last_separator(s:Path.join(root, fnameescape(path)))
+function! s:git._set_cache(name, obj) " {{{
+  let uptime = self.get_index_updated_time()
+  let obj = extend({ 'actime': uptime }, a:obj)
+  call self.cache.set(a:name, obj)
+  return obj
+endfunction " }}}
+function! s:git._get_call_opts() " {{{
+  return { 'cwd': self.worktree }
+endfunction " }}}
+function! s:git.get_index_updated_time() " {{{
+  return call(s:Core.get_index_updated_time, [self.repository], s:Core)
+endfunction " }}}
+function! s:git.get_parsed_status() " {{{
+  let status = self._get_cache('status')
+  if !empty(status)
+    return status
+  endif
+  let status = s:Misc.get_parsed_status(self._get_call_opts())
+  return self._set_cache('status', status)
+endfunction " }}}
+function! s:git.get_parsed_config() " {{{
+  let config = self._get_cache('config')
+  if !empty(config)
+    return config
+  endif
+  let config = s:Misc.get_parsed_config(self._get_call_opts())
+  return self._set_cache('config', config)
+endfunction " }}}
+function! s:git.get_meta() " {{{
+  let meta = self._get_cache('meta')
+  if !empty(meta)
+    return meta
+  endif
+  let meta = {}
+  let meta.current_branch = s:Core.get_current_branch(self.repository)
+  let meta.last_commit_hashref = s:Core.get_last_commit_hashref(self.repository)
+  let meta.last_commit_message = s:Core.get_last_commit_message(self.repository)
+  let meta.last_merge_message = s:Core.get_last_merge_message(self.repository)
+  let meta.config = s:Core.get_config(self.repository)
+  let meta.current_branch_remote = s:Core.get_branch_remote(meta.config, meta.current_branch)
+  let meta.current_branch_merge = s:Core.get_branch_merge(meta.config, meta.current_branch)
+  let meta.current_remote_url = s:Core.get_remote_url(meta.config, meta.current_branch_remote)
+  let meta.commits_ahead_of_remote = s:Misc.count_commits_ahead_of_remote(self._get_call_opts())
+  let meta.commits_behind_remote = s:Misc.count_commits_behind_remote(self._get_call_opts())
+  return self._set_cache('meta', meta)
+endfunction " }}}
+function! s:git.get_current_branch() " {{{
+  let meta = s:git.get_meta()
+  return meta.current_branch
+endfunction " }}}
+function! s:git.get_last_commit_hashref() " {{{
+  let meta = s:git.get_meta()
+  return meta.last_commit_hashref
+endfunction " }}}
+function! s:git.get_last_commit_message() " {{{
+  let meta = s:git.get_meta()
+  return meta.last_commit_message
+endfunction " }}}
+function! s:git.get_last_merge_message() " {{{
+  let meta = s:git.get_meta()
+  return meta.last_merge_message
+endfunction " }}}
+function! s:git.get_current_branch_remote() " {{{
+  let meta = s:git.get_meta()
+  return meta.current_branch_remote
+endfunction " }}}
+function! s:git.get_current_branch_merge() " {{{
+  let meta = s:git.get_meta()
+  return meta.current_branch_merge
+endfunction " }}}
+function! s:git.get_current_remote_url() " {{{
+  let meta = s:git.get_meta()
+  return meta.current_remote_url
+endfunction " }}}
+function! s:git.get_commits_ahead_of_remote() " {{{
+  let meta = s:git.get_meta()
+  return meta.commits_ahead_of_remote
+endfunction " }}}
+function! s:git.get_commits_behind_remote() " {{{
+  let meta = s:git.get_meta()
+  return meta.commits_behind_remote
+endfunction " }}}
+function! s:git.get_relative_path(path) " {{{
+  return s:Core.get_relative_path(self.worktree, a:path)
+endfunction " }}}
+function! s:git.get_absolute_path(path) " {{{
+  return s:Core.get_absolute_path(self.worktree, a:path)
+endfunction " }}}
+function! s:git.exec(args, ...) " {{{
+  let opts = extend(self._get_call_opts(), get(a:000, 0, {}))
+  return s:Core.exec(a:args, opts)
 endfunction " }}}
 
-" Define Git commands
-function! s:_get_SID()
-    return matchstr(expand('<sfile>'), '<SNR>\d\+_\ze_get_SID$')
-endfunction
-function! s:_define_commands() " {{{
-  let fnames = [
-        \ 'init', 'add', 'rm', 'mv', 'status', 'commit', 'clean',
-        \ 'log', 'diff', 'show',
-        \ 'branch', 'checkout', 'merge', 'rebase', 'tag',
-        \ 'clone', 'fetch', 'pull', 'push', 'remote',
-        \ 'reset', 'rebase', 'bisect', 'grep', 'stash', 'prune',
-        \ 'rev_parse', 'ls_tree', 'cat_file', 'archive', 'gc',
-        \ 'fsck', 'config', 'help',
-        \]
-  let sid = s:_get_SID()
-  for fname in fnames
-    " define function dynamically
-    let name = substitute(fname, '_', '-', 'g')"
-    let exec = join([
-          \ printf("function! %s%s(args, ...)", sid, fname),
-          \ "  let options = get(a:000, 0, {})",
-          \ printf("  return s:exec(['%s', a:args], options)", name),
-          \ "endfunction",
-          \], "\n")
-    execute exec
-  endfor
-endfunction " }}}
-call s:_define_commands()
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
