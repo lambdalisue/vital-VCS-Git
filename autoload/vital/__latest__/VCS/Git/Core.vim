@@ -65,6 +65,20 @@ function! s:find_repository(worktree) " {{{
   endif
   return ''
 endfunction " }}}
+function! s:get_relative_path(worktree, path) " {{{
+  if !s:Path.is_absolute(a:path)
+    return a:path
+  endif
+  let prefix = a:worktree . s:Path.separator()
+  return substitute(a:path, prefix, '', '')
+endfunction " }}}
+
+function! s:get_absolute_path(worktree, path) " {{{
+  if !s:Path.is_relative(a:path)
+    return a:path
+  endif
+  return s:Path.join([a:worktree, a:path])
+endfunction " }}}
 
 " Meta (without using 'git rev-parse'. read '.git/*' directory)
 function! s:get_current_branch(repository) " {{{

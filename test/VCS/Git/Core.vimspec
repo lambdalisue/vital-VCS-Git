@@ -41,6 +41,42 @@ Describe VCS.Git.Core
     End
   End
 
+  Context .get_relative_path(worktree, path)
+    It should return a relative path from {worktree} of an absolute {path}
+      let worktree = s:ROOT
+      let path = s:P.join([s:ROOT, 'autoload', 'vital'])
+      let exp = s:P.join(['autoload', 'vital'])
+      let ret = s:C.get_relative_path(worktree, path)
+      Assert Equals(ret, exp)
+    End
+
+    It should return a {path} if {path} is not absolute path
+      let worktree = s:ROOT
+      let path = s:P.join(['.vim', 'plugin'])
+      let exp = path
+      let ret = s:C.get_relative_path(worktree, path)
+      Assert Equals(ret, exp)
+    End
+  End
+
+  Context .get_absolute_path(worktree, path)
+    It should return an absolute path of a relative {path} from {worktree}
+      let worktree = s:ROOT
+      let path = s:P.join(['autoload', 'vital'])
+      let exp = s:P.join([s:ROOT, 'autoload', 'vital'])
+      let ret = s:C.get_absolute_path(worktree, path)
+      Assert Equals(ret, exp)
+    End
+
+    It should return a {path} if {path} is not relative path
+      let worktree = s:ROOT
+      let path = s:P.join([expand('~'), '.vim', 'plugin'])
+      let exp = path
+      let ret = s:C.get_absolute_path(worktree, path)
+      Assert Equals(ret, exp)
+    End
+  End
+
   Context .get_current_branch({repository})
     It should return a current branch name of the git repository
       " get a correct value via 'git' command
