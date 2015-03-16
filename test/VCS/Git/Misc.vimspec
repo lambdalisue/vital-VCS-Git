@@ -10,7 +10,7 @@ Describe VCS.Git.Misc
   Context .count_commits_ahead_of_remote([{path}, {options}])
     It should return number
       let path = s:ROOT
-      let result = s:M.count_commits_ahead_of_remote(path)
+      let result = s:M.count_commits_ahead_of_remote()
       Assert IsNumber(result)
     End
   End
@@ -18,49 +18,22 @@ Describe VCS.Git.Misc
   Context .count_commits_behind_remote([{path}, {options}])
     It should return number
       let path = s:ROOT
-      let result = s:M.count_commits_behind_remote(path)
+      let result = s:M.count_commits_behind_remote()
       Assert IsNumber(result)
-    End
-  End
-
-  Context .get_local_branch_name([{path}, {options}])
-    It should return a string
-      let result = s:M.get_local_branch_name(s:ROOT)
-      Assert IsString(result)
-    End
-  End
-
-  Context .get_remote_branch_name([{path}, {options}])
-    It should return a string
-      let result = s:M.get_remote_branch_name(s:ROOT)
-      Assert IsString(result)
     End
   End
 
   Context .get_status([{path}, {options}])
     It should return a dictionary
-      let result = s:M.get_parsed_status(s:ROOT)
+      let result = s:M.get_parsed_status()
       Assert IsDict(result)
     End
   End
 
   Context .get_config([{path}, {options}])
     It should return a dictionary
-      let result = s:M.get_parsed_config(s:ROOT)
+      let result = s:M.get_parsed_config()
       Assert IsDict(result)
-    End
-  End
-
-  Context .get_last_commit_hashref([{path}, {options}])
-    It should return a string
-      let result = s:M.get_last_commit_hashref(s:ROOT)
-      Assert IsString(result)
-    End
-  End
-  Context .get_last_commit_message([{path}, {options}])
-    It should return a string
-      let result = s:M.get_last_commit_message(s:ROOT)
-      Assert IsString(result)
     End
   End
 End

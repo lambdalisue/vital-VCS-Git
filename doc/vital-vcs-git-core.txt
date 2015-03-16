@@ -37,23 +37,19 @@ Git commands		|Vital.VCS.Git.Core-git-commands|
 ==============================================================================
 FUNCTIONS				*Vital.VCS.Git.Core-functions*
 
-find_git({path})			*Vital.VCS.Git.Core.find_git()*
+find_worktree({path}			*Vital.VCS.Git.Core.find_worktree()*
 
-	Try to find a '.git' directory or file recursively from a specified
-	directory of {path} or a parent directory of {path} when the {path}
-	points a file.
-	It return an absolute path of found '.git' directory (or file) if it
-	found. Otherwise it return an empty string.
+	Try to find a top path of a git working tree recursively from a
+	specified directory of {path} or a parent directory of {path} when the
+	{path} points a file.
+	It return an absolute path if a working tree found. Otherwise it
+	return an empty string.
 
-find_worktree({dotgit}			*Vital.VCS.Git.Core.find_worktree()*
+find_repository({worktree}		*Vital.VCS.Git.Core.find_repository()*
 
-	It return an absolute path of working tree which the {dotgit} points.
-	{dotgit} should be obtained by |Vital.VCS.Git.Core.find_worktree()|.
-
-find_repository({dotgit}		*Vital.VCS.Git.Core.find_repository()*
-
-	It return an absolute path of repository path which the {dotgit} points.
-	{dotgit} should be obtained by |Vital.VCS.Git.Core.find_worktree()|.
+	It return an absolute path of a repository path which the {worktree}
+	path points.
+	{worktree} should be obtained by |Vital.VCS.Git.Core.find_worktree()|.
 
 system({args} [, {opts}])		*Vital.VCS.Git.Core.system()*
 	

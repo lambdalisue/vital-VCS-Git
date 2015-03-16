@@ -1,0 +1,259 @@
+let s:V = vital#of('vital')
+let s:P = s:V.import('System.Filepath')
+call s:V.unload() " make sure that the following modules are not cached version
+let s:C = s:V.import('VCS.Git.Core')
+
+" Note:
+"   The test should be executed on a top directory of git working tree
+"   Remember that 'repository' points a '.git' directory and 'worktree'
+"   points a directory which contains a '.git' directory.
+let s:ROOT = getcwd()
+
+Describe VCS.Git.Core
+  Context .find_worktree({path})
+    It should return a top directory path of the working directory
+      let path = s:P.join([s:ROOT, 'autoload', 'vital'])
+      let exp = s:ROOT
+      let ret = s:C.find_worktree(path)
+      Assert Equals(ret, exp)
+    End
+    It should return an empty string for a non git working directory
+      let path = s:P.join([s:ROOT, '.git', 'info'])
+      let exp = ''
+      let ret = s:C.find_worktree(path)
+      Assert Equals(ret, exp)
+    End
+  End
+
+  Context .find_repository({worktree})
+    It should return a '.git' directory path of the working directory
+      let path = s:ROOT
+      let exp = s:P.join([s:ROOT, '.git'])
+      let ret = s:C.find_repository(path)
+      Assert Equals(ret, exp)
+    End
+
+    It should return an empty string for a non git working directory
+      let path = s:P.join([s:ROOT, '.git'])
+      let exp = ''
+      let ret = s:C.find_repository(path)
+      Assert Equals(ret, exp)
+    End
+  End
+
+  Context .get_current_branch({repository})
+    It should return a current branch name of the git repository
+      " get a correct value via 'git' command
+      let r = s:C.exec(['rev-parse', '--abbrev-ref', 'HEAD'])
+      let e = substitute(r.stdout, '\v^[\s\r\n"]*|[\s\r\n"]*$', '', 'g')
+
+      let path = s:P.join([s:ROOT, '.git'])
+      let exp = e
+      let ret = s:C.get_current_branch(path)
+      Assert Equals(ret, exp)
+    End
+    It should return an empty string for a non git repository
+      let path = s:ROOT
+      let exp = ''
+      let ret = s:C.get_current_branch(path)
+      Assert Equals(ret, exp)
+    End
+  End
+
+  Context .get_last_commit_hashref({repository})
+    It should return a last commit hash reference of the git repository
+      " get a correct value via 'git' command
+      let r = s:C.exec(['rev-parse', 'HEAD'])
+      let e = substitute(r.stdout, '\v^[\s\r\n"]*|[\s\r\n"]*$', '', 'g')
+
+      let path = s:P.join([s:ROOT, '.git'])
+      let exp = e
+      let ret = s:C.get_last_commit_hashref(path)
+      Assert Equals(ret, exp)
+    End
+    It should return an empty string for a non git repository
+      let path = s:ROOT
+      let exp = ''
+      let ret = s:C.get_last_commit_hashref(path)
+      Assert Equals(ret, exp)
+    End
+  End
+
+  Context .get_last_commit_message({repository})
+    It should return a last commit message of the git repository
+      " get a correct value via 'git' command
+      let r = s:C.exec(['log', '-1', '--pretty=%B'])
+      let e = split(r.stdout, "\n")
+
+      let path = s:P.join([s:ROOT, '.git'])
+      let exp = e
+      let ret = s:C.get_last_commit_message(path)
+      Assert Equals(ret, exp)
+    End
+    It should return an empty string for a non git repository
+      let path = s:ROOT
+      let exp = []
+      let ret = s:C.get_last_commit_message(path)
+      Assert Equals(ret, exp)
+    End
+  End
+
+  Context .get_last_merge_message({repository})
+    It should return a last merge message of the git repository
+      Skip 'this required to be executed in conflict situation.'
+    End
+    It should return an empty string for a non git repository
+      let path = s:ROOT
+      let exp = []
+      let ret = s:C.get_last_commit_message(path)
+      Assert Equals(ret, exp)
+    End
+  End
+
+  Context .get_config({repository})
+    It should return a parsed config dictionary
+      let path = s:P.join([s:ROOT, '.git'])
+      let ret = s:C.get_config(path)
+      Assert HasKey(ret, 'core')
+    End
+
+    It should return an empty dictionary for a non git repository
+      let path = s:ROOT
+      let ret = s:C.get_config(path)
+      Assert Equals(ret, {})
+    End
+  End
+
+  Context .get_branch_remote({config}, {local_branch})
+    It should return a name of remote which the branch connected
+      let config = { 'branch "master"': { 'remote': 'origin' } }
+      let ret = s:C.get_branch_remote(config, 'master')
+      Assert Equals(ret, 'origin')
+    End
+
+    It should return an empty string for invalid branch
+      let config = { 'branch "master"': { 'remote': 'origin' } }
+      let ret = s:C.get_branch_remote(config, 'invalid')
+      Assert Equals(ret, '')
+    End
+  End
+
+  Context .get_branch_merge({config}, {local_branch})
+    It should return a value of merge which the branch connected
+      let config = { 'branch "master"': { 'merge': 'refs/heads/origin' } }
+      let ret = s:C.get_branch_merge(config, 'master')
+      Assert Equals(ret, 'refs/heads/origin')
+    End
+
+    It should return a truncated value of merge which the branch connected
+      let config = { 'branch "master"': { 'merge': 'refs/heads/origin' } }
+      let ret = s:C.get_branch_merge(config, 'master', 1)
+      Assert Equals(ret, 'origin')
+    End
+
+    It should return an empty string for invalid branch
+      let config = { 'branch "master"': { 'merge': 'refs/heads/origin' } }
+      let ret = s:C.get_branch_merge(config, 'invalid')
+      Assert Equals(ret, '')
+    End
+  End
+
+  Context .get_remote_url({config}, {remote})
+    It should return a url of the specified remote
+      let config = { 'remote "origin"': { 'url': 'foo/bar' } }
+      let ret = s:C.get_remote_url(config, 'origin')
+      Assert Equals(ret, 'foo/bar')
+    End
+
+    It should return an empty string for invalid branch
+      let config = { 'remote "origin"': { 'url': 'foo/bar' } }
+      let ret = s:C.get_remote_url(config, 'invalid')
+      Assert Equals(ret, '')
+    End
+  End
+
+  Context .system({args} [, {opts}]})
+    It should execute system command
+      let result = s:C.system(['echo', '-n', 'hello'])
+      Assert Equals(result.status, 0)
+      Assert Equals(result.stdout, 'hello')
+      Assert Equals(result.args, ['echo', '-n', 'hello'])
+      Assert Equals(result.opts, {'stdin': '', 'timeout': 0, 'cwd': ''})
+    End
+
+    It should execute system command with nested {args}
+      let result = s:C.system(['echo', ['-n', ['hello']]])
+      Assert Equals(result.status, 0)
+      Assert Equals(result.stdout, 'hello')
+      Assert Equals(result.args, ['echo', '-n', 'hello'])
+      Assert Equals(result.opts, {'stdin': '', 'timeout': 0, 'cwd': ''})
+    End
+
+    It should execute system command on a specified working directory
+      let saved_cwd = fnamemodify(getcwd(), ':p')
+      let cwd = fnamemodify(expand("$HOME"), ':p')
+      if saved_cwd ==# cwd
+        let cwd = expand("%:p")
+      endif
+      " 'pwd' command does not include the last separator thus remove it
+      " for comparison
+      let cwd = s:P.remove_last_separator(cwd)
+
+      " FIXME Windows does not have 'pwd'
+      let result = s:C.system(['pwd'], { 'cwd': cwd })
+      Assert Equals(result.status, 0)
+      Assert Equals(result.stdout, cwd)
+      Assert Equals(result.args, ['pwd'])
+      Assert Equals(result.opts, {'stdin': '', 'timeout': 0, 'cwd': cwd})
+      Assert Equals(fnamemodify(getcwd(), ':p'), saved_cwd)
+    End
+  End
+
+  Context .exec({args} [, {opts}])
+    It should execute git command and return a dictionary
+      let result = s:C.exec(['rev-parse', '--show-toplevel'])
+      let expect = {
+            \ 'status': 0,
+            \ 'stdout': printf("%s", s:ROOT),
+            \ 'args': ['git', '-c', 'color.ui=false', 'rev-parse', '--show-toplevel'],
+            \ 'opts': {'stdin': '', 'timeout': 0, 'cwd': ''},
+            \}
+      Assert Equals(result, expect)
+    End
+
+    It should execute git command on a specified directory
+      let saved_cwd = getcwd()
+      silent execute 'lcd ' expand('$HOME')
+
+      let opts = { 'cwd': s:ROOT }
+      let result = s:C.exec(['rev-parse', '--show-toplevel'], opts)
+      let expect = {
+            \ 'status': 0,
+            \ 'stdout': printf("%s", s:ROOT),
+            \ 'args': ['git', '-c', 'color.ui=false', 'rev-parse', '--show-toplevel'],
+            \ 'opts': {'stdin': '', 'timeout': 0, 'cwd': s:ROOT},
+            \}
+      Assert Equals(result, expect)
+
+      silent execute 'lcd ' saved_cwd
+    End
+
+    It should execute git command on a parent directory of a specified file
+      let saved_cwd = getcwd()
+      silent execute 'lcd ' expand('$HOME')
+
+      let cwd = s:P.join([s:ROOT, 'test', 'VCS', 'Git.vimspec'])
+      let opts = { 'cwd': cwd }
+      let result = s:C.exec(['rev-parse', '--show-prefix'], opts)
+      let expect = {
+            \ 'status': 0,
+            \ 'stdout': s:P.join(['test', 'VCS']) . s:P.separator(),
+            \ 'args': ['git', '-c', 'color.ui=false', 'rev-parse', '--show-prefix'],
+            \ 'opts': {'stdin': '', 'timeout': 0, 'cwd': fnamemodify(cwd, ':h')},
+            \}
+      Assert Equals(result, expect)
+
+      silent execute 'lcd ' saved_cwd
+    End
+  End
+End
