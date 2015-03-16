@@ -1,0 +1,136 @@
+*vital-vcs-git-core.txt*	A core functions of Git manipulation
+
+Version: 0.1.0
+Author:  Alisue <lambdalisue@hashnote.net>	*Vital.VCS.Git.Core-author*
+Support: Vim 7.3 and above
+License: MIT license  {{{
+	Copyright (c) 2014 Alisue, hashnote.net
+
+	Permission is hereby granted, free of charge, to any person obtaining
+	a copy of this software and associated documentation files
+	(the "Software"), to deal in the Software without restriction,
+	including without limitation the rights to use, copy, modify, merge,
+	publish, distribute, sublicense, and/or sell copies of the Software,
+	and to permit persons to whom the Software is furnished to do so,
+	subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be
+	included in all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+	EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+	IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+	CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+	TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+}}}
+
+
+==============================================================================
+CONTENTS				*Vital.VCS.Git.Core-contents*
+
+Functions		|Vital.VCS.Git.Core-functions|
+Git commands		|Vital.VCS.Git.Core-git-commands|
+
+
+==============================================================================
+FUNCTIONS				*Vital.VCS.Git.Core-functions*
+
+find_git({path})			*Vital.VCS.Git.Core.find_git()*
+
+	Try to find a '.git' directory or file recursively from a specified
+	directory of {path} or a parent directory of {path} when the {path}
+	points a file.
+	It return an absolute path of found '.git' directory (or file) if it
+	found. Otherwise it return an empty string.
+
+find_worktree({dotgit}			*Vital.VCS.Git.Core.find_worktree()*
+
+	It return an absolute path of working tree which the {dotgit} points.
+	{dotgit} should be obtained by |Vital.VCS.Git.Core.find_worktree()|.
+
+find_repository({dotgit}		*Vital.VCS.Git.Core.find_repository()*
+
+	It return an absolute path of repository path which the {dotgit} points.
+	{dotgit} should be obtained by |Vital.VCS.Git.Core.find_worktree()|.
+
+system({args} [, {opts}])		*Vital.VCS.Git.Core.system()*
+	
+	Execute exterenal commands specified in {args} (|List|) via |system()| or
+	|vimproc#system()| if available. The {args} will be flatten via
+	|Vital.Data.List.flatten()| internally.
+	It return {result} (|Dictionary|) which contains 'status', 'stdout',
+	'args', and 'opts'. {opts} is a |Dictionary| to configure the
+	execution.
+
+	{opts}
+	
+		'stdin'
+		A |String| which will be used as a 'input' argument of
+		|system()| or |vimproc#system()| function. If empty string is
+		specified (default), nothing will be passed to the function to
+		prevent E677 exception.
+
+		'timeout'
+		A |Number| which will be used as a 'timeout' argument of
+		|vimproc#system()| function if available.
+
+		'cwd'
+		A |String| which will be used for temporary working directory
+		in command execution. If empty string is specified, the
+		execution will be performed in the current directory.
+
+	{result}
+
+		'status'
+		A |Number| which indicate the execution exit status.
+
+		'stdout'
+		A |String| which indicate stdout of the execution. A trailing
+		newline ('\n' or '\r\n') are removed.
+
+		'args'
+		A |List| which indicate an actual {args} passed into
+		|system()| or |vimproc#system()|
+
+		'opts'
+		A |Dictionary| equals to {opts}
+
+
+exec({args} [, {opts}])			*Vital.VCS.Git.Core.exec()*
+
+	Execute a Git command specified in {args} (|List|) via
+	|Vital.VCS.Git.Core.system()| function.
+	|Vital.VCS.Git.Core.executable| and |Vital.VCS.Git.Core.arguments|
+	will be added to {args} before execution. {opts} is a |Dictionary|
+	equals to {opts} in |Vital.VCS.Git.Core.system()|.
+
+	{opts}
+
+		'stdin'
+		See |Vital.VCS.Git.Core.system()|
+
+		'timeout'
+		See |Vital.VCS.Git.Core.system()|
+
+		'cwd'
+		See |Vital.VCS.Git.Core.system()|
+
+		'type'
+		A |String| which indicate the result {type}.
+
+
+==============================================================================
+GIT COMMANDS				*Vital.VCS.Git.Core-git-commands*
+
+Several Git commands are defined as alias functions for combinience.
+All available commands are defined in Vital.VCS.Git.Core.const.git_commands.
+The following return exactly same result.
+>
+	call s:Git.exec(['rev_parse', '--is-inside-work-tree'])
+	call s:Git.rev_parse(['--is-inside-work-tree'])
+<
+
+==============================================================================
+vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl
