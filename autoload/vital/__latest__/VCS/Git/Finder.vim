@@ -14,12 +14,14 @@ let s:_config.cache_dir = expand('~/.cache/vital/vcs/git/finder')
 
 function! s:_vital_loaded(V) dict abort " {{{
   let s:V = a:V
-  let s:Path  = a:V.import('System.Filepath')
-  let s:Cache = a:V.import('System.Cache.File')
-  let s:Core  = a:V.import('VCS.Git.Core')
+  let s:Prelude = a:V.import('Prelude')
+  let s:Path    = a:V.import('System.Filepath')
+  let s:Cache   = a:V.import('System.Cache.File')
+  let s:Core    = a:V.import('VCS.Git.Core')
 endfunction " }}}
 function! s:_vital_depends() abort " {{{
   return [
+        \ 'Prelude',
         \ 'System.Filepath',
         \ 'System.Cache.File',
         \ 'VCS.Git.Core',
@@ -27,7 +29,7 @@ function! s:_vital_depends() abort " {{{
 endfunction " }}}
 
 function! s:_get_cache() " {{{
-  if !exists('s:_cache') || s:_cache.cache_dir ne s:_config.cache_dir
+  if !exists('s:_cache') || s:_cache.cache_dir !=# s:_config.cache_dir
     let s:_cache = s:Cache.new(s:_config.cache_dir)
   endif
   return s:_cache
@@ -40,8 +42,8 @@ function! s:config(...) " {{{
 endfunction " }}}
 function! s:find(path) " {{{
   let cache = s:_get_cache()
-  let abspath = s:Prelude.path2directory(fnamemodify(a:path), ':p'))
-  let metainfo = cache.get(metainfo, {})
+  let abspath = s:Prelude.path2directory(fnamemodify(a:path, ':p'))
+  let metainfo = cache.get(abspath, {})
   if !empty(metainfo) && metainfo.path == abspath
     if strlen(metainfo.worktree)
       return { 'worktree': metainfo.worktree, 'repository': metainfo.repository }
@@ -58,7 +60,11 @@ function! s:find(path) " {{{
         \ 'repository': repository,
         \}
   call cache.set(abspath, metainfo)
-  return { 'worktree': metainfo.worktree, 'repository': metainfo.repository }
+  if strlen(metainfo.worktree)
+    return { 'worktree': metainfo.worktree, 'repository': metainfo.repository }
+  else
+    return {}
+  endif
 endfunction " }}}
 function! s:gc(...) " {{{
   let opts = extend({

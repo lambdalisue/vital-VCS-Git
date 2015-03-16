@@ -1,0 +1,51 @@
+let s:V = vital#of('vital')
+let s:P = s:V.import('System.Filepath')
+call s:V.unload() " make sure that the following modules are not cached version
+let s:F = s:V.import('VCS.Git.Finder')
+
+" Note:
+"   The test should be executed on a top directory of git working tree
+"   Remember that 'repository' points a '.git' directory and 'worktree'
+"   points a directory which contains a '.git' directory.
+let s:ROOT = getcwd()
+
+Describe VCS.Git.Finder
+
+  Context .config({config})
+    It should return a config dictionary
+      let config = s:F.config()
+      Assert IsDict(config)
+    End
+
+    It should extend a config dictionary
+      let config = s:F.config({'foo': 'bar'})
+      Assert IsDict(config)
+      Assert HasKey(config, 'foo')
+      Assert Equals(config.foo, 'bar')
+    End
+  End
+
+  Context .find({path})
+    It should return a dictionary which contains 'worktree' and 'repository'
+      let path = s:P.join([s:ROOT, 'autoload', 'vital'])
+      let ret = s:F.find(path)
+      let exp = {
+            \ 'worktree': s:ROOT,
+            \ 'repository': s:P.join([s:ROOT, '.git']),
+            \}
+      Assert IsDict(ret)
+      Assert HasKey(ret, 'worktree')
+      Assert HasKey(ret, 'repository')
+      Assert Equals(ret, exp)
+    End
+
+    It should return an empty dictionary for a non git working tree
+      let path = s:P.join([s:ROOT, '.git', 'info'])
+      let ret = s:F.find(path)
+      let exp = {}
+      Assert IsDict(ret)
+      Assert Equals(ret, exp)
+    End
+  End
+End
+
