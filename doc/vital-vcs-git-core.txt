@@ -30,12 +30,35 @@ License: MIT license  {{{
 ==============================================================================
 CONTENTS				*Vital.VCS.Git.Core-contents*
 
+Introduction		|Vital.VCS.Git.Core-introduction|
 Functions		|Vital.VCS.Git.Core-functions|
-Git commands		|Vital.VCS.Git.Core-git-commands|
 
 
 ==============================================================================
+INTRODUCTION				*Vital.VCS.Git.Core-introduction*
+
+*Vital.VCS.Git.Core* is a core function module of |Vital.VCS.Git|.
+The module should not be used directly while |Vital.VCS.Git| provide more
+user friendly and efficient APIs.
+
+==============================================================================
 FUNCTIONS				*Vital.VCS.Git.Core-functions*
+
+config([{config}])			*Vital.VCS.Git.Core.config()*
+
+	Get or set a configure dictionary. {config} may contains the
+	followings.
+
+	'executable'
+	An executable |String| or |List| which is used as a first argument of
+	|Vital.VCS.Git.Core.system()| function called internally from 
+	|Vital.VCS.Git.Core.exec()| function.
+	The default value is 'git'
+
+	'arguments'
+	A list of extra arguments of |Vital.VCS.Git.Core.system()| function
+	called internally from |Vital.VCS.Git.Core.exec()| function.
+	The default value is ['-c', 'color.ui=false']
 
 find_worktree({path}			*Vital.VCS.Git.Core.find_worktree()*
 
@@ -50,6 +73,80 @@ find_repository({worktree}		*Vital.VCS.Git.Core.find_repository()*
 	It return an absolute path of a repository path which the {worktree}
 	path points.
 	{worktree} should be obtained by |Vital.VCS.Git.Core.find_worktree()|.
+
+				*Vital.VCS.Git.Core.get_relative_path()*
+get_relative_path({worktree}, {path})
+	
+	Return a relative path of the {path} from the {worktree}.
+	It return the {path} if the {path} is an absolute path.
+
+				*Vital.VCS.Git.Core.get_absolute_path()*
+get_absolute_path({worktree}, {path})
+
+	Return an absolute path of the {path} which is relative from the
+	{worktree}. It return the {path} if the {path} is a relative path.
+
+				*Vital.VCS.Git.Core.get_index_updated_time()*
+get_index_updated_time({repository})
+
+	Return a positive/negative number which indicate the last updated time
+	of an index of the {repository}. It use |getftime| to get the time so see
+	the help of that function for more detail.
+
+				*Vital.VCS.Git.Core.get_index_updated_time()*
+get_current_branch({repository})
+
+	Return a name of a current branch in the {repository} by parsing a
+	files in the {repository}, not by executing external Git command.
+	It is equivalent with executing '$ git rev-parse --abbrev-ref HEAD'
+
+				*Vital.VCS.Git.Core.get_last_commit_hashref()*
+get_last_commit_hashref({reposiotry})
+
+	Return a hash reference of the last commit in the {repository} by
+	parsing a files in the {repository}, not by executing external Git
+	command.
+	It is equivalent with executing '$ git rev-parse HEAD'
+
+				*Vital.VCS.Git.Core.get_last_commit_message()*
+get_last_commit_message({repository})
+
+	Return a commit message of the last commit in the {repository} by
+	parsing a files in the {repository}, not by executing external Git
+	command.
+	It is equivalent with executing '$ git log -1 --pretty=%B'
+
+				*Vital.VCS.Git.Core.get_last_merge_message()*
+get_last_merge_message({repository})
+
+	Return a merge message of the last merge in the {repository} by
+	parsing a files in the {repository}, not by executing external Git
+	command. Note that it would work only during file confliction.
+
+				*Vital.VCS.Git.Core.get_config()*
+get_config({repository})
+
+	Return a parsed config dictionary of the {repository}. The return
+	{config} will be used in the following functions.
+
+				*Vital.VCS.Git.Core.get_branch_remote()*
+get_branch_remote({config}, {local_branch})
+
+	Return a remote name of the specified {local_branch}.
+
+				*Vital.VCS.Git.Core.get_branch_merge()*
+get_branch_merge({config}, {local_branch})
+
+	Return a remote branch name of the {local_branch} connected.
+	You may need to execute the following code to clop name.
+>
+	let merge = s:Core.get_branch_merge(config, 'master')
+	let remote_branch_name = substitute(merge, '^refs/heads', '', '')
+<
+				*Vital.VCS.Git.Core.get_remote_url()*
+get_remote_url({config}, {remote})
+
+	Return an url of the specified {remote}
 
 system({args} [, {opts}])		*Vital.VCS.Git.Core.system()*
 	
@@ -102,31 +199,6 @@ exec({args} [, {opts}])			*Vital.VCS.Git.Core.exec()*
 	will be added to {args} before execution. {opts} is a |Dictionary|
 	equals to {opts} in |Vital.VCS.Git.Core.system()|.
 
-	{opts}
-
-		'stdin'
-		See |Vital.VCS.Git.Core.system()|
-
-		'timeout'
-		See |Vital.VCS.Git.Core.system()|
-
-		'cwd'
-		See |Vital.VCS.Git.Core.system()|
-
-		'type'
-		A |String| which indicate the result {type}.
-
-
-==============================================================================
-GIT COMMANDS				*Vital.VCS.Git.Core-git-commands*
-
-Several Git commands are defined as alias functions for combinience.
-All available commands are defined in Vital.VCS.Git.Core.const.git_commands.
-The following return exactly same result.
->
-	call s:Git.exec(['rev_parse', '--is-inside-work-tree'])
-	call s:Git.rev_parse(['--is-inside-work-tree'])
-<
 
 ==============================================================================
 vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl

@@ -183,4 +183,54 @@ Describe VCS.Git
     End
   End
 
+  Context .get_relative_path({path})
+    It should return a relative path of an absolute {path}
+      let path = s:P.join([s:ROOT, 'autoload', 'vital'])
+      let exp = s:P.join(['autoload', 'vital'])
+      let ret = s:git.get_relative_path(path)
+      Assert Equals(ret, exp)
+    End
+
+    It should return a {path} if {path} is not absolute path
+      let path = s:P.join(['.vim', 'plugin'])
+      let exp = path
+      let ret = s:git.get_relative_path(path)
+      Assert Equals(ret, exp)
+    End
+  End
+
+  Context .get_absolute_path({path})
+    It should return an absolute path of a relative {path}
+      let path = s:P.join(['autoload', 'vital'])
+      let exp = s:P.join([s:ROOT, 'autoload', 'vital'])
+      let ret = s:git.get_absolute_path(path)
+      Assert Equals(ret, exp)
+    End
+
+    It should return a {path} if {path} is not relative path
+      let path = s:P.join([expand('~'), '.vim', 'plugin'])
+      let exp = path
+      let ret = s:git.get_absolute_path(path)
+      Assert Equals(ret, exp)
+    End
+  End
+
+  Context .exec({args} [, {opts}])
+    After
+      silent execute 'lcd ' s:ROOT
+    End
+
+    It should execute git command on a top directory of the worktree
+      silent execute 'lcd ' expand('$HOME')
+
+      let result = s:git.exec(['rev-parse', '--show-toplevel'])
+      let expect = {
+            \ 'status': 0,
+            \ 'stdout': printf("%s", s:ROOT),
+            \ 'args': ['git', '-c', 'color.ui=false', 'rev-parse', '--show-toplevel'],
+            \ 'opts': {'stdin': '', 'timeout': 0, 'cwd': s:ROOT},
+            \}
+      Assert Equals(result, expect)
+    End
+  End
 End

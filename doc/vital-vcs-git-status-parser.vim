@@ -1,0 +1,136 @@
+*vital-vcs-git-status-parser.txt*	A status parser of Git
+
+Version: 0.1.0
+Author:  Alisue <lambdalisue@hashnote.net> *Vital.VCS.Git.StatusParser-author*
+Support: Vim 7.3 and above
+License: MIT license  {{{
+	Copyright (c) 2014 Alisue, hashnote.net
+
+	Permission is hereby granted, free of charge, to any person obtaining
+	a copy of this software and associated documentation files
+	(the "Software"), to deal in the Software without restriction,
+	including without limitation the rights to use, copy, modify, merge,
+	publish, distribute, sublicense, and/or sell copies of the Software,
+	and to permit persons to whom the Software is furnished to do so,
+	subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be
+	included in all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+	EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+	IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+	CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+	TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+}}}
+
+
+==============================================================================
+CONTENTS				*Vital.VCS.Git.StatusParser-contents*
+
+Introduction		|Vital.VCS.Git.StatusParser-introduction|
+Functions		|Vital.VCS.Git.StatusParser-functions|
+Statuses		|Vital.VCS.Git.StatusParser-status|
+
+
+==============================================================================
+INTRODUCTION				*Vital.VCS.Git.StatusParser-introduction*
+
+*Vital.VCS.Git.StatusParser* is a Git status parser module of |Vital.VCS.Git|.
+The module should not be used directly while |Vital.VCS.Git| provide more
+user friendly and efficient APIs.
+
+==============================================================================
+FUNCTIONS				*Vital.VCS.Git.StatusParser-functions*
+
+parse_record({line})		*Vital.VCS.Git.StatusParser.parse_record()*
+
+	Parse a {line} of 'git status --porcelain'.
+	It return a nested |Dictionary| which contains
+
+	'index'
+	A single character indicate the |Vital.VCS.Git.StatusParser-status| of
+	the file in index.
+
+	'worktree'
+	A single character indicate the |Vital.VCS.Git.StatusParser-status| of
+	the file in working tree.
+
+	'path'
+	An absolute path of the file.
+
+	'path2'
+	A destination absolute path of the file renamed. Only available if the
+	file has renamed.
+
+	'record'
+	A record line used
+
+	'sign'
+	A double character indicate each |Vital.VCS.Git.StatusParser-status|
+	of the file in index and working tree.
+
+	'is_conflict'
+	|Number| indicate the true/false. It the file is in conflict mode, the
+	value would be 1.
+
+	'is_staged'
+	|Number| indicate the true/false. It the file modification is staged,
+	the value would be 1.
+
+	'is_unstaged'
+	|Number| indicate the true/false. It the file modification is unstaged,
+	the value would be 1.
+
+	'is_untracked'
+	|Number| indicate the true/false. It the file have not tracked in the
+	Git repository, the value would be 1.
+
+	'is_ignored'
+	|Number| indicate the true/false. It the file is ignored, the value
+	would be 1. This require an additional options to be enabled.
+
+parse({status})			*Vital.VCS.Git.StatusParser.parse()*
+
+	Parse a {status}, a stdout of 'git status --porcelain'.
+	It return a nested |Dictionary| which contains
+
+	'all'
+	All status get by |Vital.VCS.Git.StatusParser.parse_record()|.
+
+	'conflicted'
+	All status which 'is_conflict' is 1.
+
+	'staged'
+	All status which 'is_staged' is 1.
+
+	'unstaged'
+	All status which 'is_unstaged' is 1.
+
+	'untracked'
+	All status which 'is_tracked' is 1.
+
+	'ignored'
+	All status which 'is_ignored' is 1.
+
+
+==============================================================================
+Statuses				*Vital.VCS.Git.StatusParser-status*
+
+Single characters used in the status indicate the following
+
+' ' -- Unmodified
+'A' -- Added
+'D' -- Deleted
+'M' -- Modified
+'R' -- Renamed
+'C' -- Copied
+'U' -- Updated but unmerged
+
+See http://git-scm.com/docs/git-status for more detail.
+
+
+==============================================================================
+vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl

@@ -1,0 +1,57 @@
+*vital-vcs-git-config-parser.txt*	A config parser of Git
+
+Version: 0.1.0
+Author:  Alisue <lambdalisue@hashnote.net> *Vital.VCS.Git.ConfigParser-author*
+Support: Vim 7.3 and above
+License: MIT license  {{{
+	Copyright (c) 2014 Alisue, hashnote.net
+
+	Permission is hereby granted, free of charge, to any person obtaining
+	a copy of this software and associated documentation files
+	(the "Software"), to deal in the Software without restriction,
+	including without limitation the rights to use, copy, modify, merge,
+	publish, distribute, sublicense, and/or sell copies of the Software,
+	and to permit persons to whom the Software is furnished to do so,
+	subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be
+	included in all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+	EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+	IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+	CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+	TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+}}}
+
+
+==============================================================================
+CONTENTS				*Vital.VCS.Git.ConfigParser-contents*
+
+Introduction		|Vital.VCS.Git.ConfigParser-introduction|
+Functions		|Vital.VCS.Git.ConfigParser-functions|
+
+
+==============================================================================
+INTRODUCTION				*Vital.VCS.Git.ConfigParser-introduction*
+
+*Vital.VCS.Git.ConfigParser* is a Git config parser module of |Vital.VCS.Git|.
+The module should not be used directly while |Vital.VCS.Git| provide more
+user friendly and efficient APIs.
+
+==============================================================================
+FUNCTIONS				*Vital.VCS.Git.ConfigParser-functions*
+
+parse_record({line})		*Vital.VCS.Git.ConfigParser.parse_record()*
+
+	Parse a {line} of 'git config -l'. It return a nested |Dictionary|.
+
+parse({config})			*Vital.VCS.Git.ConfigParser.parse()*
+
+	Parse a {config} of 'git config -l'. It return a nested |Dictionary|.
+
+
+==============================================================================
+vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl
