@@ -28,12 +28,13 @@ function! s:_vital_depends() abort " {{{
 endfunction " }}}
 
 " Methods ====================================================================
-function! s:new(worktree, repository) " {{{
+function! s:new(worktree, repository, ...) " {{{
+  let opts = extend({ 'no_cache': 0 }, get(a:000, 0, {}))
   if !exists('s:cache')
     let s:cache = s:SimpleCache.new()
   endif
   let git = s:cache.get(a:worktree, {})
-  if !empty(git)
+  if !empty(git) && !opts.no_cache
     return git
   endif
   let git = extend(deepcopy(s:git), {
@@ -72,7 +73,7 @@ function! s:git._get_call_opts() " {{{
   return { 'cwd': self.worktree }
 endfunction " }}}
 function! s:git.get_index_updated_time() " {{{
-  return call(s:Core.get_index_updated_time, [self.repository], s:Core)
+  return s:Core.get_index_updated_time(self.repository)
 endfunction " }}}
 function! s:git.get_parsed_status() " {{{
   let status = self._get_cache('status')
@@ -90,7 +91,12 @@ function! s:git.get_parsed_config() " {{{
   let config = s:Misc.get_parsed_config(self._get_call_opts())
   return self._set_cache('config', config)
 endfunction " }}}
-function! s:git.get_meta() " {{{
+function! s:git.get_meta(...) " {{{
+  let opts = extend({
+        \ 'exclude_repository_config': 0,
+        \ 'exclude_commits_ahead_of_remote': 0,
+        \ 'exclude_commits_behind_remote': 0,
+        \}, get(a:000, 0, {}))
   let meta = self._get_cache('meta')
   if !empty(meta)
     return meta
@@ -100,12 +106,18 @@ function! s:git.get_meta() " {{{
   let meta.last_commit_hashref = s:Core.get_last_commit_hashref(self.repository)
   let meta.last_commit_message = s:Core.get_last_commit_message(self.repository)
   let meta.last_merge_message = s:Core.get_last_merge_message(self.repository)
-  let meta.config = s:Core.get_config(self.repository)
-  let meta.current_branch_remote = s:Core.get_branch_remote(meta.config, meta.current_branch)
-  let meta.current_branch_merge = s:Core.get_branch_merge(meta.config, meta.current_branch)
-  let meta.current_remote_url = s:Core.get_remote_url(meta.config, meta.current_branch_remote)
-  let meta.commits_ahead_of_remote = s:Misc.count_commits_ahead_of_remote(self._get_call_opts())
-  let meta.commits_behind_remote = s:Misc.count_commits_behind_remote(self._get_call_opts())
+  if !opts.exclude_repository_config
+    let meta.repository_config = s:Core.get_config(self.repository)
+    let meta.current_branch_remote = s:Core.get_branch_remote(meta.repository_config, meta.current_branch)
+    let meta.current_branch_merge = s:Core.get_branch_merge(meta.repository_config, meta.current_branch)
+    let meta.current_remote_url = s:Core.get_remote_url(meta.repository_config, meta.current_branch_remote)
+  endif
+  if !opts.exclude_commits_ahead_of_remote
+    let meta.commits_ahead_of_remote = s:Misc.count_commits_ahead_of_remote(self._get_call_opts())
+  endif
+  if !opts.exclude_commits_behind_remote
+    let meta.commits_behind_remote = s:Misc.count_commits_behind_remote(self._get_call_opts())
+  endif
   return self._set_cache('meta', meta)
 endfunction " }}}
 function! s:git.get_current_branch() " {{{

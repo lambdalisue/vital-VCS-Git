@@ -5,8 +5,182 @@ call s:V.unload() " make sure that the following modules are not cached version
 let s:G = s:V.import('VCS.Git')
 
 let s:ROOT = getcwd()
+let s:WORKTREE = s:ROOT
+let s:REPOSITORY = s:P.join(s:WORKTREE, '.git')
 
 Describe VCS.Git
+  Context .new({worktree}, {repository})
+    It should return a Git instance
+      let ret = s:G.new(s:WORKTREE, s:REPOSITORY)
+      Assert IsDict(ret)
+      Assert KeyExists(ret, 'worktree')
+      Assert KeyExists(ret, 'repository')
+      Assert KeyExists(ret, 'cache')
+    End
 
+    It should return a same Git instance for same worktree
+      let ret1 = s:G.new(s:WORKTREE, s:REPOSITORY)
+      let ret2 = s:G.new(s:WORKTREE, s:REPOSITORY)
+      Assert Same(ret1, ret2)
+    End
+
+    It should return a different Git instance for same worktree if 'no_cache' is specified
+      let ret1 = s:G.new(s:WORKTREE, s:REPOSITORY)
+      let ret2 = s:G.new(s:WORKTREE, s:REPOSITORY, { 'no_cache': 1 })
+      Assert NotSame(ret1, ret2)
+    End
+
+
+    It should return a different Git instance for different worktree
+      let ret1 = s:G.new(s:WORKTREE, s:REPOSITORY)
+      let ret2 = s:G.new(expand('~'), s:REPOSITORY)
+      Assert NotSame(ret1, ret2)
+    End
+  End
+
+  Context .find({path})
+    It should return a Git instance for a directory which locate inside a Git worktree
+      let path = s:P.join(s:WORKTREE, 'autoload', 'vital')
+      let exp = s:G.new(s:WORKTREE, s:REPOSITORY)
+      let ret = s:G.find(path)
+      Assert Same(ret, exp)
+    End
+
+    It should return a same Git instance for directories which locate inside a same Git worktree
+      let path1 = s:P.join(s:WORKTREE, 'autoload', 'vital')
+      let path2 = s:P.join(s:WORKTREE, 'test', 'VCS')
+      let ret1 = s:G.find(path1)
+      let ret2 = s:G.find(path2)
+      Assert Same(ret1, ret2)
+    End
+
+    It should return an empty dictionary for non git directory
+      let path = s:P.join(s:REPOSITORY, 'info')
+      let ret = s:G.find(path)
+      Assert True(empty(ret))
+    End
+  End
+
+  Context instance
+    Before
+      " newly create a Git instance
+      let s:git = s:G.new(s:WORKTREE, s:REPOSITORY, { 'no_cache': 1 })
+      function! s:git.patch_get_index_updated_time()
+        function! self.get_index_updated_time()
+          return reltime()[0]
+        endfunction
+      endfunction
+    End
+
+    Context .get_index_updated_time()
+      It should return a number which indicate an updated time of the repository
+        let ret = s:git.get_index_updated_time()
+        Assert IsNumber(ret)
+        Assert NotEquals(ret, -1, 'an ".git/index" file is not found')
+      End
+    End
+
+    Context .get_parsed_status()
+      It should return a dictionary which indicate the parsed current repository status
+        let ret = s:git.get_parsed_status()
+        Assert IsDict(ret)
+      End
+
+      It should return a same dictionary if the repository is not updated
+        let ret1 = s:git.get_parsed_status()
+        let ret2 = s:git.get_parsed_status()
+        Assert Same(ret1, ret2)
+      End
+
+      It should return a different dictionary if the repository is updated
+        let ret1 = s:git.get_parsed_status()
+        call s:git.patch_get_index_updated_time()
+        let ret2 = s:git.get_parsed_status()
+        Assert NotSame(ret1, ret2)
+      End
+    End
+
+    Context .get_parsed_config()
+      It should return a dictionary which indicate the parsed Git config
+        let ret = s:git.get_parsed_config()
+        Assert IsDict(ret)
+      End
+
+      It should return a same dictionary if the repository is not updated
+        let ret1 = s:git.get_parsed_config()
+        let ret2 = s:git.get_parsed_config()
+        Assert Same(ret1, ret2)
+      End
+
+      It should return a different dictionary if the repository is updated
+        let ret1 = s:git.get_parsed_config()
+        call s:git.patch_get_index_updated_time()
+        let ret2 = s:git.get_parsed_config()
+        Assert NotSame(ret1, ret2)
+      End
+    End
+
+    Context .get_meta()
+      It should return a dictionary which indicate the meta information of the Git repository
+        let ret = s:git.get_meta()
+        Assert IsDict(ret)
+        Assert KeyExists(ret, 'current_branch')
+        Assert KeyExists(ret, 'last_commit_hashref')
+        Assert KeyExists(ret, 'last_commit_message')
+        Assert KeyExists(ret, 'last_merge_message')
+        Assert KeyExists(ret, 'repository_config')
+        Assert KeyExists(ret, 'current_branch_remote')
+        Assert KeyExists(ret, 'current_branch_merge')
+        Assert KeyExists(ret, 'current_remote_url')
+        Assert KeyExists(ret, 'commits_ahead_of_remote')
+        Assert KeyExists(ret, 'commits_behind_remote')
+      End
+
+      It should exclude repository config related keys in the return dictionary if 'exclude_repository_config' is specified
+        let ret = s:git.get_meta({ 'exclude_repository_config': 1 })
+        Assert IsDict(ret)
+        Assert KeyExists(ret, 'current_branch')
+        Assert KeyExists(ret, 'last_commit_hashref')
+        Assert KeyExists(ret, 'last_commit_message')
+        Assert KeyExists(ret, 'last_merge_message')
+        Assert KeyNotExists(ret, 'repository_config')
+        Assert KeyNotExists(ret, 'current_branch_remote')
+        Assert KeyNotExists(ret, 'current_branch_merge')
+        Assert KeyNotExists(ret, 'current_remote_url')
+        Assert KeyExists(ret, 'commits_ahead_of_remote')
+        Assert KeyExists(ret, 'commits_behind_remote')
+      End
+
+      It should exclude 'commits_ahead_of_remote' in the return dictionary if 'exclude_commits_ahead_of_remote' is specified
+        let ret = s:git.get_meta({ 'exclude_commits_ahead_of_remote': 1 })
+        Assert IsDict(ret)
+        Assert KeyExists(ret, 'current_branch')
+        Assert KeyExists(ret, 'last_commit_hashref')
+        Assert KeyExists(ret, 'last_commit_message')
+        Assert KeyExists(ret, 'last_merge_message')
+        Assert KeyExists(ret, 'repository_config')
+        Assert KeyExists(ret, 'current_branch_remote')
+        Assert KeyExists(ret, 'current_branch_merge')
+        Assert KeyExists(ret, 'current_remote_url')
+        Assert KeyNotExists(ret, 'commits_ahead_of_remote')
+        Assert KeyExists(ret, 'commits_behind_remote')
+      End
+
+      It should exclude 'commits_behind_remote' in the return dictionary if 'exclude_commits_behind_remote' is specified
+        let ret = s:git.get_meta({ 'exclude_commits_behind_remote': 1 })
+        Assert IsDict(ret)
+        Assert KeyExists(ret, 'current_branch')
+        Assert KeyExists(ret, 'last_commit_hashref')
+        Assert KeyExists(ret, 'last_commit_message')
+        Assert KeyExists(ret, 'last_merge_message')
+        Assert KeyExists(ret, 'repository_config')
+        Assert KeyExists(ret, 'current_branch_remote')
+        Assert KeyExists(ret, 'current_branch_merge')
+        Assert KeyExists(ret, 'current_remote_url')
+        Assert KeyExists(ret, 'commits_ahead_of_remote')
+        Assert KeyNotExists(ret, 'commits_behind_remote')
+      End
+    End
+  End
 
 End
