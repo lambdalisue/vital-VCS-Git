@@ -7,5 +7,5 @@ install:
 script:
   - vim --version
   - vim --cmd "try | helptags doc/ | catch | cquit | endtry" --cmd quit
-  - vim-themis/bin/themis --reporter spec --runtimepath vital.vim --runtimepath vital-System-Cache-Simple --runtime vital-System-Cache-File
+  - vim-themis/bin/themis --reporter spec --runtimepath vital.vim --runtimepath vital-System-Cache-Simple --runtimepath vital-System-Cache-File
 
