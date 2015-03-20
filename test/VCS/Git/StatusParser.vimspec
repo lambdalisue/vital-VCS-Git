@@ -6,6 +6,26 @@ let s:R = s:V.import('VCS.Git.StatusParser')
 Describe VCS.Git.StatusParser
 
   Context .parse_record({line})
+    It should be able to parse '## master'
+      let record = '## master'
+      let result = s:R.parse_record(record)
+      let expected = {
+            \ 'current_branch': 'master',
+            \ 'remote_branch': '',
+            \}
+      Assert Equals(result, expected)
+    End
+
+    It should be able to parse '## master...origin/master'
+      let record = '## master...origin/master'
+      let result = s:R.parse_record(record)
+      let expected = {
+            \ 'current_branch': 'master',
+            \ 'remote_branch': 'origin/master',
+            \}
+      Assert Equals(result, expected)
+    End
+
     It should be able to parse 'M  foo/bar/hoge.vim'
       let record = 'M  foo/bar/hoge.vim'
       let result = s:R.parse_record(record)

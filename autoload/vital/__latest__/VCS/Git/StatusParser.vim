@@ -12,8 +12,14 @@ set cpo&vim
 
 " Vital ======================================================================
 let s:const = {}
-let s:const.status_pattern     = '\v^([ MDARCU\?!])([ MDUA\?!])\s("[^"]+"|[^ ]+)%(\s-\>\s("[^"]+"|[^ ]+)|)$'
-let s:const.status_pattern2    = '\v^([ MDARCU\?!])([ MDUA\?!])\s("[^"]+"|.+)$'
+let s:const.status_patterns = [
+      \ '\v^([ MDARCU\?!])([ MDUA\?!])\s("[^"]+"|[^ ]+)%(\s-\>\s("[^"]+"|[^ ]+)|)$',
+      \ '\v^([ MDARCU\?!])([ MDUA\?!])\s("[^"]+"|.+)$',
+      \]
+let s:const.header_patterns = [
+      \ '\v^##\s([^\.]+)\.\.\.(.+)$',
+      \ '\v^##\s(.+)$',
+      \]
 let s:const.conflicted_pattern = '\v^%(DD|AU|UD|UA|DU|AA|UU)$'
 let s:const.staged_pattern     = '\v^%([MARC][ MD]|D[ M])$'
 let s:const.unstaged_pattern   = '\v^%([ MARC][MD]|DM)$'
@@ -30,7 +36,7 @@ function! s:parse_record(line, ...) abort " {{{
   let opts = extend({
         \ 'fail_silently': 0,
         \}, get(a:000, 0, {}))
-  for pattern in [s:const.status_pattern, s:const.status_pattern2]
+  for pattern in s:const.status_patterns
     let m = matchlist(a:line, pattern)
     let result = {}
     if len(m) > 5 && m[4] !=# ''
@@ -62,6 +68,20 @@ function! s:parse_record(line, ...) abort " {{{
       return result
     endif
   endfor
+  for pattern in s:const.header_patterns
+    let m = matchlist(a:line, pattern)
+    if len(m) > 2 && m[1] !=# ''
+      return {
+            \ 'current_branch': m[1],
+            \ 'remote_branch': m[2],
+            \}
+    elseif len(m) > 1 && m[0] !=# ''
+      return {
+            \ 'current_branch': m[1],
+            \ 'remote_branch': '',
+            \}
+    endif
+  endfor
   if opts.fail_silently
     return {}
   endif
@@ -81,20 +101,27 @@ function! s:parse(status, ...) abort " {{{
         \}
   for line in split(a:status, '\v%(\r?\n)+')
     let result = s:parse_record(line, opts)
-    call add(obj.all, result)
-    if result.is_conflicted
-      call add(obj.conflicted, result)
-    elseif result.is_staged && result.is_unstaged
-      call add(obj.staged, result)
-      call add(obj.unstaged, result)
-    elseif result.is_staged
-      call add(obj.staged, result)
-    elseif result.is_unstaged
-      call add(obj.unstaged, result)
-    elseif result.is_untracked
-      call add(obj.untracked, result)
-    elseif result.is_ignored
-      call add(obj.ignored, result)
+    if empty(result) && opts.fail_silently
+      continue
+    elseif has_key(result, 'current_branch')
+      let obj.current_branch = result.current_branch
+      let obj.remote_branch = result.remote_branch
+    else
+      call add(obj.all, result)
+      if result.is_conflicted
+        call add(obj.conflicted, result)
+      elseif result.is_staged && result.is_unstaged
+        call add(obj.staged, result)
+        call add(obj.unstaged, result)
+      elseif result.is_staged
+        call add(obj.staged, result)
+      elseif result.is_unstaged
+        call add(obj.unstaged, result)
+      elseif result.is_untracked
+        call add(obj.untracked, result)
+      elseif result.is_ignored
+        call add(obj.ignored, result)
+      endif
     endif
   endfor
   return obj
