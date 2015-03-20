@@ -25,8 +25,18 @@ Describe VCS.Git.Misc
 
   Context .get_status([{options}])
     It should return a dictionary
-      let result = s:M.get_parsed_status()
-      Assert IsDict(result)
+      let ret = s:M.get_parsed_status()
+      Assert IsDict(ret)
+      Assert KeyNotExists(ret, 'current_branch')
+      Assert KeyNotExists(ret, 'remote_branch')
+    End
+
+    It should add extra arguments specified
+      let args = ['--verbose', '--branch']
+      let ret = s:M.get_parsed_status({ 'args': args })
+      Assert IsDict(ret)
+      Assert KeyExists(ret, 'current_branch')
+      Assert KeyExists(ret, 'remote_branch')
     End
   End
 

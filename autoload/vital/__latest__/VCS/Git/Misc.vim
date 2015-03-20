@@ -35,12 +35,26 @@ function! s:count_commits_behind_remote(...) " {{{
 endfunction " }}}
 
 function! s:get_parsed_status(...) " {{{
-  let opts = get(a:000, 0, {})
-  let result = s:Core.exec(['status', '--porcelain'], opts)
+  let opts = extend({
+        \ 'args': [],
+        \}, get(a:000, 0, {}))
+  let args = ['status', '--porcelain', opts.args]
+  let result = s:Core.exec(args, opts)
   if result.status != 0
     return {}
   endif
-  return s:StatusParser.parse(result.stdout)
+  return s:StatusParser.parse(result.stdout, { 'fail_silently': 1 })
+endfunction " }}}
+function! s:get_parsed_commit(...) " {{{
+  let opts = extend({
+        \ 'args': [],
+        \}, get(a:000, 0, {}))
+  let args = ['commit', '--dry-run', '--porcelain', opts.args]
+  let result = s:Core.exec(args, opts)
+  if result.status != 0
+    return {}
+  endif
+  return s:StatusParser.parse(result.stdout, { 'fail_silently': 1 })
 endfunction " }}}
 function! s:get_parsed_config(...) " {{{
   let opts = extend({ 'scope': '' }, get(a:000, 0, {}))

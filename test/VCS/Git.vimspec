@@ -183,6 +183,63 @@ Describe VCS.Git
     End
   End
 
+  Context .get_current_branch()
+    It should return a string
+      let ret = s:git.get_current_branch()
+      Assert IsString(ret)
+    End
+  End
+  Context .get_last_commit_hashref()
+    It should return a string
+      let ret = s:git.get_last_commit_hashref()
+      Assert IsString(ret)
+    End
+  End
+  Context .get_last_commit_message()
+    It should return a list
+      let ret = s:git.get_last_commit_message()
+      Assert IsList(ret)
+    End
+  End
+  Context .get_last_merge_message()
+    It should return a list
+      let ret = s:git.get_last_merge_message()
+      Assert IsList(ret)
+    End
+  End
+  Context .get_current_branch_remote()
+    It should return a string
+      let ret = s:git.get_current_branch_remote()
+      Assert IsString(ret)
+    End
+  End
+  Context .get_current_branch_merge()
+    It should return a string
+      let ret = s:git.get_current_branch_merge()
+      Assert IsString(ret)
+    End
+  End
+  Context .get_current_remote_url()
+    It should return a string
+      let ret = s:git.get_current_remote_url()
+      Assert IsString(ret)
+    End
+  End
+  Context .get_commits_ahead_of_remote()
+    It should return a number
+      let ret = s:git.get_commits_ahead_of_remote()
+      Assert IsNumber(ret)
+    End
+  End
+  Context .get_commits_behind_remote()
+    It should return a number
+      let ret = s:git.get_commits_behind_remote()
+      Assert IsNumber(ret)
+    End
+  End
+
+
+
   Context .get_relative_path({path})
     It should return a relative path of an absolute {path}
       let path = s:P.join([s:ROOT, 'autoload', 'vital'])

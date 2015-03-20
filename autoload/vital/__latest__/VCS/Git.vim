@@ -55,7 +55,7 @@ endfunction " }}}
 
 " Object =====================================================================
 let s:git = {}
-function! s:git._get_cache(name) " {{{
+function! s:git._get_cache(name) abort " {{{
   let uptime = self.get_index_updated_time()
   let cached = self.cache.get(a:name, {})
   if !empty(cached) && get(cached, 'actime', 0) >= uptime
@@ -63,19 +63,19 @@ function! s:git._get_cache(name) " {{{
   endif
   return {}
 endfunction " }}}
-function! s:git._set_cache(name, obj) " {{{
+function! s:git._set_cache(name, obj) abort " {{{
   let uptime = self.get_index_updated_time()
   let obj = extend({ 'actime': uptime }, a:obj)
   call self.cache.set(a:name, obj)
   return obj
 endfunction " }}}
-function! s:git._get_call_opts() " {{{
+function! s:git._get_call_opts() abort " {{{
   return { 'cwd': self.worktree }
 endfunction " }}}
-function! s:git.get_index_updated_time() " {{{
+function! s:git.get_index_updated_time() abort " {{{
   return s:Core.get_index_updated_time(self.repository)
 endfunction " }}}
-function! s:git.get_parsed_status() " {{{
+function! s:git.get_parsed_status() abort " {{{
   let status = self._get_cache('status')
   if !empty(status)
     return status
@@ -83,7 +83,7 @@ function! s:git.get_parsed_status() " {{{
   let status = s:Misc.get_parsed_status(self._get_call_opts())
   return self._set_cache('status', status)
 endfunction " }}}
-function! s:git.get_parsed_config() " {{{
+function! s:git.get_parsed_config() abort " {{{
   let config = self._get_cache('config')
   if !empty(config)
     return config
@@ -91,7 +91,7 @@ function! s:git.get_parsed_config() " {{{
   let config = s:Misc.get_parsed_config(self._get_call_opts())
   return self._set_cache('config', config)
 endfunction " }}}
-function! s:git.get_meta(...) " {{{
+function! s:git.get_meta(...) abort " {{{
   let opts = extend({
         \ 'exclude_repository_config': 0,
         \ 'exclude_commits_ahead_of_remote': 0,
@@ -120,49 +120,53 @@ function! s:git.get_meta(...) " {{{
   endif
   return self._set_cache('meta', meta)
 endfunction " }}}
-function! s:git.get_current_branch() " {{{
-  let meta = s:git.get_meta()
+function! s:git.get_current_branch() abort " {{{
+  let meta = self.get_meta()
   return meta.current_branch
 endfunction " }}}
-function! s:git.get_last_commit_hashref() " {{{
-  let meta = s:git.get_meta()
+function! s:git.get_last_commit_hashref() abort " {{{
+  let meta = self.get_meta()
   return meta.last_commit_hashref
 endfunction " }}}
-function! s:git.get_last_commit_message() " {{{
-  let meta = s:git.get_meta()
+function! s:git.get_last_commit_message() abort " {{{
+  let meta = self.get_meta()
   return meta.last_commit_message
 endfunction " }}}
-function! s:git.get_last_merge_message() " {{{
-  let meta = s:git.get_meta()
+function! s:git.get_last_merge_message() abort " {{{
+  let meta = self.get_meta()
   return meta.last_merge_message
 endfunction " }}}
-function! s:git.get_current_branch_remote() " {{{
-  let meta = s:git.get_meta()
-  return meta.current_branch_remote
+function! s:git.get_repository_config() abort " {{{
+  let meta = self.get_meta()
+  return get(meta, 'repository_config', '')
 endfunction " }}}
-function! s:git.get_current_branch_merge() " {{{
-  let meta = s:git.get_meta()
-  return meta.current_branch_merge
+function! s:git.get_current_branch_remote() abort " {{{
+  let meta = self.get_meta()
+  return get(meta, 'current_branch_remote', '')
 endfunction " }}}
-function! s:git.get_current_remote_url() " {{{
-  let meta = s:git.get_meta()
-  return meta.current_remote_url
+function! s:git.get_current_branch_merge() abort " {{{
+  let meta = self.get_meta()
+  return get(meta, 'current_branch_merge', '')
 endfunction " }}}
-function! s:git.get_commits_ahead_of_remote() " {{{
-  let meta = s:git.get_meta()
-  return meta.commits_ahead_of_remote
+function! s:git.get_current_remote_url() abort " {{{
+  let meta = self.get_meta()
+  return get(meta, 'current_remote_url', '')
 endfunction " }}}
-function! s:git.get_commits_behind_remote() " {{{
-  let meta = s:git.get_meta()
-  return meta.commits_behind_remote
+function! s:git.get_commits_ahead_of_remote() abort " {{{
+  let meta = self.get_meta()
+  return get(meta, 'commits_ahead_of_remote', -1)
 endfunction " }}}
-function! s:git.get_relative_path(path) " {{{
+function! s:git.get_commits_behind_remote() abort " {{{
+  let meta = self.get_meta()
+  return get(meta, 'commits_behind_remote', -1)
+endfunction " }}}
+function! s:git.get_relative_path(path) abort " {{{
   return s:Core.get_relative_path(self.worktree, a:path)
 endfunction " }}}
-function! s:git.get_absolute_path(path) " {{{
+function! s:git.get_absolute_path(path) abort " {{{
   return s:Core.get_absolute_path(self.worktree, a:path)
 endfunction " }}}
-function! s:git.exec(args, ...) " {{{
+function! s:git.exec(args, ...) abort " {{{
   let opts = extend(self._get_call_opts(), get(a:000, 0, {}))
   return s:Core.exec(a:args, opts)
 endfunction " }}}
