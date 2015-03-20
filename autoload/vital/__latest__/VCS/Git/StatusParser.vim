@@ -17,8 +17,8 @@ let s:const.status_patterns = [
       \ '\v^([ MDARCU\?!])([ MDUA\?!])\s("[^"]+"|.+)$',
       \]
 let s:const.header_patterns = [
-      \ '\v^##\s([^\.]+)\.\.\.(.+)$',
-      \ '\v^##\s(.+)$',
+      \ '\v^##\s([^.]+)\.\.\.([^ ]+).*$',
+      \ '\v^##\s([^ ]+).*$',
       \]
 let s:const.conflicted_pattern = '\v^%(DD|AU|UD|UA|DU|AA|UU)$'
 let s:const.staged_pattern     = '\v^%([MARC][ MD]|D[ M])$'

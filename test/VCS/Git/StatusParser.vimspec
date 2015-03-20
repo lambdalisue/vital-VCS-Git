@@ -26,6 +26,26 @@ Describe VCS.Git.StatusParser
       Assert Equals(result, expected)
     End
 
+    It should be able to parse '## master...origin/master [ahead 2]'
+      let record = '## master...origin/master [ahead 2]'
+      let result = s:R.parse_record(record)
+      let expected = {
+            \ 'current_branch': 'master',
+            \ 'remote_branch': 'origin/master',
+            \}
+      Assert Equals(result, expected)
+    End
+
+    It should be able to parse '## master...origin/master [behind 2]'
+      let record = '## master...origin/master [behind 2]'
+      let result = s:R.parse_record(record)
+      let expected = {
+            \ 'current_branch': 'master',
+            \ 'remote_branch': 'origin/master',
+            \}
+      Assert Equals(result, expected)
+    End
+
     It should be able to parse 'M  foo/bar/hoge.vim'
       let record = 'M  foo/bar/hoge.vim'
       let result = s:R.parse_record(record)

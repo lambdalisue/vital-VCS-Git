@@ -51,7 +51,10 @@ function! s:get_parsed_commit(...) " {{{
         \}, get(a:000, 0, {}))
   let args = ['commit', '--dry-run', '--porcelain', opts.args]
   let result = s:Core.exec(args, opts)
-  if result.status != 0
+  " Note:
+  "   I'm not sure but apparently the exit status is 1
+  if result.status != 1
+    throw result.stdout
     return {}
   endif
   return s:StatusParser.parse(result.stdout, { 'fail_silently': 1 })

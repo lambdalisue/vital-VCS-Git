@@ -23,7 +23,7 @@ Describe VCS.Git.Misc
     End
   End
 
-  Context .get_status([{options}])
+  Context .get_parsed_status([{options}])
     It should return a dictionary
       let ret = s:M.get_parsed_status()
       Assert IsDict(ret)
@@ -40,7 +40,24 @@ Describe VCS.Git.Misc
     End
   End
 
-  Context .get_config([{options}])
+  Context .get_parsed_commit([{options}])
+    It should return a dictionary
+      let ret = s:M.get_parsed_commit()
+      Assert IsDict(ret)
+      Assert KeyNotExists(ret, 'current_branch')
+      Assert KeyNotExists(ret, 'remote_branch')
+    End
+
+    It should add extra arguments specified
+      let args = ['--branch']
+      let ret = s:M.get_parsed_commit({ 'args': args })
+      Assert IsDict(ret)
+      Assert KeyExists(ret, 'current_branch')
+      Assert KeyExists(ret, 'remote_branch')
+    End
+  End
+
+  Context .get_parsed_config([{options}])
     It should return a dictionary
       let result = s:M.get_parsed_config()
       Assert IsDict(result)
