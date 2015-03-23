@@ -75,21 +75,35 @@ endfunction " }}}
 function! s:git.get_index_updated_time() abort " {{{
   return s:Core.get_index_updated_time(self.repository)
 endfunction " }}}
-function! s:git.get_parsed_status() abort " {{{
-  let status = self._get_cache('status')
+function! s:git.get_parsed_status(...) abort " {{{
+  let opts = extend(self._get_call_opts(), get(a:000, 0, {}))
+  let cachename = printf('status_%s', join(get(opts, 'args', []), '_'))
+  let status = self._get_cache(cachename)
   if !empty(status)
     return status
   endif
-  let status = s:Misc.get_parsed_status(self._get_call_opts())
-  return self._set_cache('status', status)
+  let status = s:Misc.get_parsed_status(opts)
+  return self._set_cache(cachename, status)
 endfunction " }}}
-function! s:git.get_parsed_config() abort " {{{
-  let config = self._get_cache('config')
+function! s:git.get_parsed_commit(...) abort " {{{
+  let opts = extend(self._get_call_opts(), get(a:000, 0, {}))
+  let cachename = printf('commit_%s', join(get(opts, 'args', []), '_'))
+  let status = self._get_cache(cachename)
+  if !empty(status)
+    return status
+  endif
+  let status = s:Misc.get_parsed_status(opts)
+  return self._set_cache(cachename, status)
+endfunction " }}}
+function! s:git.get_parsed_config(...) abort " {{{
+  let opts = extend(self._get_call_opts(), get(a:000, 0, {}))
+  let cachename = printf('commit_%s', join(get(opts, 'args', []), '_'))
+  let config = self._get_cache(cachename)
   if !empty(config)
     return config
   endif
-  let config = s:Misc.get_parsed_config(self._get_call_opts())
-  return self._set_cache('config', config)
+  let config = s:Misc.get_parsed_config(opts)
+  return self._set_cache(cachename, config)
 endfunction " }}}
 function! s:git.get_meta(...) abort " {{{
   let opts = extend({
