@@ -67,7 +67,7 @@ Describe VCS.Git
       let s:git = s:G.new(s:WORKTREE, s:REPOSITORY, { 'no_cache': 1 })
       function! s:git.patch_get_index_updated_time()
         function! self.get_index_updated_time()
-          return reltime()[0]
+          return reltime()[0] + 1000
         endfunction
       endfunction
     End
@@ -99,9 +99,9 @@ Describe VCS.Git
         Assert NotSame(ret1, ret2)
       End
 
-      It should return a different dictionary if 'args' option is specified
+      It should return a different dictionary if different option is specified
         let ret1 = s:git.get_parsed_status()
-        let ret2 = s:git.get_parsed_status({'args': ['--verbose']})
+        let ret2 = s:git.get_parsed_status({'branch': 1})
         Assert NotSame(ret1, ret2)
       End
     End
@@ -125,9 +125,9 @@ Describe VCS.Git
         Assert NotSame(ret1, ret2)
       End
 
-      It should return a different dictionary if 'args' option is specified
+      It should return a different dictionary if different option is specified
         let ret1 = s:git.get_parsed_commit()
-        let ret2 = s:git.get_parsed_commit({'args': ['--verbose']})
+        let ret2 = s:git.get_parsed_commit({'all': 1})
         Assert NotSame(ret1, ret2)
       End
     End
@@ -153,7 +153,7 @@ Describe VCS.Git
 
       It should return a different dictionary if 'args' option is specified
         let ret1 = s:git.get_parsed_config()
-        let ret2 = s:git.get_parsed_config({'args': ['--verbose']})
+        let ret2 = s:git.get_parsed_config({'local': 1})
         Assert NotSame(ret1, ret2)
       End
     End

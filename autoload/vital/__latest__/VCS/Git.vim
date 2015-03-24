@@ -58,52 +58,64 @@ let s:git = {}
 function! s:git._get_cache(name) abort " {{{
   let uptime = self.get_index_updated_time()
   let cached = self.cache.get(a:name, {})
-  if !empty(cached) && get(cached, 'actime', 0) >= uptime
+  if !empty(cached) && (get(cached, 'actime', 0) >= uptime || uptime == -1)
     return cached
   endif
   return {}
 endfunction " }}}
 function! s:git._set_cache(name, obj) abort " {{{
   let uptime = self.get_index_updated_time()
-  let obj = extend({ 'actime': uptime }, a:obj)
+  if uptime == -1
+    let obj = deepcopy(a:obj)
+  else
+    let obj = extend({ 'actime': uptime }, a:obj)
+  endif
   call self.cache.set(a:name, obj)
   return obj
 endfunction " }}}
-function! s:git._get_call_opts() abort " {{{
-  return { 'cwd': self.worktree }
+function! s:git._get_call_opts(...) abort " {{{
+  return extend({
+        \ 'cwd': self.worktree,
+        \}, get(a:000, 0, {}))
 endfunction " }}}
 function! s:git.get_index_updated_time() abort " {{{
   return s:Core.get_index_updated_time(self.repository)
 endfunction " }}}
 function! s:git.get_parsed_status(...) abort " {{{
-  let opts = extend(self._get_call_opts(), get(a:000, 0, {}))
-  let cachename = printf('status_%s', join(get(opts, 'args', []), '_'))
-  let status = self._get_cache(cachename)
-  if !empty(status)
-    return status
+  let opts = self._get_call_opts(extend({
+        \ 'no_cache': 0,
+        \}, get(a:000, 0, {})))
+  let name = printf('status_%s', string(opts))
+  let result = self._get_cache(name)
+  if !opts.no_cache && !empty(result)
+    return result
   endif
-  let status = s:Misc.get_parsed_status(opts)
-  return self._set_cache(cachename, status)
+  let result = s:Misc.get_parsed_status(opts)
+  return self._set_cache(name, result)
 endfunction " }}}
 function! s:git.get_parsed_commit(...) abort " {{{
-  let opts = extend(self._get_call_opts(), get(a:000, 0, {}))
-  let cachename = printf('commit_%s', join(get(opts, 'args', []), '_'))
-  let status = self._get_cache(cachename)
-  if !empty(status)
-    return status
+  let opts = self._get_call_opts(extend({
+        \ 'no_cache': 0,
+        \}, get(a:000, 0, {})))
+  let name = printf('commit_%s', string(opts))
+  let result = self._get_cache(name)
+  if !opts.no_cache && !empty(result)
+    return result
   endif
-  let status = s:Misc.get_parsed_status(opts)
-  return self._set_cache(cachename, status)
+  let result = s:Misc.get_parsed_commit(opts)
+  return self._set_cache(name, result)
 endfunction " }}}
 function! s:git.get_parsed_config(...) abort " {{{
-  let opts = extend(self._get_call_opts(), get(a:000, 0, {}))
-  let cachename = printf('commit_%s', join(get(opts, 'args', []), '_'))
-  let config = self._get_cache(cachename)
-  if !empty(config)
-    return config
+  let opts = self._get_call_opts(extend({
+        \ 'no_cache': 0,
+        \}, get(a:000, 0, {})))
+  let name = printf('config_%s', string(opts))
+  let result = self._get_cache(name)
+  if !opts.no_cache && !empty(result)
+    return result
   endif
-  let config = s:Misc.get_parsed_config(opts)
-  return self._set_cache(cachename, config)
+  let result = s:Misc.get_parsed_config(opts)
+  return self._set_cache(name, result)
 endfunction " }}}
 function! s:git.get_meta(...) abort " {{{
   let opts = extend({

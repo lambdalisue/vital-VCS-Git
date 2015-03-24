@@ -32,8 +32,7 @@ Describe VCS.Git.Misc
     End
 
     It should add extra arguments specified
-      let args = ['--verbose', '--branch']
-      let ret = s:M.get_parsed_status({ 'args': args })
+      let ret = s:M.get_parsed_status({ 'branch': 1 })
       Assert IsDict(ret)
       Assert KeyExists(ret, 'current_branch')
       Assert KeyExists(ret, 'remote_branch')
@@ -46,14 +45,6 @@ Describe VCS.Git.Misc
       Assert IsDict(ret)
       Assert KeyNotExists(ret, 'current_branch')
       Assert KeyNotExists(ret, 'remote_branch')
-    End
-
-    It should add extra arguments specified
-      let args = ['--branch']
-      let ret = s:M.get_parsed_commit({ 'args': args })
-      Assert IsDict(ret)
-      Assert KeyExists(ret, 'current_branch')
-      Assert KeyExists(ret, 'remote_branch')
     End
   End
 
