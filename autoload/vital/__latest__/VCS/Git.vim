@@ -13,6 +13,7 @@ set cpo&vim
 " Vital ======================================================================
 function! s:_vital_loaded(V) dict abort " {{{
   let s:V = a:V
+  let s:Dict = s:V.import('Data.Dict')
   let s:SimpleCache = s:V.import('System.Cache.Simple')
   let s:Core = s:V.import('VCS.Git.Core')
   let s:Misc = s:V.import('VCS.Git.Misc')
@@ -82,36 +83,39 @@ function! s:git.get_index_updated_time() abort " {{{
   return s:Core.get_index_updated_time(self.repository)
 endfunction " }}}
 function! s:git.get_parsed_status(...) abort " {{{
-  let opts = self._get_call_opts(extend({
+  let options = self._get_call_opts(extend({
         \ 'no_cache': 0,
         \}, get(a:000, 0, {})))
+  let opts = s:Dict.omit(options, ['no_cache'])
   let name = printf('status_%s', string(opts))
   let result = self._get_cache(name)
-  if !opts.no_cache && !empty(result)
+  if !options.no_cache && !empty(result)
     return result
   endif
   let result = s:Misc.get_parsed_status(opts)
   return self._set_cache(name, result)
 endfunction " }}}
 function! s:git.get_parsed_commit(...) abort " {{{
-  let opts = self._get_call_opts(extend({
+  let options = self._get_call_opts(extend({
         \ 'no_cache': 0,
         \}, get(a:000, 0, {})))
+  let opts = s:Dict.omit(options, ['no_cache'])
   let name = printf('commit_%s', string(opts))
   let result = self._get_cache(name)
-  if !opts.no_cache && !empty(result)
+  if !options.no_cache && !empty(result)
     return result
   endif
   let result = s:Misc.get_parsed_commit(opts)
   return self._set_cache(name, result)
 endfunction " }}}
 function! s:git.get_parsed_config(...) abort " {{{
-  let opts = self._get_call_opts(extend({
+  let options = self._get_call_opts(extend({
         \ 'no_cache': 0,
         \}, get(a:000, 0, {})))
+  let opts = s:Dict.omit(options, ['no_cache'])
   let name = printf('config_%s', string(opts))
   let result = self._get_cache(name)
-  if !opts.no_cache && !empty(result)
+  if !options.no_cache && !empty(result)
     return result
   endif
   let result = s:Misc.get_parsed_config(opts)
