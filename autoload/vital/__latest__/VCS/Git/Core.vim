@@ -116,7 +116,7 @@ function! s:get_last_commit_hashref(repository) " {{{
   endif
 endfunction " }}}
 function! s:get_last_commit_message(repository) " {{{
-  let filename = s:Path.join(a:repository, 'COMMIT_MSG')
+  let filename = s:Path.join(a:repository, 'COMMIT_EDITMSG')
   if !filereadable(filename)
     return []
   endif

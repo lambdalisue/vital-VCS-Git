@@ -12,6 +12,7 @@ set cpo&vim
 function! s:_vital_loaded(V) dict abort " {{{
   let s:V = a:V
   let s:Prelude      = a:V.import('Prelude')
+  let s:Dict         = a:V.import('Data.Dict')
   let s:Core         = a:V.import('VCS.Git.Core')
   let s:StatusParser = a:V.import('VCS.Git.StatusParser')
   let s:ConfigParser = a:V.import('VCS.Git.ConfigParser')
@@ -35,8 +36,8 @@ function! s:_opts2args(opts, defaults) abort " {{{
         call add(args, string(val))
       endif
       unlet val
-      unlet default
     endif
+    unlet default
   endfor
   return args
 endfunction " }}}
@@ -59,9 +60,9 @@ function! s:get_parsed_status(...) " {{{
         \ 'ignored': 0,
         \ 'ignore_submodules': 'all',
         \}
-  let opts = extend(defs, get(a:000, 0, {}))
+  let opts = get(a:000, 0, {})
   let args = ['status', '--porcelain'] + s:_opts2args(opts, defs)
-  let result = s:Core.exec(args, opts)
+  let result = s:Core.exec(args, s:Dict.omit(opts, keys(defs)))
   if result.status != 0
     return result
   endif
@@ -86,9 +87,9 @@ function! s:get_parsed_commit(...) " {{{
         \ 'amend': 0,
         \ 'no_post_rewrite': 0,
         \}
-  let opts = extend(defs, get(a:000, 0, {}))
+  let opts = get(a:000, 0, {})
   let args = ['commit', '--dry-run', '--porcelain'] + s:_opts2args(opts, defs)
-  let result = s:Core.exec(args, opts)
+  let result = s:Core.exec(args, s:Dict.omit(opts, keys(defs)))
   " Note:
   "   I'm not sure but apparently the exit status is 1
   if result.status != 1
@@ -109,9 +110,9 @@ function! s:get_parsed_config(...) " {{{
         \ 'path': 0,
         \ 'includes': 0,
         \}
-  let opts = extend(defs, get(a:000, 0, {}))
+  let opts = get(a:000, 0, {})
   let args = ['config', '--list'] + s:_opts2args(opts, defs)
-  let result = s:Core.exec(args, opts)
+  let result = s:Core.exec(args, s:Dict.omit(opts, keys(defs)))
   if result.status != 0
     return result
   endif
