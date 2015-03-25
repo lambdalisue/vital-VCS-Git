@@ -285,9 +285,9 @@ Describe VCS.Git
     End
   End
   Context .get_last_commitmsg()
-    It should return a number
+    It should return a list
       let ret = s:git.get_last_commitmsg()
-      Assert IsString(ret)
+      Assert IsList(ret)
     End
   End
 

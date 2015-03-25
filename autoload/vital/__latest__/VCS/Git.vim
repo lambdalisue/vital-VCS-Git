@@ -187,7 +187,7 @@ function! s:git.get_commits_behind_remote() abort " {{{
 endfunction " }}}
 function! s:git.get_last_commitmsg() abort " {{{
   let meta = self.get_meta()
-  return get(meta, 'last_commitmsg', '')
+  return get(meta, 'last_commitmsg', [])
 endfunction " }}}
 function! s:git.get_relative_path(path) abort " {{{
   return s:Core.get_relative_path(self.worktree, a:path)

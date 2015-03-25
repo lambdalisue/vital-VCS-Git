@@ -24,9 +24,9 @@ Describe VCS.Git.Misc
   End
 
   Context .get_last_commitmsg([{options}])
-    It should return a string
+    It should return a list
       let result = s:M.get_last_commitmsg()
-      Assert IsString(result)
+      Assert IsList(result)
     End
   End
 

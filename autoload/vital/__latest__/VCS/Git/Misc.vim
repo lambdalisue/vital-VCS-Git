@@ -123,7 +123,7 @@ function! s:get_last_commitmsg(...) " {{{
   let opts = get(a:000, 0, {})
   let result = s:Core.exec(['log', '-1', '--pretty=%B'], opts)
   if result.status == 0
-    return result.stdout
+    return split(result.stdout, '\v\r?\n')
   else
     return result
   endif
