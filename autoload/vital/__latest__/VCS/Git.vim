@@ -14,6 +14,7 @@ set cpo&vim
 function! s:_vital_loaded(V) dict abort " {{{
   let s:V = a:V
   let s:Dict = s:V.import('Data.Dict')
+  let s:Prelude = s:V.import('Prelude')
   let s:SimpleCache = s:V.import('System.Cache.Simple')
   let s:Core = s:V.import('VCS.Git.Core')
   let s:Misc = s:V.import('VCS.Git.Misc')
@@ -26,6 +27,37 @@ function! s:_vital_depends() abort " {{{
         \ 'VCS.Git.Misc',
         \ 'VCS.Git.Finder',
         \]
+endfunction " }}}
+function! s:_opts2args(opts, defaults) abort " {{{
+  let args = []
+  for [key, default] in items(a:defaults)
+    if has_key(a:opts, key)
+      let val = get(a:opts, key)
+      if s:Prelude.is_number(default) && s:Prelude.is_number(val) && val
+        if strlen(key) == 1
+          call add(args, printf('-%s', key))
+        else
+          call add(args, printf('--%s', substitute(key, '_', '-', 'g')))
+        endif
+      elseif s:Prelude.is_string(default) && default =~# '\v^=' && default !=# printf('=%s', val)
+        if strlen(key) == 1
+          call add(args, printf('-%s%s', key, val))
+        else
+          call add(args, printf('--%s=%s', substitute(key, '_', '-', 'g'), val))
+        endif
+      elseif s:Prelude.is_string(default) && default !=# val
+        if strlen(key) == 1
+          call add(args, printf('-%s', key))
+        else
+          call add(args, printf('--%s', substitute(key, '_', '-', 'g')))
+        endif
+        call add(args, val)
+      endif
+      unlet val
+    endif
+    unlet default
+  endfor
+  return args
 endfunction " }}}
 
 " Methods ====================================================================
@@ -204,6 +236,207 @@ function! s:git.exec(args, ...) abort " {{{
   return s:Core.exec(a:args, opts)
 endfunction " }}}
 
+function! s:git.add(options, ...) abort " {{{
+  let defaults = {
+        \ 'dry_run': 0,
+        \ 'verbose': 0,
+        \ 'force': 0,
+        \ 'interactive': 0,
+        \ 'patch': 0,
+        \ 'edit': 0,
+        \ 'update': 0,
+        \ 'all': 0,
+        \ 'intent_to_add': 0,
+        \ 'refresh': 0,
+        \ 'ignore_errors': 0,
+        \ 'ignore_missing': 0,
+        \} 
+  let opts = s:Dict.omit(a:options, keys(defaults))
+  let args = extend(['add'], s:_opts2args(a:options, defaults))
+  let filenames = gita#util#listalize(get(a:000, 0, []))
+  if len(filenames) > 0
+    call add(args, ['--', filenames])
+  endif
+  return self.exec(args, opts)
+endfunction " }}}
+function! s:git.rm(options, ...) abort " {{{
+  let defaults = {
+        \ 'force': 0,
+        \ 'dry_run': 0,
+        \ 'r': 0,
+        \ 'cached': 0,
+        \ 'ignore_unmatch': 0,
+        \ 'quiet': 0,
+        \} 
+  let opts = s:Dict.omit(a:options, keys(defaults))
+  let args = extend(['rm'], s:_opts2args(a:options, defaults))
+  let filenames = gita#util#listalize(get(a:000, 0, []))
+  if len(filenames) > 0
+    call add(args, ['--', filenames])
+  endif
+  return self.exec(args, opts)
+endfunction " }}}
+function! s:git.checkout(options, commit, ...) abort " {{{
+  let defaults = {
+        \ 'quiet': 0,
+        \ 'force': 0,
+        \ 'ours': 0,
+        \ 'theirs': 0,
+        \ 'b': '',
+        \ 'B': '',
+        \ 'track': 0,
+        \ 'no_track': 0,
+        \ 'l': 0,
+        \ 'detach': 0,
+        \ 'orphan': '',
+        \ 'merge': 0,
+        \ 'conflict': '=merge',
+        \ 'patch': 0,
+        \} 
+  let opts = s:Dict.omit(a:options, keys(defaults))
+  let args = extend(['checkout'], s:_opts2args(a:options, defaults))
+  if strlen(a:commit)
+    call add(args, a:commit)
+  endif
+  let filenames = gita#util#listalize(get(a:000, 0, []))
+  if len(filenames) > 0
+    call add(args, ['--', filenames])
+  endif
+  return self.exec(args, opts)
+endfunction " }}}
+function! s:git.status(options, ...) abort " {{{
+  let defaults = {
+        \ 'short': 0,
+        \ 'branch': 0,
+        \ 'porcelain': 0,
+        \ 'untracked_files': '=all',
+        \ 'ignore_submodules': '=all',
+        \ 'ignored': 0,
+        \ 'z': 0,
+        \} 
+  let opts = s:Dict.omit(a:options, keys(defaults))
+  let args = extend(['status'], s:_opts2args(a:options, defaults))
+  let filenames = gita#util#listalize(get(a:000, 0, []))
+  if len(filenames) > 0
+    call add(args, ['--', filenames])
+  endif
+  return self.exec(args, opts)
+endfunction " }}}
+function! s:git.commit(options, ...) abort " {{{
+  let defaults = {
+        \ 'all': 0,
+        \ 'patch': 0,
+        \ 'reuse_message': '=',
+        \ 'reedit_message': '=',
+        \ 'fixup': '=',
+        \ 'squash': '=',
+        \ 'reset_author': 0,
+        \ 'short': 0,
+        \ 'porcelain': 0,
+        \ 'z': 0,
+        \ 'file': '=',
+        \ 'author': '=',
+        \ 'date': '=',
+        \ 'message': '=',
+        \ 'template': '=',
+        \ 'signoff': 0,
+        \ 'no_verify': 0,
+        \ 'allow_empty': 0,
+        \ 'allow_empty_message': 0,
+        \ 'cleanup': '=default',
+        \ 'edit': 0,
+        \ 'amend': 0,
+        \ 'include': 0,
+        \ 'only': 0,
+        \ 'untracked_files': '=all',
+        \ 'verbose': 0,
+        \ 'quiet': 0,
+        \ 'dry_run': 0,
+        \ 'status': 0,
+        \ 'no_status': 0,
+        \} 
+  let opts = s:Dict.omit(a:options, keys(defaults))
+  let args = extend(['commit'], s:_opts2args(a:options, defaults))
+  let filenames = gita#util#listalize(get(a:000, 0, []))
+  if len(filenames) > 0
+    call add(args, ['--', filenames])
+  endif
+  return self.exec(args, opts)
+endfunction " }}}
+function! s:git.diff(options, commit, ...) abort " {{{
+  let defaults = {
+        \ 'patch': 0,
+        \ 'unified': '=',
+        \ 'raw': 0,
+        \ 'patch_with_raw': 0,
+        \ 'minimal': 0,
+        \ 'patience': 0,
+        \ 'histogram': 0,
+        \ 'stat': '=',
+        \ 'numstat': 0,
+        \ 'shortstat': 0,
+        \ 'dirstat': '=',
+        \ 'summary': 0,
+        \ 'patch_with_stat': 0,
+        \ 'z': 0,
+        \ 'name_only': 0,
+        \ 'name_status': 0,
+        \ 'submodule': '=log',
+        \ 'color': '=never',
+        \ 'no_color': 0,
+        \ 'word_diff': '=plain',
+        \ 'word_diff_regex': '=',
+        \ 'color_words': '=',
+        \ 'no_renames': 0,
+        \ 'check': 0,
+        \ 'full_index': 0,
+        \ 'binary': 0,
+        \ 'abbrev': '=',
+        \ 'break_rewrites': '=',
+        \ 'find_renames': '=',
+        \ 'find_copies': '=',
+        \ 'find_copies_harder': 0,
+        \ 'irreversible_delete': 0,
+        \ 'l': '=',
+        \ 'diff_filter': '=',
+        \ 'S': '=',
+        \ 'G': '=',
+        \ 'pickaxe_all': 0,
+        \ 'pickaxe_regex': 0,
+        \ 'O': '=',
+        \ 'R': 0,
+        \ 'relative': '=',
+        \ 'text': 0,
+        \ 'ignore_space_at_eol': 0,
+        \ 'ignore_space_change': 0,
+        \ 'ignore_all_space': 0,
+        \ 'inter_hunk_context': '=',
+        \ 'function_context': 0,
+        \ 'exit_code': 0,
+        \ 'quiet': 0,
+        \ 'ext_diff': 0,
+        \ 'no_ext_diff': 0,
+        \ 'textconv': 0,
+        \ 'no_textconv': 0,
+        \ 'ignore_submodules': '=all',
+        \ 'src_prefix': '=',
+        \ 'dst_prefix': '=',
+        \ 'no_prefix': 0,
+        \} 
+  let opts = s:Dict.omit(a:options, keys(defaults))
+  let args = extend(['diff'], s:_opts2args(a:options, defaults))
+  if get(a:options, 'cached', 0)
+    call add(args, '--cached')
+  endif
+  if strlen(a:commit) > 0
+    call add(args, a:commit)
+  endif
+  let filenames = gita#util#listalize(get(a:000, 0, []))
+  if len(filenames) > 0
+    call add(args, ['--', filenames])
+  endif
+  return self.exec(args, opts)
+endfunction " }}}
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
