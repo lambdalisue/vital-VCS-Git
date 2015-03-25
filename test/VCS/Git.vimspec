@@ -171,6 +171,7 @@ Describe VCS.Git
         Assert KeyExists(ret, 'comment_char')
         Assert KeyExists(ret, 'commits_ahead_of_remote')
         Assert KeyExists(ret, 'commits_behind_remote')
+        Assert KeyExists(ret, 'last_commitmsg')
       End
 
       It should exclude repository config related keys in the return dictionary if 'exclude_repository_config' is specified
@@ -185,6 +186,7 @@ Describe VCS.Git
         Assert KeyNotExists(ret, 'comment_char')
         Assert KeyExists(ret, 'commits_ahead_of_remote')
         Assert KeyExists(ret, 'commits_behind_remote')
+        Assert KeyExists(ret, 'last_commitmsg')
       End
 
       It should exclude 'commits_ahead_of_remote' in the return dictionary if 'exclude_commits_ahead_of_remote' is specified
@@ -199,6 +201,7 @@ Describe VCS.Git
         Assert KeyExists(ret, 'comment_char')
         Assert KeyNotExists(ret, 'commits_ahead_of_remote')
         Assert KeyExists(ret, 'commits_behind_remote')
+        Assert KeyExists(ret, 'last_commitmsg')
       End
 
       It should exclude 'commits_behind_remote' in the return dictionary if 'exclude_commits_behind_remote' is specified
@@ -213,6 +216,22 @@ Describe VCS.Git
         Assert KeyExists(ret, 'comment_char')
         Assert KeyExists(ret, 'commits_ahead_of_remote')
         Assert KeyNotExists(ret, 'commits_behind_remote')
+        Assert KeyExists(ret, 'last_commitmsg')
+      End
+
+      It should exclude 'last_commitmsg' in the return dictionary if 'exclude_last_commitmsg' is specified
+        let ret = s:git.get_meta({ 'exclude_last_commitmsg': 1 })
+        Assert IsDict(ret)
+        Assert KeyExists(ret, 'current_branch')
+        Assert KeyExists(ret, 'cached_commitmsg')
+        Assert KeyExists(ret, 'repository_config')
+        Assert KeyExists(ret, 'current_branch_remote')
+        Assert KeyExists(ret, 'current_branch_merge')
+        Assert KeyExists(ret, 'current_remote_url')
+        Assert KeyExists(ret, 'comment_char')
+        Assert KeyExists(ret, 'commits_ahead_of_remote')
+        Assert KeyExists(ret, 'commits_behind_remote')
+        Assert KeyNotExists(ret, 'last_commitmsg')
       End
     End
   End
@@ -265,7 +284,12 @@ Describe VCS.Git
       Assert IsNumber(ret)
     End
   End
-
+  Context .get_last_commitmsg()
+    It should return a number
+      let ret = s:git.get_last_commitmsg()
+      Assert IsString(ret)
+    End
+  End
 
 
   Context .get_relative_path({path})

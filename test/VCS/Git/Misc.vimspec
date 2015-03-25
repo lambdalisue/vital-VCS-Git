@@ -23,6 +23,13 @@ Describe VCS.Git.Misc
     End
   End
 
+  Context .get_last_commitmsg([{options}])
+    It should return a string
+      let result = s:M.get_last_commitmsg()
+      Assert IsString(result)
+    End
+  End
+
   Context .get_parsed_status([{options}])
     It should return a dictionary
       let ret = s:M.get_parsed_status()

@@ -122,6 +122,7 @@ function! s:git.get_meta(...) abort " {{{
         \ 'exclude_repository_config': 0,
         \ 'exclude_commits_ahead_of_remote': 0,
         \ 'exclude_commits_behind_remote': 0,
+        \ 'exclude_last_commitmsg': 0,
         \}, get(a:000, 0, {}))
   let meta = self._get_cache('meta')
   if !empty(meta)
@@ -142,6 +143,9 @@ function! s:git.get_meta(...) abort " {{{
   endif
   if !opts.exclude_commits_behind_remote
     let meta.commits_behind_remote = s:Misc.count_commits_behind_remote(self._get_call_opts())
+  endif
+  if !opts.exclude_last_commitmsg
+    let meta.last_commitmsg = s:Misc.get_last_commitmsg(self._get_call_opts())
   endif
   return self._set_cache('meta', meta)
 endfunction " }}}
@@ -180,6 +184,10 @@ endfunction " }}}
 function! s:git.get_commits_behind_remote() abort " {{{
   let meta = self.get_meta()
   return get(meta, 'commits_behind_remote', -1)
+endfunction " }}}
+function! s:git.get_last_commitmsg() abort " {{{
+  let meta = self.get_meta()
+  return get(meta, 'last_commitmsg', '')
 endfunction " }}}
 function! s:git.get_relative_path(path) abort " {{{
   return s:Core.get_relative_path(self.worktree, a:path)
