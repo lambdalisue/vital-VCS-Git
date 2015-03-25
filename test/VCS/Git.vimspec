@@ -163,13 +163,12 @@ Describe VCS.Git
         let ret = s:git.get_meta()
         Assert IsDict(ret)
         Assert KeyExists(ret, 'current_branch')
-        Assert KeyExists(ret, 'last_commit_hashref')
-        Assert KeyExists(ret, 'last_commit_message')
-        Assert KeyExists(ret, 'last_merge_message')
+        Assert KeyExists(ret, 'cached_commitmsg')
         Assert KeyExists(ret, 'repository_config')
         Assert KeyExists(ret, 'current_branch_remote')
         Assert KeyExists(ret, 'current_branch_merge')
         Assert KeyExists(ret, 'current_remote_url')
+        Assert KeyExists(ret, 'comment_char')
         Assert KeyExists(ret, 'commits_ahead_of_remote')
         Assert KeyExists(ret, 'commits_behind_remote')
       End
@@ -178,13 +177,12 @@ Describe VCS.Git
         let ret = s:git.get_meta({ 'exclude_repository_config': 1 })
         Assert IsDict(ret)
         Assert KeyExists(ret, 'current_branch')
-        Assert KeyExists(ret, 'last_commit_hashref')
-        Assert KeyExists(ret, 'last_commit_message')
-        Assert KeyExists(ret, 'last_merge_message')
+        Assert KeyExists(ret, 'cached_commitmsg')
         Assert KeyNotExists(ret, 'repository_config')
         Assert KeyNotExists(ret, 'current_branch_remote')
         Assert KeyNotExists(ret, 'current_branch_merge')
         Assert KeyNotExists(ret, 'current_remote_url')
+        Assert KeyNotExists(ret, 'comment_char')
         Assert KeyExists(ret, 'commits_ahead_of_remote')
         Assert KeyExists(ret, 'commits_behind_remote')
       End
@@ -193,13 +191,12 @@ Describe VCS.Git
         let ret = s:git.get_meta({ 'exclude_commits_ahead_of_remote': 1 })
         Assert IsDict(ret)
         Assert KeyExists(ret, 'current_branch')
-        Assert KeyExists(ret, 'last_commit_hashref')
-        Assert KeyExists(ret, 'last_commit_message')
-        Assert KeyExists(ret, 'last_merge_message')
+        Assert KeyExists(ret, 'cached_commitmsg')
         Assert KeyExists(ret, 'repository_config')
         Assert KeyExists(ret, 'current_branch_remote')
         Assert KeyExists(ret, 'current_branch_merge')
         Assert KeyExists(ret, 'current_remote_url')
+        Assert KeyExists(ret, 'comment_char')
         Assert KeyNotExists(ret, 'commits_ahead_of_remote')
         Assert KeyExists(ret, 'commits_behind_remote')
       End
@@ -208,13 +205,12 @@ Describe VCS.Git
         let ret = s:git.get_meta({ 'exclude_commits_behind_remote': 1 })
         Assert IsDict(ret)
         Assert KeyExists(ret, 'current_branch')
-        Assert KeyExists(ret, 'last_commit_hashref')
-        Assert KeyExists(ret, 'last_commit_message')
-        Assert KeyExists(ret, 'last_merge_message')
+        Assert KeyExists(ret, 'cached_commitmsg')
         Assert KeyExists(ret, 'repository_config')
         Assert KeyExists(ret, 'current_branch_remote')
         Assert KeyExists(ret, 'current_branch_merge')
         Assert KeyExists(ret, 'current_remote_url')
+        Assert KeyExists(ret, 'comment_char')
         Assert KeyExists(ret, 'commits_ahead_of_remote')
         Assert KeyNotExists(ret, 'commits_behind_remote')
       End
@@ -227,21 +223,9 @@ Describe VCS.Git
       Assert IsString(ret)
     End
   End
-  Context .get_last_commit_hashref()
-    It should return a string
-      let ret = s:git.get_last_commit_hashref()
-      Assert IsString(ret)
-    End
-  End
-  Context .get_last_commit_message()
+  Context .get_cached_commitmsg()
     It should return a list
-      let ret = s:git.get_last_commit_message()
-      Assert IsList(ret)
-    End
-  End
-  Context .get_last_merge_message()
-    It should return a list
-      let ret = s:git.get_last_merge_message()
+      let ret = s:git.get_cached_commitmsg()
       Assert IsList(ret)
     End
   End
@@ -260,6 +244,12 @@ Describe VCS.Git
   Context .get_current_remote_url()
     It should return a string
       let ret = s:git.get_current_remote_url()
+      Assert IsString(ret)
+    End
+  End
+  Context .get_comment_char()
+    It should return a string
+      let ret = s:git.get_comment_char()
       Assert IsString(ret)
     End
   End

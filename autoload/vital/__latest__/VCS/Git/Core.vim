@@ -103,27 +103,8 @@ function! s:get_current_branch(repository) " {{{
     return lines[0][: 6]
   endif
 endfunction " }}}
-function! s:get_last_commit_hashref(repository) " {{{
-  let filename = s:Path.join(a:repository, 'ORIG_HEAD')
-  if !filereadable(filename)
-    return ''
-  endif
-  let lines = readfile(filename)
-  if empty(lines)
-    return ''
-  else
-    return lines[0]
-  endif
-endfunction " }}}
-function! s:get_last_commit_message(repository) " {{{
+function! s:get_cached_commitmsg(repository) " {{{
   let filename = s:Path.join(a:repository, 'COMMIT_EDITMSG')
-  if !filereadable(filename)
-    return []
-  endif
-  return readfile(filename)
-endfunction " }}}
-function! s:get_last_merge_message(repository) " {{{
-  let filename = s:Path.join(a:repository, 'MERGE_MSG')
   if !filereadable(filename)
     return []
   endif
@@ -163,6 +144,14 @@ function! s:get_remote_url(config, remote) " {{{
     return ''
   endif
   return get(section, 'url', '')
+endfunction " }}}
+function! s:get_comment_char(config, ...) abort " {{{
+  let default = get(a:000, 0, '#')
+  let section = get(a:config, 'core', {})
+  if empty(section)
+    return default
+  endif
+  return get(section, 'commentchar', default)
 endfunction " }}}
 
 " Execution

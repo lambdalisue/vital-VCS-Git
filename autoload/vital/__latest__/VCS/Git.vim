@@ -129,14 +129,13 @@ function! s:git.get_meta(...) abort " {{{
   endif
   let meta = {}
   let meta.current_branch = s:Core.get_current_branch(self.repository)
-  let meta.last_commit_hashref = s:Core.get_last_commit_hashref(self.repository)
-  let meta.last_commit_message = s:Core.get_last_commit_message(self.repository)
-  let meta.last_merge_message = s:Core.get_last_merge_message(self.repository)
+  let meta.cached_commitmsg = s:Core.get_cached_commitmsg(self.repository)
   if !opts.exclude_repository_config
     let meta.repository_config = s:Core.get_config(self.repository)
     let meta.current_branch_remote = s:Core.get_branch_remote(meta.repository_config, meta.current_branch)
     let meta.current_branch_merge = s:Core.get_branch_merge(meta.repository_config, meta.current_branch)
     let meta.current_remote_url = s:Core.get_remote_url(meta.repository_config, meta.current_branch_remote)
+    let meta.comment_char = s:Core.get_comment_char(meta.repository_config)
   endif
   if !opts.exclude_commits_ahead_of_remote
     let meta.commits_ahead_of_remote = s:Misc.count_commits_ahead_of_remote(self._get_call_opts())
@@ -150,17 +149,9 @@ function! s:git.get_current_branch() abort " {{{
   let meta = self.get_meta()
   return meta.current_branch
 endfunction " }}}
-function! s:git.get_last_commit_hashref() abort " {{{
+function! s:git.get_cached_commitmsg() abort " {{{
   let meta = self.get_meta()
-  return meta.last_commit_hashref
-endfunction " }}}
-function! s:git.get_last_commit_message() abort " {{{
-  let meta = self.get_meta()
-  return meta.last_commit_message
-endfunction " }}}
-function! s:git.get_last_merge_message() abort " {{{
-  let meta = self.get_meta()
-  return meta.last_merge_message
+  return meta.cached_commitmsg
 endfunction " }}}
 function! s:git.get_repository_config() abort " {{{
   let meta = self.get_meta()
@@ -177,6 +168,10 @@ endfunction " }}}
 function! s:git.get_current_remote_url() abort " {{{
   let meta = self.get_meta()
   return get(meta, 'current_remote_url', '')
+endfunction " }}}
+function! s:git.get_comment_char() abort " {{{
+  let meta = self.get_meta()
+  return get(meta, 'comment_char', '#')
 endfunction " }}}
 function! s:git.get_commits_ahead_of_remote() abort " {{{
   let meta = self.get_meta()

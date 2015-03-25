@@ -119,54 +119,15 @@ Describe VCS.Git.Core
     End
   End
 
-  Context .get_last_commit_hashref({repository})
-    It should return a last commit hash reference of the git repository
-      Skip 'it is quite difficult to test right now'
-      " get a correct value via 'git' command
-      let r = s:C.exec(['rev-parse', 'HEAD'])
-      let e = substitute(r.stdout, '\v^[\s\r\n"]*|[\s\r\n"]*$', '', 'g')
-
-      let path = s:P.join([s:ROOT, '.git'])
-      let exp = e
-      let ret = s:C.get_last_commit_hashref(path)
-      Assert Equals(ret, exp)
+  Context .get_cached_commitmsg({repository})
+    It should return a cached commit message of the git repository
+      Skip 'it is quite difficult to test'
     End
-    It should return an empty string for a non git repository
-      let path = s:ROOT
-      let exp = ''
-      let ret = s:C.get_last_commit_hashref(path)
-      Assert Equals(ret, exp)
-    End
-  End
 
-  Context .get_last_commit_message({repository})
-    It should return a last commit message of the git repository
-      Skip 'it is quite difficult to test right now'
-      " get a correct value via 'git' command
-      let r = s:C.exec(['log', '-1', '--pretty=%B'])
-      let e = split(r.stdout, "\n")
-
-      let path = s:P.join([s:ROOT, '.git'])
-      let exp = e
-      let ret = s:C.get_last_commit_message(path)
-      Assert Equals(ret, exp)
-    End
     It should return an empty string for a non git repository
       let path = s:ROOT
       let exp = []
-      let ret = s:C.get_last_commit_message(path)
-      Assert Equals(ret, exp)
-    End
-  End
-
-  Context .get_last_merge_message({repository})
-    It should return a last merge message of the git repository
-      Skip 'this required to be executed in conflict situation.'
-    End
-    It should return an empty string for a non git repository
-      let path = s:ROOT
-      let exp = []
-      let ret = s:C.get_last_commit_message(path)
+      let ret = s:C.get_cached_commitmsg(path)
       Assert Equals(ret, exp)
     End
   End
@@ -230,6 +191,34 @@ Describe VCS.Git.Core
       let config = { 'remote "origin"': { 'url': 'foo/bar' } }
       let ret = s:C.get_remote_url(config, 'invalid')
       Assert Equals(ret, '')
+    End
+  End
+
+  Context .get_comment_char({config})
+    It should return a comment character
+      let config = { 'core': { 'commentchar': '%' } }
+      let ret = s:C.get_comment_char(config)
+      Assert Equals(ret, '%')
+    End
+
+    It should return a default comment character (#) if no commenctChar is specified
+      let config = { 'core': {} }
+      let ret = s:C.get_comment_char(config)
+      Assert Equals(ret, '#')
+
+      let config = {}
+      let ret = s:C.get_comment_char(config)
+      Assert Equals(ret, '#')
+    End
+
+    It should return a specified default comment character if no commenctChar is specified
+      let config = { 'core': {} }
+      let ret = s:C.get_comment_char(config, '&')
+      Assert Equals(ret, '&')
+
+      let config = {}
+      let ret = s:C.get_comment_char(config, '&')
+      Assert Equals(ret, '&')
     End
   End
 

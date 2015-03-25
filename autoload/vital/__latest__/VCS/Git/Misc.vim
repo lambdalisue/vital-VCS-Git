@@ -119,6 +119,16 @@ function! s:get_parsed_config(...) " {{{
   return s:ConfigParser.parse(result.stdout)
 endfunction " }}}
 
+function! s:get_last_commitmsg(...) " {{{
+  let opts = get(a:000, 0, {})
+  let result = s:Core.exec(['log', '-1', '--pretty=%B'], opts)
+  if result.status == 0
+    return result.stdout
+  else
+    return result
+  endif
+endfunction " }}}
+
 let &cpo = s:save_cpo
 unlet s:save_cpo
 "vim: sts=2 sw=2 smarttabb et ai textwidth=0 fdm=marker
