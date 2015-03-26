@@ -1,6 +1,6 @@
+call vital#of('vital').unload()
 let s:V = vital#of('vital')
 let s:P = s:V.import('System.Filepath')
-call s:V.unload() " make sure that the following modules are not cached version
 let s:C = s:V.import('VCS.Git.Core')
 
 " Note:
@@ -10,11 +10,36 @@ let s:C = s:V.import('VCS.Git.Core')
 let s:ROOT = getcwd()
 
 Describe VCS.Git.Core
+  Before all
+    " Create a mock Git working tree
+    let root = tempname()
+    let worktree = s:P.join(root, 'inside')
+    let repository = s:P.join(worktree, '.git')
+    let inside = s:P.join(worktree, 'foo', 'bar')
+    let outside = s:P.join(root, 'outside', 'foo', 'bar')
+    lockvar root
+    lockvar worktree
+    lockvar repository
+    lockvar inside
+    lockvar outside
+    call mkdir(repository, 'p')
+    call mkdir(inside, 'p')
+    call mkdir(outside, 'p')
+  End
+
+  After all
+    " remote a temp directory
+    call s:V.import('System.File').rmdir(root, 'r')
+  End
 
   Context .config({config})
     It should return a config dictionary
       let config = s:C.config()
       Assert IsDict(config)
+      Assert Equals(config, {
+            \ 'executable': 'git',
+            \ 'arguments': ['-c', 'color.ui=false'],
+            \})
     End
 
     It should extend a config dictionary
@@ -27,13 +52,13 @@ Describe VCS.Git.Core
 
   Context .find_worktree({path})
     It should return a top directory path of the working directory
-      let path = s:P.join([s:ROOT, 'autoload', 'vital'])
-      let exp = s:ROOT
+      let path = inside
+      let exp = worktree
       let ret = s:C.find_worktree(path)
       Assert Equals(ret, exp)
     End
     It should return an empty string for a non git working directory
-      let path = s:P.join([s:ROOT, '.git', 'info'])
+      let path = outside
       let exp = ''
       let ret = s:C.find_worktree(path)
       Assert Equals(ret, exp)
@@ -42,14 +67,14 @@ Describe VCS.Git.Core
 
   Context .find_repository({worktree})
     It should return a '.git' directory path of the working directory
-      let path = s:ROOT
-      let exp = s:P.join([s:ROOT, '.git'])
+      let path = worktree
+      let exp = repository
       let ret = s:C.find_repository(path)
       Assert Equals(ret, exp)
     End
 
     It should return an empty string for a non git working directory
-      let path = s:P.join([s:ROOT, '.git'])
+      let path = outside
       let exp = ''
       let ret = s:C.find_repository(path)
       Assert Equals(ret, exp)
@@ -58,16 +83,14 @@ Describe VCS.Git.Core
 
   Context .get_relative_path(worktree, path)
     It should return a relative path from {worktree} of an absolute {path}
-      let worktree = s:ROOT
-      let path = s:P.join([s:ROOT, 'autoload', 'vital'])
-      let exp = s:P.join(['autoload', 'vital'])
+      let path = inside
+      let exp = s:P.join(['foo', 'bar'])
       let ret = s:C.get_relative_path(worktree, path)
       Assert Equals(ret, exp)
     End
 
     It should return a {path} if {path} is not absolute path
-      let worktree = s:ROOT
-      let path = s:P.join(['.vim', 'plugin'])
+      let path = s:P.join(['foo', 'bar'])
       let exp = path
       let ret = s:C.get_relative_path(worktree, path)
       Assert Equals(ret, exp)
@@ -76,16 +99,14 @@ Describe VCS.Git.Core
 
   Context .get_absolute_path(worktree, path)
     It should return an absolute path of a relative {path} from {worktree}
-      let worktree = s:ROOT
-      let path = s:P.join(['autoload', 'vital'])
-      let exp = s:P.join([s:ROOT, 'autoload', 'vital'])
+      let path = s:P.join(['foo', 'bar'])
+      let exp = inside
       let ret = s:C.get_absolute_path(worktree, path)
       Assert Equals(ret, exp)
     End
 
     It should return a {path} if {path} is not relative path
-      let worktree = s:ROOT
-      let path = s:P.join([expand('~'), '.vim', 'plugin'])
+      let path = outside
       let exp = path
       let ret = s:C.get_absolute_path(worktree, path)
       Assert Equals(ret, exp)
@@ -93,54 +114,149 @@ Describe VCS.Git.Core
   End
 
   Context .get_index_updated_time(repository)
+    Before
+      let filename = s:P.join(repository, 'index')
+      call writefile([], filename)
+    End
+    After
+      call delete(filename)
+    End
     It should return a number which indicate the updated time of repository index
-      let path = s:P.join([s:ROOT, '.git'])
-      let ret = s:C.get_index_updated_time(path)
-      Assert IsNumber(ret)
+      let ret = s:C.get_index_updated_time(repository)
+      Assert Equals(ret, getftime(filename))
+    End
+  End
+
+  Context .get_head({repository})
+    It should return an empty string if HEAD is missing
+      let ret = s:C.get_head(repository)
+      Assert Equals(ret, '')
+    End
+
+    It should return a string of HEAD content
+      let filename = s:P.join(repository, 'HEAD')
+      call writefile(['foo'], filename)
+      let ret = s:C.get_head(repository)
+      Assert Equals(ret, 'foo')
+      call delete(filename)
+    End
+  End
+
+  Context .get_fetch_head({repository})
+    It should return an empty string if FETCH_HEAD is missing
+      let ret = s:C.get_fetch_head(repository)
+      Assert Equals(ret, '')
+    End
+
+    It should return a string of FETCH_HEAD content
+      let filename = s:P.join(repository, 'FETCH_HEAD')
+      call writefile(['foo'], filename)
+      let ret = s:C.get_fetch_head(repository)
+      Assert Equals(ret, 'foo')
+      call delete(filename)
+    End
+  End
+
+  Context .get_orig_head({repository})
+    It should return an empty string if ORIG_HEAD is missing
+      let ret = s:C.get_orig_head(repository)
+      Assert Equals(ret, '')
+    End
+
+    It should return a string of ORIG_HEAD content
+      let filename = s:P.join(repository, 'ORIG_HEAD')
+      call writefile(['foo'], filename)
+      let ret = s:C.get_orig_head(repository)
+      Assert Equals(ret, 'foo')
+      call delete(filename)
+    End
+  End
+
+  Context .get_merge_head({repository})
+    It should return an empty string if MERGE_HEAD is missing
+      let ret = s:C.get_merge_head(repository)
+      Assert Equals(ret, '')
+    End
+
+    It should return a string of MERGE_HEAD content
+      let filename = s:P.join(repository, 'MERGE_HEAD')
+      call writefile(['foo'], filename)
+      let ret = s:C.get_merge_head(repository)
+      Assert Equals(ret, 'foo')
+      call delete(filename)
+    End
+  End
+
+  Context .get_merge_mode({repository})
+    It should return an empty string if MERGE_MODE is missing
+      let ret = s:C.get_merge_mode(repository)
+      Assert Equals(ret, '')
+    End
+
+    It should return a string of MERGE_MODE content
+      let filename = s:P.join(repository, 'MERGE_MODE')
+      call writefile(['foo'], filename)
+      let ret = s:C.get_merge_mode(repository)
+      Assert Equals(ret, 'foo')
+      call delete(filename)
+    End
+  End
+
+  Context .get_commit_editmsg({repository})
+    It should return an empty list if COMMIT_EDITMSG is missing
+      let ret = s:C.get_commit_editmsg(repository)
+      Assert Equals(ret, [])
+    End
+
+    It should return a list of COMMIT_EDITMSG content
+      let filename = s:P.join(repository, 'COMMIT_EDITMSG')
+      call writefile(['foo'], filename)
+      let ret = s:C.get_commit_editmsg(repository)
+      Assert Equals(ret, ['foo'])
+      call delete(filename)
+    End
+  End
+
+  Context .get_merge_msg({repository})
+    It should return an empty list if MERGE_MSG is missing
+      let ret = s:C.get_merge_msg(repository)
+      Assert Equals(ret, [])
+    End
+
+    It should return a list of MERGE_MSG content
+      let filename = s:P.join(repository, 'MERGE_MSG')
+      call writefile(['foo'], filename)
+      let ret = s:C.get_merge_msg(repository)
+      Assert Equals(ret, ['foo'])
+      call delete(filename)
     End
   End
 
   Context .get_current_branch({repository})
+    It should return an empty string if HEAD is missing
+      let ret = s:C.get_current_branch(repository)
+      Assert Equals(ret, '')
+    End
     It should return a current branch name of the git repository
-      " get a correct value via 'git' command
-      let r = s:C.exec(['rev-parse', '--abbrev-ref', 'HEAD'])
-      let e = substitute(r.stdout, '\v^[\s\r\n"]*|[\s\r\n"]*$', '', 'g')
-
-      let path = s:P.join([s:ROOT, '.git'])
-      let exp = e
-      let ret = s:C.get_current_branch(path)
-      Assert Equals(ret, exp)
-    End
-    It should return an empty string for a non git repository
-      let path = s:ROOT
-      let exp = ''
-      let ret = s:C.get_current_branch(path)
-      Assert Equals(ret, exp)
-    End
-  End
-
-  Context .get_cached_commitmsg({repository})
-    It should return a cached commit message of the git repository
-      Skip 'it is quite difficult to test'
-    End
-
-    It should return an empty string for a non git repository
-      let path = s:ROOT
-      let exp = []
-      let ret = s:C.get_cached_commitmsg(path)
-      Assert Equals(ret, exp)
+      let filename = s:P.join(repository, 'HEAD')
+      call writefile(['ref: refs/heads/master'], filename)
+      let ret = s:C.get_current_branch(repository)
+      Assert Equals(ret, 'master')
+      call delete(filename)
     End
   End
 
   Context .get_config({repository})
     It should return a parsed config dictionary
-      let path = s:P.join([s:ROOT, '.git'])
-      let ret = s:C.get_config(path)
+      let filename = s:P.join(repository, 'config')
+      call writefile(['[core]', '  bare = false'], filename)
+      let ret = s:C.get_config(repository)
       Assert HasKey(ret, 'core')
+      call delete(filename)
     End
 
     It should return an empty dictionary for a non git repository
-      let path = s:ROOT
+      let path = outside
       let ret = s:C.get_config(path)
       Assert Equals(ret, {})
     End

@@ -32,20 +32,30 @@ function! s:_vital_depends() abort " {{{
         \ 'Text.INI',
         \]
 endfunction " }}}
-function! s:_fnamemodify(path, mods) " {{{
+function! s:_fnamemodify(path, mods) abort " {{{
   let path = a:path !=# '' ? fnamemodify(a:path, a:mods) : ''
   return s:Path.remove_last_separator(path)
 endfunction " }}}
+function! s:_readfile(path) abort " {{{
+  if !filereadable(a:path)
+    return []
+  endif
+  return readfile(a:path)
+endfunction " }}}
+function! s:_readline(path) abort " {{{
+  let contents = s:_readfile(a:path)
+  return empty(contents) ? '' : contents[0]
+endfunction " }}}
 
-function! s:config(...) " {{{
+function! s:config(...) abort " {{{
   let config = get(a:000, 0, {})
   let s:_config = extend(s:_config, config)
   return s:_config
 endfunction " }}}
 
 " Repository
-function! s:find_worktree(path) " {{{
-  let path = s:Prelude.path2directory(a:path)
+function! s:find_worktree(path) abort " {{{
+  let path = s:_fnamemodify(s:Prelude.path2directory(a:path), ':p')
   let d = s:_fnamemodify(finddir('.git', path . ';'), ':p:h')
   let f = s:_fnamemodify(findfile('.git', path . ';'), ':p')
   " inside '.git' directory is not a working directory
@@ -54,8 +64,8 @@ function! s:find_worktree(path) " {{{
   let dotgit = strlen(d) >= strlen(f) ? d : f
   return strlen(dotgit) ? s:_fnamemodify(dotgit, ':h') : ''
 endfunction " }}}
-function! s:find_repository(worktree) " {{{
-  let dotgit = s:Path.join([a:worktree, '.git'])
+function! s:find_repository(worktree) abort " {{{
+  let dotgit = s:Path.join([s:_fnamemodify(a:worktree, ':p'), '.git'])
   if isdirectory(dotgit)
     return dotgit
   elseif filereadable(dotgit)
@@ -71,14 +81,14 @@ function! s:find_repository(worktree) " {{{
   return ''
 endfunction " }}}
 
-function! s:get_relative_path(worktree, path) " {{{
+function! s:get_relative_path(worktree, path) abort " {{{
   if !s:Path.is_absolute(a:path)
     return a:path
   endif
   let prefix = a:worktree . s:Path.separator()
   return substitute(a:path, prefix, '', '')
 endfunction " }}}
-function! s:get_absolute_path(worktree, path) " {{{
+function! s:get_absolute_path(worktree, path) abort " {{{
   if !s:Path.is_relative(a:path)
     return a:path
   endif
@@ -89,26 +99,54 @@ endfunction " }}}
 function! s:get_index_updated_time(repository) " {{{
   return getftime(s:Path.join(a:repository, 'index'))
 endfunction " }}}
-function! s:get_current_branch(repository) " {{{
+function! s:get_head(repository) abort " {{{
+  " The current ref that you’re looking at.
   let filename = s:Path.join(a:repository, 'HEAD')
-  if !filereadable(filename)
-    return ''
-  endif
-  let lines = readfile(filename)
-  if empty(lines)
-    return ''
-  elseif lines[0] =~? 'refs/heads/'
-    return matchstr(lines[0], 'refs/heads/\zs.\+$')
-  else
-    return lines[0][: 6]
-  endif
+  return s:_readline(filename)
 endfunction " }}}
-function! s:get_cached_commitmsg(repository) " {{{
+function! s:get_fetch_head(repository) abort " {{{
+  " The SHAs of branch/remote heads that were updated during the last git fetch
+  let filename = s:Path.join(a:repository, 'FETCH_HEAD')
+  let line = s:_readline(filename)
+  return matchstr(line, '\v^[^ ]+')
+endfunction " }}}
+function! s:get_orig_head(repository) abort " {{{
+  " When doing a merge, this is the SHA of the branch you’re merging into.
+  let filename = s:Path.join(a:repository, 'ORIG_HEAD')
+  return s:_readline(filename)
+endfunction " }}}
+function! s:get_merge_head(repository) abort " {{{
+  " When doing a merge, this is the SHA of the branch you’re merging from.
+  let filename = s:Path.join(a:repository, 'MERGE_HEAD')
+  return s:_readline(filename)
+endfunction " }}}
+function! s:get_merge_mode(repository) abort " {{{
+  " Used to communicate constraints that were originally given to git merge to
+  " git commit when a merge conflicts, and a separate git commit is needed to
+  " conclude it. Currently --no-ff is the only constraints passed this way.
+  let filename = s:Path.join(a:repository, 'MERGE_MODE')
+  return s:_readline(filename)
+endfunction " }}}
+function! s:get_commit_editmsg(repository) abort " {{{
+  " This is the last commit’s message. It’s not actually used by Git at all,
+  " but it’s there mostly for your reference after you made a commit.
   let filename = s:Path.join(a:repository, 'COMMIT_EDITMSG')
-  if !filereadable(filename)
-    return []
+  return s:_readfile(filename)
+endfunction " }}}
+function! s:get_merge_msg(repository) abort " {{{
+  " Enumerates conflicts that happen during your current merge.
+  let filename = s:Path.join(a:repository, 'MERGE_MSG')
+  return s:_readfile(filename)
+endfunction " }}}
+function! s:get_current_branch(repository) " {{{
+  let line = s:get_head(a:repository)
+  if !strlen(line)
+    return ''
+  elseif line =~? 'refs/heads/'
+    return matchstr(line, '\vrefs/heads/\zs.+$')
+  else
+    return line[: 6]
   endif
-  return readfile(filename)
 endfunction " }}}
 
 " Config (without using 'git config'. read '.git/config' directly)
@@ -136,6 +174,14 @@ function! s:get_branch_merge(config, local_branch, ...) " {{{
   endif
   let merge = get(section, 'merge', '')
   return truncate ? substitute(merge, '\v^refs/heads/', '', '') : merge
+endfunction " }}}
+function! s:get_remote_fetch(config, remote) " {{{
+  " a url of {remote}
+  let section = get(a:config, printf('remote "%s"', a:remote), {})
+  if empty(section)
+    return ''
+  endif
+  return get(section, 'fetch', '')
 endfunction " }}}
 function! s:get_remote_url(config, remote) " {{{
   " a url of {remote}

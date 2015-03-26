@@ -19,21 +19,37 @@ function! s:_vital_loaded(V) dict abort " {{{
 endfunction " }}}
 function! s:_vital_depends() abort " {{{
   return [
+        \ 'Prelude',
+        \ 'Data.Dict',
         \ 'VCS.Git.Core',
         \ 'VCS.Git.StatusParser',
         \ 'VCS.Git.ConfigParser',
         \]
 endfunction " }}}
-function! s:_opts2args(opts, defaults) abort " {{{
+function! s:opts2args(opts, defaults) abort " {{{
   let args = []
   for [key, default] in items(a:defaults)
     if has_key(a:opts, key)
       let val = get(a:opts, key)
-      if s:Prelude.is_number(default) && val
-        call add(args, printf('--%s', substitute(key, '_', '-', 'g')))
-      elseif s:Prelude.is_string(default) && strlen(val) && val !=# default
-        call add(args, printf('--%s', substitute(key, '_', '-', 'g')))
-        call add(args, string(val))
+      if s:Prelude.is_number(default) && s:Prelude.is_number(val) && val
+        if strlen(key) == 1
+          call add(args, printf('-%s', key))
+        else
+          call add(args, printf('--%s', substitute(key, '_', '-', 'g')))
+        endif
+      elseif s:Prelude.is_string(default) && default =~# '\v^=' && default !=# printf('=%s', val)
+        if strlen(key) == 1
+          call add(args, printf('-%s%s', key, val))
+        else
+          call add(args, printf('--%s=%s', substitute(key, '_', '-', 'g'), val))
+        endif
+      elseif s:Prelude.is_string(default) && default !=# val
+        if strlen(key) == 1
+          call add(args, printf('-%s', key))
+        else
+          call add(args, printf('--%s', substitute(key, '_', '-', 'g')))
+        endif
+        call add(args, val)
       endif
       unlet val
     endif
@@ -42,26 +58,17 @@ function! s:_opts2args(opts, defaults) abort " {{{
   return args
 endfunction " }}}
 
-function! s:count_commits_ahead_of_remote(...) " {{{
-  let opts = get(a:000, 0, {})
-  let result = s:Core.exec(['log', '--oneline', '@{upstream}..'], opts)
-  return result.status == 0 ? len(split(result.stdout, '\v%(\r?\n)')) : 0
-endfunction " }}}
-function! s:count_commits_behind_remote(...) " {{{
-  let opts = get(a:000, 0, {})
-  let result = s:Core.exec(['log', '--oneline', '..@{upstream}'], opts)
-  return result.status == 0 ? len(split(result.stdout, '\v%(\r?\n)')) : 0
-endfunction " }}}
-
 function! s:get_parsed_status(...) " {{{
   let defs = {
+        \ 'short': 0,
         \ 'branch': 0,
-        \ 'untracked_files': 'all',
+        \ 'untracked_files': '=all',
+        \ 'ignore_submodules': '=all',
         \ 'ignored': 0,
-        \ 'ignore_submodules': 'all',
-        \}
+        \ 'z': 0,
+        \} 
   let opts = get(a:000, 0, {})
-  let args = ['status', '--porcelain'] + s:_opts2args(opts, defs)
+  let args = ['status', '--porcelain'] + s:opts2args(opts, defs)
   let result = s:Core.exec(args, s:Dict.omit(opts, keys(defs)))
   if result.status != 0
     return result
@@ -70,25 +77,37 @@ function! s:get_parsed_status(...) " {{{
 endfunction " }}}
 function! s:get_parsed_commit(...) " {{{
   let defs = {
-        \ 'file': '',
-        \ 'author': '',
-        \ 'date': '',
-        \ 'message': '',
-        \ 'reedit_message': '',
-        \ 'reuse_message': '',
-        \ 'fixup': '',
-        \ 'squash': '',
-        \ 'cleanup': '',
-        \ 'gpg_sign': '',
-        \ 'untracked_files': 'all',
-        \ 'reset_author': 0,
-        \ 'signoff': 0,
         \ 'all': 0,
+        \ 'patch': 0,
+        \ 'reuse_message': '=',
+        \ 'reedit_message': '=',
+        \ 'fixup': '=',
+        \ 'squash': '=',
+        \ 'reset_author': 0,
+        \ 'short': 0,
+        \ 'z': 0,
+        \ 'file': '=',
+        \ 'author': '=',
+        \ 'date': '=',
+        \ 'message': '=',
+        \ 'template': '=',
+        \ 'signoff': 0,
+        \ 'no_verify': 0,
+        \ 'allow_empty': 0,
+        \ 'allow_empty_message': 0,
+        \ 'cleanup': '=default',
+        \ 'edit': 0,
         \ 'amend': 0,
-        \ 'no_post_rewrite': 0,
-        \}
+        \ 'include': 0,
+        \ 'only': 0,
+        \ 'untracked_files': '=all',
+        \ 'verbose': 0,
+        \ 'quiet': 0,
+        \ 'status': 0,
+        \ 'no_status': 0,
+        \} 
   let opts = get(a:000, 0, {})
-  let args = ['commit', '--dry-run', '--porcelain'] + s:_opts2args(opts, defs)
+  let args = ['commit', '--dry-run', '--porcelain'] + s:opts2args(opts, defs)
   let result = s:Core.exec(args, s:Dict.omit(opts, keys(defs)))
   " Note:
   "   I'm not sure but apparently the exit status is 1
@@ -111,12 +130,35 @@ function! s:get_parsed_config(...) " {{{
         \ 'includes': 0,
         \}
   let opts = get(a:000, 0, {})
-  let args = ['config', '--list'] + s:_opts2args(opts, defs)
+  let args = ['config', '--list'] + s:opts2args(opts, defs)
   let result = s:Core.exec(args, s:Dict.omit(opts, keys(defs)))
   if result.status != 0
     return result
   endif
   return s:ConfigParser.parse(result.stdout)
+endfunction " }}}
+
+function! s:get_meta(repository, ...) abort " {{{
+  let opts = extend({
+        \ 'exclude_repository_config': 0,
+        \}, get(a:000, 0, {}))
+  let meta = {}
+  let meta.head = s:Core.get_head(a:repository)
+  let meta.fetch_head = s:Core.get_fetch_head(a:repository)
+  let meta.orig_head = s:Core.get_orig_head(a:repository)
+  let meta.merge_head = s:Core.get_merge_head(a:repository)
+  let meta.merge_mode = s:Core.get_merge_mode(a:repository)
+  let meta.commit_editmsg = s:Core.get_commit_editmsg(a:repository)
+  let meta.merge_msg = s:Core.get_merge_msg(a:repository)
+  let meta.current_branch = s:Core.get_current_branch(a:repository)
+  if !opts.exclude_repository_config
+    let meta.repository_config = s:Core.get_config(a:repository)
+    let meta.current_branch_remote = s:Core.get_branch_remote(meta.repository_config, meta.current_branch)
+    let meta.current_branch_merge = s:Core.get_branch_merge(meta.repository_config, meta.current_branch)
+    let meta.current_remote_url = s:Core.get_remote_url(meta.repository_config, meta.current_branch_remote)
+    let meta.comment_char = s:Core.get_comment_char(meta.repository_config)
+  endif
+  return meta
 endfunction " }}}
 
 function! s:get_last_commitmsg(...) " {{{
@@ -128,6 +170,17 @@ function! s:get_last_commitmsg(...) " {{{
     return result
   endif
 endfunction " }}}
+function! s:count_commits_ahead_of_remote(...) " {{{
+  let opts = get(a:000, 0, {})
+  let result = s:Core.exec(['log', '--oneline', '@{upstream}..'], opts)
+  return result.status == 0 ? len(split(result.stdout, '\v%(\r?\n)')) : 0
+endfunction " }}}
+function! s:count_commits_behind_remote(...) " {{{
+  let opts = get(a:000, 0, {})
+  let result = s:Core.exec(['log', '--oneline', '..@{upstream}'], opts)
+  return result.status == 0 ? len(split(result.stdout, '\v%(\r?\n)')) : 0
+endfunction " }}}
+
 
 let &cpo = s:save_cpo
 unlet s:save_cpo

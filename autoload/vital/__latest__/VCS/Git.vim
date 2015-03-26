@@ -12,13 +12,12 @@ set cpo&vim
 
 " Vital ======================================================================
 function! s:_vital_loaded(V) dict abort " {{{
-  let s:V = a:V
-  let s:Dict = s:V.import('Data.Dict')
-  let s:Prelude = s:V.import('Prelude')
-  let s:SimpleCache = s:V.import('System.Cache.Simple')
-  let s:Core = s:V.import('VCS.Git.Core')
-  let s:Misc = s:V.import('VCS.Git.Misc')
-  let s:Finder = s:V.import('VCS.Git.Finder')
+  let s:Dict = a:V.import('Data.Dict')
+  let s:Prelude = a:V.import('Prelude')
+  let s:Cache = a:V.import('System.Cache.Simple')
+  let s:Core = a:V.import('VCS.Git.Core')
+  let s:Misc = a:V.import('VCS.Git.Misc')
+  let s:Finder = a:V.import('VCS.Git.Finder')
 endfunction " }}}
 function! s:_vital_depends() abort " {{{
   return [
@@ -28,63 +27,63 @@ function! s:_vital_depends() abort " {{{
         \ 'VCS.Git.Finder',
         \]
 endfunction " }}}
-function! s:_opts2args(opts, defaults) abort " {{{
-  let args = []
-  for [key, default] in items(a:defaults)
-    if has_key(a:opts, key)
-      let val = get(a:opts, key)
-      if s:Prelude.is_number(default) && s:Prelude.is_number(val) && val
-        if strlen(key) == 1
-          call add(args, printf('-%s', key))
-        else
-          call add(args, printf('--%s', substitute(key, '_', '-', 'g')))
-        endif
-      elseif s:Prelude.is_string(default) && default =~# '\v^=' && default !=# printf('=%s', val)
-        if strlen(key) == 1
-          call add(args, printf('-%s%s', key, val))
-        else
-          call add(args, printf('--%s=%s', substitute(key, '_', '-', 'g'), val))
-        endif
-      elseif s:Prelude.is_string(default) && default !=# val
-        if strlen(key) == 1
-          call add(args, printf('-%s', key))
-        else
-          call add(args, printf('--%s', substitute(key, '_', '-', 'g')))
-        endif
-        call add(args, val)
-      endif
-      unlet val
-    endif
-    unlet default
-  endfor
-  return args
+function! s:_listalize(val) abort " {{{
+  return s:Prelude.is_list(a:val) ? a:val : [a:val]
 endfunction " }}}
+
 function! s:_get_finder() abort " {{{
   if !exists('s:finder')
-    let s:finder = s:Finder.new(s:SimpleCache.new())
+    let s:finder = s:Finder.new(s:_get_finder_cache())
   endif
   return s:finder
 endfunction " }}}
-
-" Methods ====================================================================
-function! s:new(worktree, repository, ...) " {{{
-  let opts = extend({ 'no_cache': 0 }, get(a:000, 0, {}))
-  if !exists('s:cache')
-    let s:cache = s:SimpleCache.new()
+function! s:_get_finder_cache() abort " {{{
+  if !exists('s:finder_cache')
+    let s:finder_cache = s:get_config().cache.finder.new()
   endif
-  let git = s:cache.get(a:worktree, {})
+  return s:finder_cache
+endfunction " }}}
+function! s:_get_instance_cache() abort " {{{
+  if !exists('s:instance_cache')
+    let s:instance_cache = s:get_config().cache.instance.new()
+  endif
+  return s:instance_cache
+endfunction " }}}
+
+let s:config = {}
+function! s:get_config() abort " {{{
+  let default = {
+        \ 'cache': {
+        \   'finder':   s:Cache,
+        \   'instance': s:Cache,
+        \   'meta':     s:Cache,
+        \ },
+        \}
+  return extend(default, deepcopy(s:config))
+endfunction " }}}
+function! s:set_config(config) abort " {{{
+  let s:config = extend(s:config, a:config)
+  " clear settings
+  unlet! s:finder_cache
+  unlet! s:finder
+  unlet! s:instance_cache
+endfunction " }}}
+function! s:new(worktree, repository, ...) abort " {{{
+  let opts = extend({ 'no_cache': 0 }, get(a:000, 0, {}))
+  let cache = s:_get_instance_cache()
+  let git = cache.get(a:worktree, {})
   if !empty(git) && !opts.no_cache
     return git
   endif
   let git = extend(deepcopy(s:git), {
         \ 'worktree': a:worktree,
         \ 'repository': a:repository,
-        \ 'cache': s:SimpleCache.new(),
+        \ 'cache': s:get_config().cache.meta.new(),
         \})
-  call s:cache.set(a:worktree, git)
+  call cache.set(a:worktree, git)
   return git
 endfunction " }}}
-function! s:find(path, ...) " {{{
+function! s:find(path, ...) abort " {{{
   let finder = s:_get_finder()
   let found = finder.find(a:path, get(a:000, 0, {}))
   if empty(found)
@@ -97,8 +96,12 @@ endfunction " }}}
 let s:git = {}
 function! s:git._get_cache(name) abort " {{{
   let uptime = self.get_index_updated_time()
+  if uptime == -1
+    " getftime is not available?
+    return {}
+  endif
   let cached = self.cache.get(a:name, {})
-  if !empty(cached) && (get(cached, 'actime', 0) >= uptime || uptime == -1)
+  if !empty(cached) && uptime <= get(cached, 'actime', -1)
     return cached
   endif
   return {}
@@ -118,6 +121,7 @@ function! s:git._get_call_opts(...) abort " {{{
         \ 'cwd': self.worktree,
         \}, get(a:000, 0, {}))
 endfunction " }}}
+
 function! s:git.get_index_updated_time() abort " {{{
   return s:Core.get_index_updated_time(self.repository)
 endfunction " }}}
@@ -162,82 +166,62 @@ function! s:git.get_parsed_config(...) abort " {{{
 endfunction " }}}
 function! s:git.get_meta(...) abort " {{{
   let opts = extend({
-        \ 'exclude_repository_config': 0,
-        \ 'exclude_commits_ahead_of_remote': 0,
-        \ 'exclude_commits_behind_remote': 0,
-        \ 'exclude_last_commitmsg': 0,
+        \ 'no_cache': 0,
         \}, get(a:000, 0, {}))
   let meta = self._get_cache('meta')
-  if !empty(meta)
+  if !empty(meta) && !opts.no_cache
     return meta
   endif
-  let meta = {}
-  let meta.current_branch = s:Core.get_current_branch(self.repository)
-  let meta.cached_commitmsg = s:Core.get_cached_commitmsg(self.repository)
-  if !opts.exclude_repository_config
-    let meta.repository_config = s:Core.get_config(self.repository)
-    let meta.current_branch_remote = s:Core.get_branch_remote(meta.repository_config, meta.current_branch)
-    let meta.current_branch_merge = s:Core.get_branch_merge(meta.repository_config, meta.current_branch)
-    let meta.current_remote_url = s:Core.get_remote_url(meta.repository_config, meta.current_branch_remote)
-    let meta.comment_char = s:Core.get_comment_char(meta.repository_config)
-  endif
-  if !opts.exclude_commits_ahead_of_remote
-    let meta.commits_ahead_of_remote = s:Misc.count_commits_ahead_of_remote(self._get_call_opts())
-  endif
-  if !opts.exclude_commits_behind_remote
-    let meta.commits_behind_remote = s:Misc.count_commits_behind_remote(self._get_call_opts())
-  endif
-  if !opts.exclude_last_commitmsg
-    let meta.last_commitmsg = s:Misc.get_last_commitmsg(self._get_call_opts())
-  endif
+  let meta = s:Misc.get_meta(self.repository, opts)
   return self._set_cache('meta', meta)
 endfunction " }}}
-function! s:git.get_current_branch() abort " {{{
-  let meta = self.get_meta()
-  return meta.current_branch
+function! s:git.get_last_commitmsg(...) abort " {{{
+  let options = self._get_call_opts(extend({
+        \ 'no_cache': 0,
+        \}, get(a:000, 0, {})))
+  let opts = s:Dict.omit(options, ['no_cache'])
+  let name = printf('last_commitmsg_%s', string(opts))
+  let result = self._get_cache(name)
+  if !options.no_cache && !empty(result)
+    return result
+  endif
+  let result = s:Misc.last_commitmsg(opts)
+  return self._set_cache(name, result)
 endfunction " }}}
-function! s:git.get_cached_commitmsg() abort " {{{
-  let meta = self.get_meta()
-  return meta.cached_commitmsg
+function! s:git.get_commits_ahead_of_remote(...) abort " {{{
+  let options = self._get_call_opts(extend({
+        \ 'no_cache': 0,
+        \}, get(a:000, 0, {})))
+  let opts = s:Dict.omit(options, ['no_cache'])
+  let name = printf('commits_ahead_of_remote_%s', string(opts))
+  let result = self._get_cache(name)
+  if !options.no_cache && !empty(result)
+    return result
+  endif
+  let result = s:Misc.count_commits_ahead_of_remote(opts)
+  return self._set_cache(name, result)
 endfunction " }}}
-function! s:git.get_repository_config() abort " {{{
-  let meta = self.get_meta()
-  return get(meta, 'repository_config', '')
+function! s:git.get_commits_behind_remote(...) abort " {{{
+  let options = self._get_call_opts(extend({
+        \ 'no_cache': 0,
+        \}, get(a:000, 0, {})))
+  let opts = s:Dict.omit(options, ['no_cache'])
+  let name = printf('commits_behind_remote_%s', string(opts))
+  let result = self._get_cache(name)
+  if !options.no_cache && !empty(result)
+    return result
+  endif
+  let result = s:Misc.count_commits_behind_remote(opts)
+  return self._set_cache(name, result)
 endfunction " }}}
-function! s:git.get_current_branch_remote() abort " {{{
-  let meta = self.get_meta()
-  return get(meta, 'current_branch_remote', '')
-endfunction " }}}
-function! s:git.get_current_branch_merge() abort " {{{
-  let meta = self.get_meta()
-  return get(meta, 'current_branch_merge', '')
-endfunction " }}}
-function! s:git.get_current_remote_url() abort " {{{
-  let meta = self.get_meta()
-  return get(meta, 'current_remote_url', '')
-endfunction " }}}
-function! s:git.get_comment_char() abort " {{{
-  let meta = self.get_meta()
-  return get(meta, 'comment_char', '#')
-endfunction " }}}
-function! s:git.get_commits_ahead_of_remote() abort " {{{
-  let meta = self.get_meta()
-  return get(meta, 'commits_ahead_of_remote', -1)
-endfunction " }}}
-function! s:git.get_commits_behind_remote() abort " {{{
-  let meta = self.get_meta()
-  return get(meta, 'commits_behind_remote', -1)
-endfunction " }}}
-function! s:git.get_last_commitmsg() abort " {{{
-  let meta = self.get_meta()
-  return get(meta, 'last_commitmsg', [])
-endfunction " }}}
+
 function! s:git.get_relative_path(path) abort " {{{
   return s:Core.get_relative_path(self.worktree, a:path)
 endfunction " }}}
 function! s:git.get_absolute_path(path) abort " {{{
   return s:Core.get_absolute_path(self.worktree, a:path)
 endfunction " }}}
+
 function! s:git.exec(args, ...) abort " {{{
   let opts = extend(self._get_call_opts(), get(a:000, 0, {}))
   return s:Core.exec(a:args, opts)
@@ -259,8 +243,8 @@ function! s:git.add(options, ...) abort " {{{
         \ 'ignore_missing': 0,
         \} 
   let opts = s:Dict.omit(a:options, keys(defaults))
-  let args = extend(['add'], s:_opts2args(a:options, defaults))
-  let filenames = gita#util#listalize(get(a:000, 0, []))
+  let args = extend(['add'], s:Misc.opts2args(a:options, defaults))
+  let filenames = s:_listalize(get(a:000, 0, []))
   if len(filenames) > 0
     call add(args, ['--', filenames])
   endif
@@ -276,8 +260,8 @@ function! s:git.rm(options, ...) abort " {{{
         \ 'quiet': 0,
         \} 
   let opts = s:Dict.omit(a:options, keys(defaults))
-  let args = extend(['rm'], s:_opts2args(a:options, defaults))
-  let filenames = gita#util#listalize(get(a:000, 0, []))
+  let args = extend(['rm'], s:Misc.opts2args(a:options, defaults))
+  let filenames = s:_listalize(get(a:000, 0, []))
   if len(filenames) > 0
     call add(args, ['--', filenames])
   endif
@@ -301,11 +285,11 @@ function! s:git.checkout(options, commit, ...) abort " {{{
         \ 'patch': 0,
         \} 
   let opts = s:Dict.omit(a:options, keys(defaults))
-  let args = extend(['checkout'], s:_opts2args(a:options, defaults))
+  let args = extend(['checkout'], s:Misc.opts2args(a:options, defaults))
   if strlen(a:commit)
     call add(args, a:commit)
   endif
-  let filenames = gita#util#listalize(get(a:000, 0, []))
+  let filenames = s:_listalize(get(a:000, 0, []))
   if len(filenames) > 0
     call add(args, ['--', filenames])
   endif
@@ -322,8 +306,8 @@ function! s:git.status(options, ...) abort " {{{
         \ 'z': 0,
         \} 
   let opts = s:Dict.omit(a:options, keys(defaults))
-  let args = extend(['status'], s:_opts2args(a:options, defaults))
-  let filenames = gita#util#listalize(get(a:000, 0, []))
+  let args = extend(['status'], s:Misc.opts2args(a:options, defaults))
+  let filenames = s:_listalize(get(a:000, 0, []))
   if len(filenames) > 0
     call add(args, ['--', filenames])
   endif
@@ -363,8 +347,8 @@ function! s:git.commit(options, ...) abort " {{{
         \ 'no_status': 0,
         \} 
   let opts = s:Dict.omit(a:options, keys(defaults))
-  let args = extend(['commit'], s:_opts2args(a:options, defaults))
-  let filenames = gita#util#listalize(get(a:000, 0, []))
+  let args = extend(['commit'], s:Misc.opts2args(a:options, defaults))
+  let filenames = s:_listalize(get(a:000, 0, []))
   if len(filenames) > 0
     call add(args, ['--', filenames])
   endif
@@ -431,14 +415,14 @@ function! s:git.diff(options, commit, ...) abort " {{{
         \ 'no_prefix': 0,
         \} 
   let opts = s:Dict.omit(a:options, keys(defaults))
-  let args = extend(['diff'], s:_opts2args(a:options, defaults))
+  let args = extend(['diff'], s:Misc.opts2args(a:options, defaults))
   if get(a:options, 'cached', 0)
     call add(args, '--cached')
   endif
   if strlen(a:commit) > 0
     call add(args, a:commit)
   endif
-  let filenames = gita#util#listalize(get(a:000, 0, []))
+  let filenames = s:_listalize(get(a:000, 0, []))
   if len(filenames) > 0
     call add(args, ['--', filenames])
   endif

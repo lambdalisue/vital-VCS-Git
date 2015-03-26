@@ -16,8 +16,7 @@ INSTALL
 ==============================================================================
 
 ```vim
-NeoBundle 'lambdalisue/vital-System-Cache-Simple'
-NeoBundle 'lambdalisue/vital-System-Cache-File'
+NeoBundle 'lambdalisue/vital-System-Cache-Unified'
 NeoBundle 'lambdalisue/vital-VCS-Git'
 ```
 
