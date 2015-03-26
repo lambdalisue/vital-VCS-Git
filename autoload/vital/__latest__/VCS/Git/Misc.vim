@@ -60,7 +60,6 @@ endfunction " }}}
 
 function! s:get_parsed_status(...) " {{{
   let defs = {
-        \ 'short': 0,
         \ 'branch': 0,
         \ 'untracked_files': '=all',
         \ 'ignore_submodules': '=all',
@@ -154,9 +153,10 @@ function! s:get_meta(repository, ...) abort " {{{
         \ ? matchstr(meta.head, 'refs/heads/\zs.\+$')
         \ : meta.head[:6]
   if !opts.exclude_repository_config
-    let meta.repository_config = s:Core.get_config(a:repository)
+    let meta.repository_config = s:Core.get_repository_config(a:repository)
     let meta.current_branch_remote = s:Core.get_branch_remote(meta.repository_config, meta.current_branch)
     let meta.current_branch_merge = s:Core.get_branch_merge(meta.repository_config, meta.current_branch)
+    let meta.current_remote_fetch = s:Core.get_remote_fetch(meta.repository_config, meta.current_branch_remote)
     let meta.current_remote_url = s:Core.get_remote_url(meta.repository_config, meta.current_branch_remote)
     let meta.comment_char = s:Core.get_comment_char(meta.repository_config)
     let meta.current_remote_branch = matchstr(meta.current_branch_merge, 'refs/heads/\zs.\+$')

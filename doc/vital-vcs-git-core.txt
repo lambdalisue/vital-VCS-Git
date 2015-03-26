@@ -44,10 +44,9 @@ user friendly and efficient APIs.
 ==============================================================================
 FUNCTIONS				*Vital.VCS.Git.Core-functions*
 
-config([{config}])			*Vital.VCS.Git.Core.config()*
+get_config()				*Vital.VCS.Git.Core.get_config()*
 
-	Get or set a configure dictionary. {config} may contains the
-	followings.
+	Get a configure dictionary. {config} may contains the followings.
 
 	'executable'
 	An executable |String| or |List| which is used as a first argument of
@@ -59,6 +58,11 @@ config([{config}])			*Vital.VCS.Git.Core.config()*
 	A list of extra arguments of |Vital.VCS.Git.Core.system()| function
 	called internally from |Vital.VCS.Git.Core.exec()| function.
 	The default value is ['-c', 'color.ui=false']
+
+set_config({config})			*Vital.VCS.Git.Core.set_config()*
+
+	Set a configure dictionary. See |Vital.VCS.Git.Core.get_config()| for
+	available keys of {config} dictionary.
 
 find_worktree({path}			*Vital.VCS.Git.Core.find_worktree()*
 
@@ -93,38 +97,45 @@ get_index_updated_time({repository})
 	of an index of the {repository}. It use |getftime| to get the time so see
 	the help of that function for more detail.
 
-				*Vital.VCS.Git.Core.get_index_updated_time()*
-get_current_branch({repository})
+				*Vital.VCS.Git.Core.get_head()*
+get_head({repository})
 
-	Return a name of a current branch in the {repository} by parsing a
-	files in the {repository}, not by executing external Git command.
-	It is equivalent with executing '$ git rev-parse --abbrev-ref HEAD'
+	Return a current reference that the {repository} lookin at.
 
-				*Vital.VCS.Git.Core.get_last_commit_hashref()*
-get_last_commit_hashref({reposiotry})
+				*Vital.VCS.Git.Core.get_fetch_head()*
+get_fetch_head({repository})
 
-	Return a hash reference of the last commit in the {repository} by
-	parsing a files in the {repository}, not by executing external Git
-	command.
-	It is equivalent with executing '$ git rev-parse HEAD'
+	Return a SHAs of branch/remote heads that were updated during the last
+	git fetch
 
-				*Vital.VCS.Git.Core.get_last_commit_message()*
-get_last_commit_message({repository})
+				*Vital.VCS.Git.Core.get_orig_head()*
+get_orig_head({repository})
 
-	Return a commit message of the last commit in the {repository} by
-	parsing a files in the {repository}, not by executing external Git
-	command.
-	It is equivalent with executing '$ git log -1 --pretty=%B'
+	Return a SHAs of the branch you're merging into during a merge.
 
-				*Vital.VCS.Git.Core.get_last_merge_message()*
-get_last_merge_message({repository})
+				*Vital.VCS.Git.Core.get_merge_head()*
+get_merge_head({repository})
 
-	Return a merge message of the last merge in the {repository} by
-	parsing a files in the {repository}, not by executing external Git
-	command. Note that it would work only during file confliction.
+	Return a SHAs of the branch you're merging from during a merge.
 
-				*Vital.VCS.Git.Core.get_config()*
-get_config({repository})
+				*Vital.VCS.Git.Core.get_merge_mode()*
+get_merge_mode({repository})
+
+	Return a content of 'MERGE_MODE' in the {repository}
+
+				*Vital.VCS.Git.Core.get_commit_editmsg()*
+get_commit_editmsg({repository})
+
+	Return a cached commit message in the {repository}. This is a last
+	commit message in general.
+
+				*Vital.VCS.Git.Core.get_merge_msg()*
+get_merge_msg({repository})
+
+	Return a commit message shown during merge mode.
+
+				*Vital.VCS.Git.Core.get_repository_config()*
+get_repository_config({repository})
 
 	Return a parsed config dictionary of the {repository}. The return
 	{config} will be used in the following functions.
@@ -143,10 +154,21 @@ get_branch_merge({config}, {local_branch})
 	let merge = s:Core.get_branch_merge(config, 'master')
 	let remote_branch_name = substitute(merge, '^refs/heads', '', '')
 <
+
+				*Vital.VCS.Git.Core.get_remote_fetch()*
+get_remote_fetch({config}, {remote})
+
+	Return an fetch address of the specified {remote}.
+
 				*Vital.VCS.Git.Core.get_remote_url()*
 get_remote_url({config}, {remote})
 
-	Return an url of the specified {remote}
+	Return an url of the specified {remote}.
+
+				*Vital.VCS.Git.Core.get_comment_char()*
+get_comment_char({config})
+
+	Return an comment character used in commit message.
 
 system({args} [, {opts}])		*Vital.VCS.Git.Core.system()*
 	

@@ -27,18 +27,21 @@ Describe VCS.Git.Core
     call s:V.import('System.File').rmdir(root, 'r')
   End
 
-  Context .config({config})
+  Context .get_config()
     It should return a config dictionary
-      let config = s:C.config()
+      let config = s:C.get_config()
       Assert IsDict(config)
       Assert Equals(config, {
             \ 'executable': 'git',
             \ 'arguments': ['-c', 'color.ui=false'],
             \})
     End
+  End
 
+  Context .set_config({config})
     It should extend a config dictionary
-      let config = s:C.config({'foo': 'bar'})
+      call s:C.set_config({'foo': 'bar'})
+      let config = s:C.get_config()
       Assert IsDict(config)
       Assert HasKey(config, 'foo')
       Assert Equals(config.foo, 'bar')
@@ -227,18 +230,18 @@ Describe VCS.Git.Core
     End
   End
 
-  Context .get_config({repository})
+  Context .get_repository_config({repository})
     It should return a parsed config dictionary
       let filename = s:P.join(repository, 'config')
       call writefile(['[core]', '  bare = false'], filename)
-      let ret = s:C.get_config(repository)
+      let ret = s:C.get_repository_config(repository)
       Assert HasKey(ret, 'core')
       call delete(filename)
     End
 
     It should return an empty dictionary for a non git repository
       let path = outside
-      let ret = s:C.get_config(path)
+      let ret = s:C.get_repository_config(path)
       Assert Equals(ret, {})
     End
   End

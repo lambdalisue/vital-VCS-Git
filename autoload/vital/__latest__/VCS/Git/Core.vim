@@ -47,10 +47,11 @@ function! s:_readline(path) abort " {{{
   return empty(contents) ? '' : contents[0]
 endfunction " }}}
 
-function! s:config(...) abort " {{{
-  let config = get(a:000, 0, {})
-  let s:_config = extend(s:_config, config)
+function! s:get_config() abort " {{{
   return s:_config
+endfunction " }}}
+function! s:set_config(config) abort " {{{
+  let s:_config = extend(s:_config, a:config)
 endfunction " }}}
 
 " Repository
@@ -96,7 +97,7 @@ function! s:get_absolute_path(worktree, path) abort " {{{
 endfunction " }}}
 
 " Meta (without using 'git rev-parse'. read '.git/*' directory)
-function! s:get_index_updated_time(repository) " {{{
+function! s:get_index_updated_time(repository) abort " {{{
   return getftime(s:Path.join(a:repository, 'index'))
 endfunction " }}}
 function! s:get_head(repository) abort " {{{
@@ -140,14 +141,14 @@ function! s:get_merge_msg(repository) abort " {{{
 endfunction " }}}
 
 " Config (without using 'git config'. read '.git/config' directly)
-function! s:get_config(repository) " {{{
+function! s:get_repository_config(repository) abort " {{{
   let filename = s:Path.join(a:repository, 'config')
   if !filereadable(filename)
     return {}
   endif
   return s:INI.parse_file(filename)
 endfunction " }}}
-function! s:get_branch_remote(config, local_branch) " {{{
+function! s:get_branch_remote(config, local_branch) abort " {{{
   " a name of remote which the {local_branch} connect
   let section = get(a:config, printf('branch "%s"', a:local_branch), {})
   if empty(section)
@@ -155,7 +156,7 @@ function! s:get_branch_remote(config, local_branch) " {{{
   endif
   return get(section, 'remote', '')
 endfunction " }}}
-function! s:get_branch_merge(config, local_branch, ...) " {{{
+function! s:get_branch_merge(config, local_branch, ...) abort " {{{
   " a branch name of remote which {local_branch} connect
   let truncate = get(a:000, 0, 0)
   let section = get(a:config, printf('branch "%s"', a:local_branch), {})
@@ -165,7 +166,7 @@ function! s:get_branch_merge(config, local_branch, ...) " {{{
   let merge = get(section, 'merge', '')
   return truncate ? substitute(merge, '\v^refs/heads/', '', '') : merge
 endfunction " }}}
-function! s:get_remote_fetch(config, remote) " {{{
+function! s:get_remote_fetch(config, remote) abort " {{{
   " a url of {remote}
   let section = get(a:config, printf('remote "%s"', a:remote), {})
   if empty(section)
@@ -173,7 +174,7 @@ function! s:get_remote_fetch(config, remote) " {{{
   endif
   return get(section, 'fetch', '')
 endfunction " }}}
-function! s:get_remote_url(config, remote) " {{{
+function! s:get_remote_url(config, remote) abort " {{{
   " a url of {remote}
   let section = get(a:config, printf('remote "%s"', a:remote), {})
   if empty(section)
@@ -191,7 +192,7 @@ function! s:get_comment_char(config, ...) abort " {{{
 endfunction " }}}
 
 " Execution
-function! s:system(args, ...) " {{{
+function! s:system(args, ...) abort " {{{
   let args = s:List.flatten(a:args)
   let opts = extend({
         \ 'stdin': '',
@@ -221,7 +222,7 @@ function! s:system(args, ...) " {{{
   let status = s:Process.get_last_status()
   return { 'stdout': stdout, 'status': status, 'args': args, 'opts': original_opts }
 endfunction " }}}
-function! s:exec(args, ...) " {{{
+function! s:exec(args, ...) abort " {{{
   let args = [s:_config.executable, s:_config.arguments, a:args]
   let opts = get(a:000, 0, {})
   return s:system(args, opts)

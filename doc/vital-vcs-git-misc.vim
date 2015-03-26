@@ -44,6 +44,151 @@ user friendly and efficient APIs.
 ==============================================================================
 FUNCTIONS				*Vital.VCS.Git.Misc-functions*
 
+get_parsed_status([{opts}])		*Vital.VCS.Git.Misc.get_parsed_status()*
+
+	Get |Vital.VCS.Git.StatusParser| parsed current working tree status.
+	The {opts} are passed to |Vital.VCS.Git.Core.exec()| and the following
+	options are available in {opts}.
+	See 'git status --help' for means of indivisual options.
+
+	- branch
+	- untracked_files
+	- ignore_submodules
+	- ignored
+	- z
+
+get_parsed_commit([{opts}])		*Vital.VCS.Git.Misc.get_parsed_commit()*
+
+	Get |Vital.VCS.Git.StatusParser| parsed current working tree status
+	for commit.
+	The {opts} are passed to |Vital.VCS.Git.Core.exec()| and the following
+	options are available in {opts}.
+	See 'git commit --help' for means of indivisual options.
+	
+	- all
+	- patch
+	- reuse_message
+	- reedit_message
+	- fixup
+	- squash
+	- reset_author
+	- short
+	- z
+	- file
+	- author
+	- date
+	- message
+	- template
+	- signoff
+	- no_verify
+	- allow_empty
+	- allow_empty_message
+	- cleanup
+	- edit
+	- amend
+	- include
+	- only
+	- untracked_files
+	- verbose
+	- quiet
+	- status
+	- no_status
+
+
+get_parsed_config([{opts}])		*Vital.VCS.Git.Misc.get_config_status()*
+
+	Get |Vital.VCS.Git.ConfigParser| parsed Git config (note this is not a
+	repository config).
+	The {opts} are passed to |Vital.VCS.Git.Core.exec()| and the following
+	options are available in {opts}.
+	See 'git config --help' for means of indivisual options.
+
+	- local
+	- global
+	- system
+	- file
+	- blob
+	- bool
+	- int
+	- bool_or_int
+	- path
+	- includes
+
+get_meta({repository}[, {opts}])	*Vital.VCS.Git.Misc.get_meta()*
+
+	Return a dictionary which contains meta informations.
+	If { 'exclude_repository_config': 1 } is specified to {opts}, all meta
+	informations related to repository config will be truncated.
+	The following meta informations are included:
+
+	'head'
+	A value returnd from |Vital.System.Core.get_head()|
+
+	'fetch_head'
+	A value returnd from |Vital.System.Core.get_fetch_head()|
+
+	'orig_head'
+	A value returnd from |Vital.System.Core.get_orig_head()|
+
+	'merge_head'
+	A value returnd from |Vital.System.Core.get_merge_head()|
+
+	'merge_mode'
+	A value returnd from |Vital.System.Core.get_merge_mode()|
+
+	'commit_editmsg'
+	A value returnd from |Vital.System.Core.get_commit_editmsg()|
+
+	'merge_msg'
+	A value returnd from |Vital.System.Core.get_merge_msg()|
+
+	'current_branch'
+	A current branch name.
+
+	'repository_config'
+	A value returnd from |Vital.System.Core.get_repository_config()|.
+	The entry would not exist if 'exclude_repository_config' option is
+	specified.
+
+	'current_branch_remote'
+	A value returnd from |Vital.System.Core.get_branch_remote()| of
+	current branch.
+	The entry would not exist if 'exclude_repository_config' option is
+	specified.
+
+	'current_branch_merge'
+	A value returnd from |Vital.System.Core.get_branch_merge()| of
+	current branch.
+	The entry would not exist if 'exclude_repository_config' option is
+	specified.
+
+	'current_remote_fetch'
+	A value returnd from |Vital.System.Core.get_remote_fetch()| of
+	current branch remote.
+	The entry would not exist if 'exclude_repository_config' option is
+	specified.
+
+	'current_remote_url'
+	A value returnd from |Vital.System.Core.get_remote_url()| of
+	current branch remote.
+	The entry would not exist if 'exclude_repository_config' option is
+	specified.
+
+	'comment_char'
+	A value returnd from |Vital.System.Core.get_comment_char()|.
+	The entry would not exist if 'exclude_repository_config' option is
+	specified.
+
+	'current_remote_branch'
+	A remote branch which the current branch connected.
+
+			*Vital.VCS.Git.Misc.get_last_commitmsg()*
+get_last_commitmsg([{opts}])
+
+	Return a last commit message. Generally it is equal to
+	'commit_editmsg' attribute of a return dictionary from
+	|Vital.VCS.Git.Misc.get_meta()| but this is more acculate.
+
 			*Vital.VCS.Git.Misc.count_commits_ahead_of_remote()*
 count_commits_ahead_of_remote([{opts}])
 
@@ -57,28 +202,6 @@ count_commits_behind_remote([{opts}])
 	Get commit logs which behind remote and return the total number of
 	these commmits.
 	The {opts} are passed to |Vital.VCS.Git.Core.exec()|.
-
-get_parsed_status([{opts}])		*Vital.VCS.Git.Misc.get_parsed_status()*
-
-	Get |Vital.VCS.Git.StatusParser| parsed current working tree status.
-
-get_parsed_config([{opts}, {scope}])	*Vital.VCS.Git.Misc.get_config_status()*
-
-	Get |Vital.VCS.Git.ConfigParser| parsed Git config (note this is not a
-	repository config). The {scope} indicate the config scope explained
-	below.
-
-	''
-	Equivalent to '$ git config -l'
-
-	'local'
-	Equivalent to '$ git config -l --local'
-
-	'global'
-	Equivalent to '$ git config -l --global'
-
-	'system'
-	Equivalent to '$ git config -l --system'
 
 
 ==============================================================================
