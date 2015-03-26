@@ -1,16 +1,32 @@
+call vital#of('vital').unload()
 let s:V = vital#of('vital')
 let s:P = s:V.import('System.Filepath')
 let s:C = s:V.import('System.Cache.Simple')
-call s:V.unload() " make sure that the following modules are not cached version
 let s:F = s:V.import('VCS.Git.Finder')
 
-" Note:
-"   The test should be executed on a top directory of git working tree
-"   Remember that 'repository' points a '.git' directory and 'worktree'
-"   points a directory which contains a '.git' directory.
-let s:ROOT = getcwd()
 
 Describe VCS.Git.Finder
+  Before all
+    " Create a mock Git working tree
+    let root = tempname()
+    let worktree = s:P.join(root, 'inside')
+    let repository = s:P.join(worktree, '.git')
+    let inside = s:P.join(worktree, 'foo', 'bar')
+    let outside = s:P.join(root, 'outside', 'foo', 'bar')
+    lockvar root
+    lockvar worktree
+    lockvar repository
+    lockvar inside
+    lockvar outside
+    call mkdir(repository, 'p')
+    call mkdir(inside, 'p')
+    call mkdir(outside, 'p')
+  End
+
+  After all
+    " remote a temp directory
+    call s:V.import('System.File').rmdir(root, 'r')
+  End
 
   Context .new({cache})
     It should throw a exception if invalid cache instance is specified
@@ -32,11 +48,11 @@ Describe VCS.Git.Finder
       End
 
       It should return a dictionary which contains 'worktree' and 'repository'
-        let path = s:P.join([s:ROOT, 'autoload', 'vital'])
+        let path = inside
         let ret = s:finder.find(path)
         let exp = {
-              \ 'worktree': s:ROOT,
-              \ 'repository': s:P.join([s:ROOT, '.git']),
+              \ 'worktree': worktree,
+              \ 'repository': repository,
               \}
         Assert IsDict(ret)
         Assert HasKey(ret, 'worktree')
@@ -45,7 +61,7 @@ Describe VCS.Git.Finder
       End
 
       It should return an empty dictionary for a non git working tree
-        let path = s:P.join([s:ROOT, '.git', 'info'])
+        let path = outside
         let ret = s:finder.find(path)
         let exp = {}
         Assert IsDict(ret)
@@ -76,22 +92,22 @@ Describe VCS.Git.Finder
 
       It should execute garbage collection
         call s:cache.set('foo', {
-              \ 'path': s:ROOT,
-              \ 'worktree': s:ROOT,
-              \ 'repository': s:P.join(s:ROOT, '.git'),
+              \ 'path': inside,
+              \ 'worktree': worktree,
+              \ 'repository': repository,
               \})
         call s:cache.set('bar', {
-              \ 'path': s:P.join(s:ROOT, 'autoload', 'vital'),
+              \ 'path': worktree,
               \ 'worktree': '',
               \ 'repository': '',
               \})
         call s:cache.set('hoge', {
-              \ 'path': s:P.join(s:ROOT, '.git'),
+              \ 'path': outside,
               \ 'worktree': '',
               \ 'repository': '',
               \})
         call s:cache.set('piyo', {
-              \ 'path': s:P.join(s:ROOT, 'invalid'),
+              \ 'path': s:P.join(root, 'invalid'),
               \ 'worktree': '',
               \ 'repository': '',
               \})
@@ -100,21 +116,21 @@ Describe VCS.Git.Finder
         Assert Equals(sort(keys), sort(['foo', 'bar', 'hoge']))
         let r = s:cache.get('foo')
         let e = {
-              \ 'path': s:ROOT,
-              \ 'worktree': s:ROOT,
-              \ 'repository': s:P.join(s:ROOT, '.git'),
+              \ 'path': inside,
+              \ 'worktree': worktree,
+              \ 'repository': repository,
               \}
         Assert Equals(r, e)
         let r = s:cache.get('bar')
         let e = {
-              \ 'path': s:P.join(s:ROOT, 'autoload', 'vital'),
-              \ 'worktree': s:ROOT,
-              \ 'repository': s:P.join(s:ROOT, '.git'),
+              \ 'path': worktree,
+              \ 'worktree': worktree,
+              \ 'repository': repository,
               \}
         Assert Equals(r, e)
         let r = s:cache.get('hoge')
         let e = {
-              \ 'path': s:P.join(s:ROOT, '.git'),
+              \ 'path': outside,
               \ 'worktree': '',
               \ 'repository': '',
               \}
