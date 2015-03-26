@@ -1,5 +1,5 @@
+call vital#of('vital').unload()
 let s:V = vital#of('vital')
-call s:V.unload() " make sure that the following modules are not cached version
 let s:R = s:V.import('VCS.Git.ConfigParser')
 
 

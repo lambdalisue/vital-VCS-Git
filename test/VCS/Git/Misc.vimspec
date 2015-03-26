@@ -1,15 +1,40 @@
+call vital#of('vital').unload()
 let s:V = vital#of('vital')
 let s:P = s:V.import('System.Filepath')
 let s:L = s:V.import('Data.List')
-call s:V.unload() " make sure that the following modules are not cached version
 let s:M = s:V.import('VCS.Git.Misc')
 
 let s:ROOT = getcwd()
 
 Describe VCS.Git.Misc
+  Before all
+    " Create a mock Git working tree
+    let root = tempname()
+    let worktree = s:P.join(root, 'inside')
+    let repository = s:P.join(worktree, '.git')
+    let inside = s:P.join(worktree, 'foo', 'bar')
+    let outside = s:P.join(root, 'outside', 'foo', 'bar')
+    lockvar root
+    lockvar worktree
+    lockvar repository
+    lockvar inside
+    lockvar outside
+    call mkdir(repository, 'p')
+    call mkdir(inside, 'p')
+    call mkdir(outside, 'p')
+    silent execute printf('!git init -q %s', worktree)
+    let previous_cwd = getcwd()
+    silent execute 'lcd ' inside
+  End
+
+  After all
+    silent execute 'lcd ' previous_cwd
+    " remote a temp directory
+    call s:V.import('System.File').rmdir(root, 'r')
+  End
+
   Context .count_commits_ahead_of_remote([{options}])
     It should return number
-      let path = s:ROOT
       let result = s:M.count_commits_ahead_of_remote()
       Assert IsNumber(result)
     End
@@ -17,7 +42,6 @@ Describe VCS.Git.Misc
 
   Context .count_commits_behind_remote([{options}])
     It should return number
-      let path = s:ROOT
       let result = s:M.count_commits_behind_remote()
       Assert IsNumber(result)
     End
@@ -25,8 +49,10 @@ Describe VCS.Git.Misc
 
   Context .get_last_commitmsg([{options}])
     It should return a list
+      silent execute '!git commit -q -m "initial" --allow-empty'
       let result = s:M.get_last_commitmsg()
       Assert IsList(result)
+      Assert Equals(result, ['initial'])
     End
   End
 
@@ -63,8 +89,6 @@ Describe VCS.Git.Misc
   End
 
   Context .get_meta({repository}[, {options}])
-    let repository = s:P.join(s:ROOT, '.git')
-
     It should return a dictionary which indicate the meta information of the Git repository
       let ret = s:M.get_meta(repository)
       Assert IsDict(ret)

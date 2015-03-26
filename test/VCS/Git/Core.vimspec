@@ -3,11 +3,6 @@ let s:V = vital#of('vital')
 let s:P = s:V.import('System.Filepath')
 let s:C = s:V.import('VCS.Git.Core')
 
-" Note:
-"   The test should be executed on a top directory of git working tree
-"   Remember that 'repository' points a '.git' directory and 'worktree'
-"   points a directory which contains a '.git' directory.
-let s:ROOT = getcwd()
 
 Describe VCS.Git.Core
   Before all
@@ -339,6 +334,15 @@ Describe VCS.Git.Core
   End
 
   Context .system({args} [, {opts}]})
+    Before
+      let previous_cwd = getcwd()
+      silent execute 'lcd ' inside
+    End
+
+    After
+      silent execute 'lcd ' previous_cwd
+    End
+
     It should execute system command
       let result = s:C.system(['echo', '-n', 'hello'])
       Assert Equals(result.status, 0)
@@ -356,14 +360,11 @@ Describe VCS.Git.Core
     End
 
     It should execute system command on a specified working directory
-      let saved_cwd = fnamemodify(getcwd(), ':p')
-      let cwd = fnamemodify(expand("$HOME"), ':p')
-      if saved_cwd ==# cwd
-        let cwd = expand("%:p")
-      endif
+      let cwd = outside
       " 'pwd' command does not include the last separator thus remove it
       " for comparison
       let cwd = s:P.remove_last_separator(cwd)
+      let sep = s:P.separator()
 
       " FIXME Windows does not have 'pwd'
       let result = s:C.system(['pwd'], { 'cwd': cwd })
@@ -371,16 +372,26 @@ Describe VCS.Git.Core
       Assert Equals(result.stdout, cwd)
       Assert Equals(result.args, ['pwd'])
       Assert Equals(result.opts, {'stdin': '', 'timeout': 0, 'cwd': cwd})
-      Assert Equals(fnamemodify(getcwd(), ':p'), saved_cwd)
+      Assert Equals(fnamemodify(getcwd(), ':p'), inside . sep)
     End
   End
 
   Context .exec({args} [, {opts}])
+    Before
+      let previous_cwd = getcwd()
+      silent execute printf('!git init -q %s', worktree)
+      silent execute 'lcd ' inside
+    End
+
+    After
+      silent execute 'lcd ' previous_cwd
+    End
+
     It should execute git command and return a dictionary
       let result = s:C.exec(['rev-parse', '--show-toplevel'])
       let expect = {
             \ 'status': 0,
-            \ 'stdout': printf("%s", s:ROOT),
+            \ 'stdout': worktree,
             \ 'args': ['git', '-c', 'color.ui=false', 'rev-parse', '--show-toplevel'],
             \ 'opts': {'stdin': '', 'timeout': 0, 'cwd': ''},
             \}
@@ -388,38 +399,32 @@ Describe VCS.Git.Core
     End
 
     It should execute git command on a specified directory
-      let saved_cwd = getcwd()
-      silent execute 'lcd ' expand('$HOME')
+      silent execute 'lcd ' outside
 
-      let opts = { 'cwd': s:ROOT }
+      let opts = { 'cwd': worktree }
       let result = s:C.exec(['rev-parse', '--show-toplevel'], opts)
       let expect = {
             \ 'status': 0,
-            \ 'stdout': printf("%s", s:ROOT),
+            \ 'stdout': worktree,
             \ 'args': ['git', '-c', 'color.ui=false', 'rev-parse', '--show-toplevel'],
-            \ 'opts': {'stdin': '', 'timeout': 0, 'cwd': s:ROOT},
+            \ 'opts': {'stdin': '', 'timeout': 0, 'cwd': worktree},
             \}
       Assert Equals(result, expect)
-
-      silent execute 'lcd ' saved_cwd
     End
 
     It should execute git command on a parent directory of a specified file
-      let saved_cwd = getcwd()
-      silent execute 'lcd ' expand('$HOME')
+      silent execute 'lcd ' outside
 
-      let cwd = s:P.join([s:ROOT, 'test', 'VCS', 'Git.vimspec'])
+      let cwd = s:P.join([inside, 'piyo.txt'])
       let opts = { 'cwd': cwd }
       let result = s:C.exec(['rev-parse', '--show-prefix'], opts)
       let expect = {
             \ 'status': 0,
-            \ 'stdout': s:P.join(['test', 'VCS']) . s:P.separator(),
+            \ 'stdout': s:P.join('foo', 'bar') . s:P.separator(),
             \ 'args': ['git', '-c', 'color.ui=false', 'rev-parse', '--show-prefix'],
             \ 'opts': {'stdin': '', 'timeout': 0, 'cwd': cwd},
             \}
       Assert Equals(result, expect)
-
-      silent execute 'lcd ' saved_cwd
     End
   End
 End

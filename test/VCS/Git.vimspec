@@ -4,14 +4,34 @@ let s:L = s:V.import('Data.List')
 call s:V.unload() " make sure that the following modules are not cached version
 let s:G = s:V.import('VCS.Git')
 
-let s:ROOT = getcwd()
-let s:WORKTREE = s:ROOT
-let s:REPOSITORY = s:P.join(s:WORKTREE, '.git')
-
 Describe VCS.Git
+  Before all
+    " Create a mock Git working tree
+    let root = tempname()
+    let worktree = s:P.join(root, 'inside')
+    let repository = s:P.join(worktree, '.git')
+    let inside = s:P.join(worktree, 'foo', 'bar')
+    let outside = s:P.join(root, 'outside', 'foo', 'bar')
+    lockvar root
+    lockvar worktree
+    lockvar repository
+    lockvar inside
+    lockvar outside
+    call mkdir(repository, 'p')
+    call mkdir(inside, 'p')
+    call mkdir(outside, 'p')
+
+    call writefile([], s:P.join(repository, 'index'))
+  End
+
+  After all
+    " remote a temp directory
+    call s:V.import('System.File').rmdir(root, 'r')
+  End
+
   Context .new({worktree}, {repository})
     It should return a Git instance
-      let ret = s:G.new(s:WORKTREE, s:REPOSITORY)
+      let ret = s:G.new(worktree, repository)
       Assert IsDict(ret)
       Assert KeyExists(ret, 'worktree')
       Assert KeyExists(ret, 'repository')
@@ -19,43 +39,43 @@ Describe VCS.Git
     End
 
     It should return a same Git instance for same worktree
-      let ret1 = s:G.new(s:WORKTREE, s:REPOSITORY)
-      let ret2 = s:G.new(s:WORKTREE, s:REPOSITORY)
+      let ret1 = s:G.new(worktree, repository)
+      let ret2 = s:G.new(worktree, repository)
       Assert Same(ret1, ret2)
     End
 
     It should return a different Git instance for same worktree if 'no_cache' is specified
-      let ret1 = s:G.new(s:WORKTREE, s:REPOSITORY)
-      let ret2 = s:G.new(s:WORKTREE, s:REPOSITORY, { 'no_cache': 1 })
+      let ret1 = s:G.new(worktree, repository)
+      let ret2 = s:G.new(worktree, repository, { 'no_cache': 1 })
       Assert NotSame(ret1, ret2)
     End
 
 
     It should return a different Git instance for different worktree
-      let ret1 = s:G.new(s:WORKTREE, s:REPOSITORY)
-      let ret2 = s:G.new(expand('~'), s:REPOSITORY)
+      let ret1 = s:G.new(worktree, repository)
+      let ret2 = s:G.new(outside, repository)
       Assert NotSame(ret1, ret2)
     End
   End
 
   Context .find({path})
     It should return a Git instance for a directory which locate inside a Git worktree
-      let path = s:P.join(s:WORKTREE, 'autoload', 'vital')
-      let exp = s:G.new(s:WORKTREE, s:REPOSITORY)
+      let path = inside
+      let exp = s:G.new(worktree, repository)
       let ret = s:G.find(path)
       Assert Same(ret, exp)
     End
 
     It should return a same Git instance for directories which locate inside a same Git worktree
-      let path1 = s:P.join(s:WORKTREE, 'autoload', 'vital')
-      let path2 = s:P.join(s:WORKTREE, 'test', 'VCS')
+      let path1 = inside
+      let path2 = s:P.join(inside, 'piyo')
       let ret1 = s:G.find(path1)
       let ret2 = s:G.find(path2)
       Assert Same(ret1, ret2)
     End
 
     It should return an empty dictionary for non git directory
-      let path = s:P.join(s:REPOSITORY, 'info')
+      let path = outside
       let ret = s:G.find(path)
       Assert True(empty(ret))
     End
@@ -64,7 +84,8 @@ Describe VCS.Git
   Context instance
     Before
       " newly create a Git instance
-      let s:git = s:G.new(s:WORKTREE, s:REPOSITORY, { 'no_cache': 1 })
+      let s:git = s:G.new(worktree, repository, { 'no_cache': 1 })
+
       function! s:git.patch_get_index_updated_time()
         function! self.get_index_updated_time()
           return reltime()[0] + 1000
@@ -101,7 +122,7 @@ Describe VCS.Git
 
       It should return a different dictionary if different option is specified
         let ret1 = s:git.get_parsed_status()
-        let ret2 = s:git.get_parsed_status({'branch': 1})
+        let ret2 = s:git.get_parsed_status({ 'branch': 1 })
         Assert NotSame(ret1, ret2)
       End
     End
@@ -127,7 +148,7 @@ Describe VCS.Git
 
       It should return a different dictionary if different option is specified
         let ret1 = s:git.get_parsed_commit()
-        let ret2 = s:git.get_parsed_commit({'all': 1})
+        let ret2 = s:git.get_parsed_commit({ 'amend': 1 })
         Assert NotSame(ret1, ret2)
       End
     End
@@ -153,7 +174,7 @@ Describe VCS.Git
 
       It should return a different dictionary if 'args' option is specified
         let ret1 = s:git.get_parsed_config()
-        let ret2 = s:git.get_parsed_config({'local': 1})
+        let ret2 = s:git.get_parsed_config({ 'local': 1 })
         Assert NotSame(ret1, ret2)
       End
     End
@@ -161,147 +182,51 @@ Describe VCS.Git
     Context .get_meta()
       It should return a dictionary which indicate the meta information of the Git repository
         let ret = s:git.get_meta()
-        Assert IsDict(ret)
+        Assert KeyExists(ret, 'head')
+        Assert KeyExists(ret, 'fetch_head')
+        Assert KeyExists(ret, 'orig_head')
+        Assert KeyExists(ret, 'merge_head')
+        Assert KeyExists(ret, 'merge_mode')
+        Assert KeyExists(ret, 'commit_editmsg')
+        Assert KeyExists(ret, 'merge_msg')
         Assert KeyExists(ret, 'current_branch')
-        Assert KeyExists(ret, 'cached_commitmsg')
         Assert KeyExists(ret, 'repository_config')
         Assert KeyExists(ret, 'current_branch_remote')
         Assert KeyExists(ret, 'current_branch_merge')
         Assert KeyExists(ret, 'current_remote_url')
         Assert KeyExists(ret, 'comment_char')
-        Assert KeyExists(ret, 'commits_ahead_of_remote')
-        Assert KeyExists(ret, 'commits_behind_remote')
-        Assert KeyExists(ret, 'last_commitmsg')
       End
 
       It should exclude repository config related keys in the return dictionary if 'exclude_repository_config' is specified
         let ret = s:git.get_meta({ 'exclude_repository_config': 1 })
         Assert IsDict(ret)
+        Assert KeyExists(ret, 'head')
+        Assert KeyExists(ret, 'fetch_head')
+        Assert KeyExists(ret, 'orig_head')
+        Assert KeyExists(ret, 'merge_head')
+        Assert KeyExists(ret, 'merge_mode')
+        Assert KeyExists(ret, 'commit_editmsg')
+        Assert KeyExists(ret, 'merge_msg')
         Assert KeyExists(ret, 'current_branch')
-        Assert KeyExists(ret, 'cached_commitmsg')
         Assert KeyNotExists(ret, 'repository_config')
         Assert KeyNotExists(ret, 'current_branch_remote')
         Assert KeyNotExists(ret, 'current_branch_merge')
         Assert KeyNotExists(ret, 'current_remote_url')
         Assert KeyNotExists(ret, 'comment_char')
-        Assert KeyExists(ret, 'commits_ahead_of_remote')
-        Assert KeyExists(ret, 'commits_behind_remote')
-        Assert KeyExists(ret, 'last_commitmsg')
-      End
-
-      It should exclude 'commits_ahead_of_remote' in the return dictionary if 'exclude_commits_ahead_of_remote' is specified
-        let ret = s:git.get_meta({ 'exclude_commits_ahead_of_remote': 1 })
-        Assert IsDict(ret)
-        Assert KeyExists(ret, 'current_branch')
-        Assert KeyExists(ret, 'cached_commitmsg')
-        Assert KeyExists(ret, 'repository_config')
-        Assert KeyExists(ret, 'current_branch_remote')
-        Assert KeyExists(ret, 'current_branch_merge')
-        Assert KeyExists(ret, 'current_remote_url')
-        Assert KeyExists(ret, 'comment_char')
-        Assert KeyNotExists(ret, 'commits_ahead_of_remote')
-        Assert KeyExists(ret, 'commits_behind_remote')
-        Assert KeyExists(ret, 'last_commitmsg')
-      End
-
-      It should exclude 'commits_behind_remote' in the return dictionary if 'exclude_commits_behind_remote' is specified
-        let ret = s:git.get_meta({ 'exclude_commits_behind_remote': 1 })
-        Assert IsDict(ret)
-        Assert KeyExists(ret, 'current_branch')
-        Assert KeyExists(ret, 'cached_commitmsg')
-        Assert KeyExists(ret, 'repository_config')
-        Assert KeyExists(ret, 'current_branch_remote')
-        Assert KeyExists(ret, 'current_branch_merge')
-        Assert KeyExists(ret, 'current_remote_url')
-        Assert KeyExists(ret, 'comment_char')
-        Assert KeyExists(ret, 'commits_ahead_of_remote')
-        Assert KeyNotExists(ret, 'commits_behind_remote')
-        Assert KeyExists(ret, 'last_commitmsg')
-      End
-
-      It should exclude 'last_commitmsg' in the return dictionary if 'exclude_last_commitmsg' is specified
-        let ret = s:git.get_meta({ 'exclude_last_commitmsg': 1 })
-        Assert IsDict(ret)
-        Assert KeyExists(ret, 'current_branch')
-        Assert KeyExists(ret, 'cached_commitmsg')
-        Assert KeyExists(ret, 'repository_config')
-        Assert KeyExists(ret, 'current_branch_remote')
-        Assert KeyExists(ret, 'current_branch_merge')
-        Assert KeyExists(ret, 'current_remote_url')
-        Assert KeyExists(ret, 'comment_char')
-        Assert KeyExists(ret, 'commits_ahead_of_remote')
-        Assert KeyExists(ret, 'commits_behind_remote')
-        Assert KeyNotExists(ret, 'last_commitmsg')
       End
     End
   End
-
-  Context .get_current_branch()
-    It should return a string
-      let ret = s:git.get_current_branch()
-      Assert IsString(ret)
-    End
-  End
-  Context .get_cached_commitmsg()
-    It should return a list
-      let ret = s:git.get_cached_commitmsg()
-      Assert IsList(ret)
-    End
-  End
-  Context .get_current_branch_remote()
-    It should return a string
-      let ret = s:git.get_current_branch_remote()
-      Assert IsString(ret)
-    End
-  End
-  Context .get_current_branch_merge()
-    It should return a string
-      let ret = s:git.get_current_branch_merge()
-      Assert IsString(ret)
-    End
-  End
-  Context .get_current_remote_url()
-    It should return a string
-      let ret = s:git.get_current_remote_url()
-      Assert IsString(ret)
-    End
-  End
-  Context .get_comment_char()
-    It should return a string
-      let ret = s:git.get_comment_char()
-      Assert IsString(ret)
-    End
-  End
-  Context .get_commits_ahead_of_remote()
-    It should return a number
-      let ret = s:git.get_commits_ahead_of_remote()
-      Assert IsNumber(ret)
-    End
-  End
-  Context .get_commits_behind_remote()
-    It should return a number
-      let ret = s:git.get_commits_behind_remote()
-      Assert IsNumber(ret)
-    End
-  End
-  Context .get_last_commitmsg()
-    It should return a list
-      let ret = s:git.get_last_commitmsg()
-      Assert IsList(ret)
-    End
-  End
-
 
   Context .get_relative_path({path})
     It should return a relative path of an absolute {path}
-      let path = s:P.join([s:ROOT, 'autoload', 'vital'])
-      let exp = s:P.join(['autoload', 'vital'])
+      let path = inside
+      let exp = s:P.join(['foo', 'bar'])
       let ret = s:git.get_relative_path(path)
       Assert Equals(ret, exp)
     End
 
     It should return a {path} if {path} is not absolute path
-      let path = s:P.join(['.vim', 'plugin'])
+      let path = s:P.join(['foo', 'bar'])
       let exp = path
       let ret = s:git.get_relative_path(path)
       Assert Equals(ret, exp)
@@ -310,14 +235,14 @@ Describe VCS.Git
 
   Context .get_absolute_path({path})
     It should return an absolute path of a relative {path}
-      let path = s:P.join(['autoload', 'vital'])
-      let exp = s:P.join([s:ROOT, 'autoload', 'vital'])
+      let path = s:P.join(['foo', 'bar'])
+      let exp = inside
       let ret = s:git.get_absolute_path(path)
       Assert Equals(ret, exp)
     End
 
     It should return a {path} if {path} is not relative path
-      let path = s:P.join([expand('~'), '.vim', 'plugin'])
+      let path = inside
       let exp = path
       let ret = s:git.get_absolute_path(path)
       Assert Equals(ret, exp)
@@ -325,19 +250,23 @@ Describe VCS.Git
   End
 
   Context .exec({args} [, {opts}])
+    Before
+      let previous_cwd = getcwd()
+    End
     After
-      silent execute 'lcd ' s:ROOT
+      silent execute 'lcd ' previous_cwd
     End
 
     It should execute git command on a top directory of the worktree
-      silent execute 'lcd ' expand('$HOME')
+      silent execute printf('!git init -q %s', worktree)
+      silent execute 'lcd ' inside
 
       let result = s:git.exec(['rev-parse', '--show-toplevel'])
       let expect = {
             \ 'status': 0,
-            \ 'stdout': printf("%s", s:ROOT),
+            \ 'stdout': printf("%s", worktree),
             \ 'args': ['git', '-c', 'color.ui=false', 'rev-parse', '--show-toplevel'],
-            \ 'opts': {'stdin': '', 'timeout': 0, 'cwd': s:ROOT},
+            \ 'opts': {'stdin': '', 'timeout': 0, 'cwd': worktree},
             \}
       Assert Equals(result, expect)
     End
