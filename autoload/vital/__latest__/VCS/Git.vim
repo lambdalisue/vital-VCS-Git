@@ -67,6 +67,8 @@ function! s:set_config(config) abort " {{{
   unlet! s:finder_cache
   unlet! s:finder
   unlet! s:instance_cache
+  " apply settings
+  call s:Core.set_config(s:config)
 endfunction " }}}
 function! s:new(worktree, repository, ...) abort " {{{
   let opts = extend({ 'no_cache': 0 }, get(a:000, 0, {}))
@@ -84,12 +86,13 @@ function! s:new(worktree, repository, ...) abort " {{{
   return git
 endfunction " }}}
 function! s:find(path, ...) abort " {{{
+  let options = get(a:000, 0, {})
   let finder = s:_get_finder()
-  let found = finder.find(a:path, get(a:000, 0, {}))
+  let found = finder.find(a:path, options)
   if empty(found)
     return {}
   endif
-  return s:new(found.worktree, found.repository)
+  return s:new(found.worktree, found.repository, options)
 endfunction " }}}
 
 " Object =====================================================================
@@ -190,7 +193,7 @@ function! s:git.get_last_commitmsg(...) abort " {{{
   let result = s:Misc.get_last_commitmsg(opts)
   return self._set_cache(name, result).value
 endfunction " }}}
-function! s:git.get_commits_ahead_of_remote(...) abort " {{{
+function! s:git.count_commits_ahead_of_remote(...) abort " {{{
   let options = self._get_call_opts(extend({
         \ 'no_cache': 0,
         \}, get(a:000, 0, {})))
@@ -203,7 +206,7 @@ function! s:git.get_commits_ahead_of_remote(...) abort " {{{
   let result = s:Misc.count_commits_ahead_of_remote(opts)
   return self._set_cache(name, result).value
 endfunction " }}}
-function! s:git.get_commits_behind_remote(...) abort " {{{
+function! s:git.count_commits_behind_remote(...) abort " {{{
   let options = self._get_call_opts(extend({
         \ 'no_cache': 0,
         \}, get(a:000, 0, {})))

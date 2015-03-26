@@ -9,9 +9,6 @@
 let s:save_cpo = &cpo
 set cpo&vim
 
-let s:_config = {}
-let s:_config.cache_dir = expand('~/.cache/vital/vcs/git/finder')
-
 function! s:_vital_loaded(V) dict abort " {{{
   let s:V = a:V
   let s:Prelude = a:V.import('Prelude')

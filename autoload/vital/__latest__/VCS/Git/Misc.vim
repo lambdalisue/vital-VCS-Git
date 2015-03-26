@@ -26,24 +26,25 @@ function! s:_vital_depends() abort " {{{
         \ 'VCS.Git.ConfigParser',
         \]
 endfunction " }}}
+
 function! s:opts2args(opts, defaults) abort " {{{
   let args = []
   for [key, default] in items(a:defaults)
     if has_key(a:opts, key)
       let val = get(a:opts, key)
-      if s:Prelude.is_number(default) && s:Prelude.is_number(val) && val
+      if s:Prelude.is_number(default) && val
         if strlen(key) == 1
           call add(args, printf('-%s', key))
         else
           call add(args, printf('--%s', substitute(key, '_', '-', 'g')))
         endif
-      elseif s:Prelude.is_string(default) && default =~# '\v^=' && default !=# printf('=%s', val)
+      elseif s:Prelude.is_string(default) && default =~# '\v^\=' && default !=# printf('=%s', val)
         if strlen(key) == 1
           call add(args, printf('-%s%s', key, val))
         else
           call add(args, printf('--%s=%s', substitute(key, '_', '-', 'g'), val))
         endif
-      elseif s:Prelude.is_string(default) && default !=# val
+      elseif s:Prelude.is_string(default) && default !~# '\v^\=' && default !=# val
         if strlen(key) == 1
           call add(args, printf('-%s', key))
         else

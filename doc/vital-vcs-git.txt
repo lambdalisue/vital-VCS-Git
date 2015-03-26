@@ -1,4 +1,4 @@
-*vital-vcs-git.txt*		Git manipulation library
+*vital-vcs-git.txt*		A fundemental Git manipulation library
 
 Version: 0.1.0
 Author:  Alisue <lambdalisue@hashnote.net>	*Vital.VCS.Git-author*
@@ -29,14 +29,94 @@ License: MIT license  {{{
 ==============================================================================
 CONTENTS				*Vital.VCS.Git-contents*
 
-INTRODUCTIONS		|Vital.VCS.Git-introduction|
-INTERFACE		|Vital.VCS.Git-interface|
-	FUNCTIONS		|Vital.VCS.Git-funcionss|
+Introductions		|Vital.VCS.Git-introduction|
+Requirements		|Vital.VCS.Git-requirements|
+Usage			|Vital.VCS.Git-usage|
+Interface		|Vital.VCS.Git-interface|
+	Functions		|Vital.VCS.Git-funcionss|
 
 
 ==============================================================================
 INTRODUCTIONS				*Vital.VCS.Git-introduction*
 
+*Vital.VCS.Git* is a fundemental Git manipulation library powerd by vital.vim.
+It provide the following features.
+
+1. Find git repository recursively from a specified path
+2. Parse Git repository config (.git/config)
+2. Parse Git config (git config --list)
+3. Parse Git status (git status --porcelain)
+4. Parse Git commit status (git commit --dry-run --porcelain)
+5. Fetch Git meta information (e.g. current branch name)
+6. Execute Git command
+
+The library try to NOT use Git command as much as possible and try to cache
+result as much as possible to improve the speed. With this strategy, the
+response speed would 100 times faster than executing Git command everytime.
+
+General vim plugin developer do not need to know but if you want to manipulate
+Git in low level, the following submodules would help you.
+
+- |Vital.VCS.Git.Core| - A core function module of Git manipulation
+- |Vital.VCS.Git.Misc| - A misc function module of Git manipulation
+- |Vital.VCS.Git.Finder| - A fast git repository finder
+- |Vital.VCS.Git.ConfigParser| - A Git config parser
+- |Vital.VCS.Git.StatusParser| - A Git status parser
+
+All modules above provide a low level API and do not cache any results,
+contrusting to |Vital.VCS.Git| which try to cache things per each Git
+repository.
+
+Benchmark: https://gist.github.com/lambdalisue/c73ad37a33b8242fba13
+
+
+==============================================================================
+REQUIREMENTS				*Vital.VCS.Git-requirements*
+
+The following external vital modules are required to bundle |Vital.VCS.Git|.
+
+- vital-System-Cache-Unified
+  https://github.com/lambdalisue/vital-System-Cache-Unified
+
+Note that the external vital modules above are required only when you want to
+bundle |Vital.VCS.Git| into your plugin. After you bundle it, the modules are
+no longer required, mean that your plugin users do not required to install the
+modules.
+
+
+==============================================================================
+USAGE					*Vital.VCS.Git-usage*
+
+First of all, call |Vital.VCS.Git.new()| or |Vital.VCS.Git.find()| to create
+a Git instance. The instance will cached per each Git working tree.
+>
+	let s:G = s:V.import('VCS.Git')
+	" find a git working tree and repository to create a Git instance
+	let git = s:G.find(expand('%'))
+<
+Then you can get meta information of the repository with
+|Vital.VCS.Git-instance.get_meta()|
+>
+	let meta = git.get_meta()
+	" echo current branch
+	echo meta.current_branch
+	" echo remote branch of current branch
+	echo meta.current_remote_branch
+<
+To call a git command, check |Vital.VCS.Git-git-commands| to find if the command
+is already exists or call |Vital.VCS.Git-instance.exec()|.
+>
+	" add is already prepared
+	call git.add({'force': 1}, ['file1.txt', 'file2.txt'])
+	" rev-parse is not
+	call git.exec(['rev-parse', '--is-inside-work-tree'])
+<
+To bundle |Vital.VCS.Git| into your plugin, call |Vitalize| as
+>
+	:Vitalize --name=your_plugin_name . +VCS.Git
+<
+It will automatically bundle |Vital.VCS.Git| and required vital modules to
+your plugin.
 
 
 ==============================================================================
@@ -45,6 +125,366 @@ INTERFACE				*Vital.VCS.Git-interface*
 ------------------------------------------------------------------------------
 FUNCTIONS				*Vital.VCS.Git-functions*
 
+get_config()			*Vital.VCS.Git.get_config()*
+
+	Return a config |Dictionary|. The following attributes are available.
+
+	'executable'
+	A |String| or |Dictionary| used to execute a Git command (used in
+	|Vital.VCS.Git.Core.exec()|.
+	The default value is 'git'
+
+	'arguments'
+	A |List| used to execute a Git command (used in
+	|Vital.VCS.Git.Core.exec()|.
+	The default value is ['-c', 'color.ui=false']
+
+	'cache'
+	A dictinary to regulate cache mechanism of each features.
+	One of the vital-System-Cache-Unified class is available to specify.
+
+		'finder'
+		An unified cache system used for |Vital.VCS.Git.Finder|.
+		The default value is |Vital.System.Cache.Simple|.
+
+		'instance'
+		An unified cache system used for cache a Git instance per each
+		Git working tree.
+		The default value is |Vital.System.Cache.Simple|.
+
+		'meta'
+		An unified cache system used for cache meta information of
+		each Git instance.
+		The default value is |Vital.System.Cache.Simple|.
+
+set_config({config})		*Vital.VCS.Git.set_config()*
+
+	Set a config |Dictionary|. See |Vital.VCS.Git.get_config()| for
+	available attributes of {config}.
+				
+				*Vital.VCS.Git.new()*
+new({worktree}, {repository}[, {opts}])
+
+	Create or get a Git instance of {worktree}.
+	If { 'no_cache': 1 } is specified to {opts}, re-create a Git instance
+	of {worktree}.
+	If you have no idea about {repository}, use |Vital.VCS.Git.find()|
+	instead.
+
+find({path}[, {opts}])		*Vital.VCS.Git.find()*
+
+	Create or get a Git instance of a Git working tree which {path}
+	belongs. It will return an empty |Dictionary| if no Git working tree
+	is found in parents directories of {path}.
+	If { 'no_cache': 1 } is specified to {opts}, re-create a Git instance
+	of the working tree found. See |Vital.VCS.Git.Finder-instance.find()|
+	for other options of {opts}.
+
+------------------------------------------------------------------------------
+METHODS						*Vital.VCS.Git-methods*
+
+Note: All Git commands internally calld in the following methods are called in
+a top directory of the Git working tree which the Git instance belongs.
+
+			*Vital.VCS.Git-instance.get_index_updated_time()*
+get_index_updated_time()
+
+	Return a |Number| which indicate the updated time of 'index' file in a
+	Git repository. The value is obtained by |getftime| function.
+
+			*Vital.VCS.Git-instance.get_parsed_status()*
+get_parsed_status([{opts}])
+
+	Return a parsed status |Dictionary| of a current Git working tree.
+	If { 'no_cache': 1 } is specified to {opts}, it won't use any cached
+	status. Otherwise it will use cached status until 'index' file in a
+	Git repository is updated.
+	See |Vital.VCS.Git.Misc.get_parsed_status()| for {opts} detail.
+
+			*Vital.VCS.Git-instance.get_parsed_commit()*
+get_parsed_commit([{opts}])
+
+	Similar to |Vital.VCS.Git-instance.get_parsed_status()| but return a
+	parsed status |Dictionary| of next commit.
+	If { 'no_cache': 1 } is specified to {opts}, it won't use any cached
+	status. Otherwise it will use cached status until 'index' file in a
+	Git repository is updated.
+	See |Vital.VCS.Git.Misc.get_parsed_commit()| for {opts} detail.
+
+			*Vital.VCS.Git-instance.get_parsed_config()*
+get_parsed_config([{opts}])
+
+	Return a parsed config |Dictionary| of Git config.
+	If { 'no_cache': 1 } is specified to {opts}, it won't use any cached
+	config. Otherwise it will use cached config until 'index' file in a
+	Git repository is updated.
+	See |Vital.VCS.Git.Misc.get_parsed_config()| for {opts} detail.
+
+			*Vital.VCS.Git-instance.get_meta()*
+get_meta([{opts}])
+
+	Return a meta information |Dictionary| of the current Git working
+	tree.
+	If { 'no_cache': 1 } is specified to {opts}, it won't use any cached
+	meta. Otherwise it will use cached meta until 'index' file in a
+	Git repository is updated.
+	See |Vital.VCS.Git.Misc.get_meta()| for {opts} and returnd dictionary detail.
+
+			*Vital.VCS.Git-instance.get_last_commitmsg()*
+get_last_commitmsg([{opts}])
+
+	Return a last commit message |String| of the current Git working tree.
+	If { 'no_cache': 1 } is specified to {opts}, it won't use any cached
+	string. Otherwise it will use cached string until 'index' file in a
+	Git repository is updated.
+	See |Vital.VCS.Git.Misc.get_last_commitmsg()| for {opts} detail.
+
+			*Vital.VCS.Git-instance.count_commits_ahead_of_remote()*
+count_commits_ahead_of_remote([{opts}])
+
+	Return a |Number| of commits ahead of connected remote (outgoing
+	commits).
+	If { 'no_cache': 1 } is specified to {opts}, it won't use any cached
+	number. Otherwise it will use cached number until 'index' file in a
+	Git repository is updated.
+	See |Vital.VCS.Git.Misc.count_commits_ahead_of_remote()| for {opts} detail.
+
+			*Vital.VCS.Git-instance.count_commits_behind_remote()*
+count_commits_behind_remote([{opts}])
+
+	Return a |Number| of commits behind connected remote (incoming
+	commits).
+	If { 'no_cache': 1 } is specified to {opts}, it won't use any cached
+	number. Otherwise it will use cached number until 'index' file in a
+	Git repository is updated.
+	See |Vital.VCS.Git.Misc.count_commits_behind_remote()| for {opts} detail.
+
+			*Vital.VCS.Git-instance.get_relative_path()*
+get_relative_path({path})
+
+	Return a relative path of {path} from the working tree which the Git
+	instance belongs.
+	See |Vital.VCS.Git.Core.get_relative_path()| for more detail.
+
+			*Vital.VCS.Git-instance.get_absolute_path()*
+get_absolute_path({path})
+
+	Return an absolute path of {path} from the working tree which the Git
+	instance belongs.
+	See |Vital.VCS.Git.Core.get_absolute_path()| for more detail.
+
+			*Vital.VCS.Git-instance.exec()*
+exec({args}[, {opts}])
+
+	Execute a Git command specified in {args} under the top directory of
+	the working tree of the Git instance belongs.
+	See |Vital.VCS.Git.Core.exec()| for more detail.
+
+------------------------------------------------------------------------------
+GIT COMMANDS					*Vital.VCS.Git-git-commands*
+
+Several Git commands are preapred as a instance method. If you need other
+commands, send me a pull request or use |Vital.VCS.Git-instance.exec()|
+instead.
+
+			*Vital.VCS.Git-instance.add()*
+add({options}[, {files}])
+
+	Call 'add' command. The {files} is |String| or |List| which
+	is to specify files. The following {options} are available.
+	See 'git add --help' for meaning of each individual options.
+
+	- dry_run
+	- verbose
+	- force
+	- interactive
+	- patch
+	- edit
+	- update
+	- all
+	- intent_to_add
+	- refresh
+	- ignore_errors
+	- ignore_missing
+
+	The return value is equal to |Vital.VCS.Git-instance.exec()|.
+	All options will be translated to an argument list of
+	|Vital.VCS.Git.Core.exec()| via |Vital.VCS.Git.Misc.opts2args()|.
+
+
+			*Vital.VCS.Git-instance.rm()*
+rm({options}[, {files}])
+
+	Call 'rm' command. The {files} is |String| or |List| which
+	is to specify files. The following {options} are available.
+	See 'git rm --help' for meaning of each individual options.
+
+	- force
+	- dry_run
+	- r
+	- cached
+	- ignore_unmatch
+	- quiet
+
+	The return value is equal to |Vital.VCS.Git-instance.exec()|.
+	All options will be translated to an argument list of
+	|Vital.VCS.Git.Core.exec()| via |Vital.VCS.Git.Misc.opts2args()|.
+
+			*Vital.VCS.Git-instance.checkout()*
+checkout({options}[, {files}])
+
+	Call 'checkout' command. The {files} is |String| or |List| which
+	is to specify files. The following {options} are available.
+	See 'git checkout --help' for meaning of each individual options.
+
+	- quiet
+	- force
+	- ours
+	- theirs
+	- b
+	- B
+	- track
+	- no_track
+	- l
+	- detach
+	- orphan
+	- merge
+	- conflict
+	- patch
+
+	The return value is equal to |Vital.VCS.Git-instance.exec()|.
+	All options will be translated to an argument list of
+	|Vital.VCS.Git.Core.exec()| via |Vital.VCS.Git.Misc.opts2args()|.
+
+			*Vital.VCS.Git-instance.status()*
+status({options}[, {files}])
+
+	Call 'status' command. The {files} is |String| or |List| which
+	is to specify files. The following {options} are available.
+	See 'git status --help' for meaning of each individual options.
+
+	- short
+	- branch
+	- porcelain
+	- untracked_files
+	- ignore_submodules
+	- ignored
+	- z
+
+	The return value is equal to |Vital.VCS.Git-instance.exec()|.
+	All options will be translated to an argument list of
+	|Vital.VCS.Git.Core.exec()| via |Vital.VCS.Git.Misc.opts2args()|.
+
+			*Vital.VCS.Git-instance.commit()*
+commit({options}[, {files}])
+
+	Call 'commit' command. The {files} is |String| or |List| which
+	is to specify files. The following {options} are available.
+	See 'git commit --help' for meaning of each individual options.
+
+	- all
+	- patch
+	- reuse_message
+	- reedit_message
+	- fixup
+	- squash
+	- reset_author
+	- short
+	- porcelain
+	- z
+	- file
+	- author
+	- date
+	- message
+	- template
+	- signoff
+	- no_verify
+	- allow_empty
+	- allow_empty_message
+	- cleanup
+	- edit
+	- amend
+	- include
+	- only
+	- untracked_files
+	- verbose
+	- quiet
+	- dry_run
+	- status
+	- no_status
+
+	The return value is equal to |Vital.VCS.Git-instance.exec()|.
+	All options will be translated to an argument list of
+	|Vital.VCS.Git.Core.exec()| via |Vital.VCS.Git.Misc.opts2args()|.
+
+			*Vital.VCS.Git-instance.diff()*
+diff({options}[, {files}])
+
+	Call 'diff' command. The {files} is |String| or |List| which
+	is to specify files. The following {options} are available.
+	See 'git diff --help' for meaning of each individual options.
+
+	- patch
+	- unified
+	- raw
+	- patch_with_raw
+	- minimal
+	- patience
+	- histogram
+	- stat
+	- numstat
+	- shortstat
+	- dirstat
+	- summary
+	- patch_with_stat
+	- z
+	- name_only
+	- name_status
+	- submodule
+	- color
+	- no_color
+	- word_diff
+	- word_diff_regex
+	- color_words
+	- no_renames
+	- check
+	- full_index
+	- binary
+	- abbrev
+	- break_rewrites
+	- find_renames
+	- find_copies
+	- find_copies_harder
+	- irreversible_delete
+	- l
+	- diff_filter
+	- S
+	- G
+	- pickaxe_all
+	- pickaxe_regex
+	- O
+	- R
+	- relative
+	- text
+	- ignore_space_at_eol
+	- ignore_space_change
+	- ignore_all_space
+	- inter_hunk_context
+	- function_context
+	- exit_code
+	- quiet
+	- ext_diff
+	- no_ext_diff
+	- textconv
+	- no_textconv
+	- ignore_submodules
+	- src_prefix
+	- dst_prefix
+	- no_prefix
+
+	The return value is equal to |Vital.VCS.Git-instance.exec()|.
+	All options will be translated to an argument list of
+	|Vital.VCS.Git.Core.exec()| via |Vital.VCS.Git.Misc.opts2args()|.
 
 
 vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl

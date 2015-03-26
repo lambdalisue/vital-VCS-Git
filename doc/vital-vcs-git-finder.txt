@@ -1,0 +1,102 @@
+*vital-vcs-git-finder.txt*	A fast Git working tree finder
+
+Version: 0.1.0
+Author:  Alisue <lambdalisue@hashnote.net>	*Vital.VCS.Git.Finder-author*
+Support: Vim 7.3 and above
+License: MIT license  {{{
+	Copyright (c) 2014 Alisue, hashnote.net
+
+	Permission is hereby granted, free of charge, to any person obtaining
+	a copy of this software and associated documentation files
+	(the "Software"), to deal in the Software without restriction,
+	including without limitation the rights to use, copy, modify, merge,
+	publish, distribute, sublicense, and/or sell copies of the Software,
+	and to permit persons to whom the Software is furnished to do so,
+	subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be
+	included in all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+	EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+	IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+	CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+	TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+}}}
+
+
+==============================================================================
+CONTENTS				*Vital.VCS.Git.Finder-contents*
+
+Introduction		|Vital.VCS.Git.Finder-introduction|
+Functions		|Vital.VCS.Git.Finder-functions|
+Instance		|Vital.VCS.Git.Finder-instance|
+	Methods		|Vital.VCS.Git.Finder-methods|
+
+
+==============================================================================
+INTRODUCTION				*Vital.VCS.Git.Finder-introduction*
+
+*Vital.VCS.Git.Finder* is a Git working tree finder module of |Vital.VCS.Git|.
+The module should not be used directly while |Vital.VCS.Git| provide more
+user friendly and efficient APIs.
+
+==============================================================================
+FUNCTIONS				*Vital.VCS.Git.Finder-functions*
+
+new([{cache}])			*Vital.VCS.Git.Finder.new()*
+
+	Create a new instance of finder. The {cache} is one of
+	unified cache system (lambdalisue/vital-System-Cache-Unified)
+	instance.
+>
+	let s:F = s:V.import('VCS.Git.Finder')
+	let s:C = s:V.import('System.Cache.Simple')
+	let finder = s:F.new(s:C.new())
+<
+==============================================================================
+INSTANCE				*Vital.VCS.Git.Finder-instance*
+
+-------------------------------------------------------------------------------
+METHODS					*Vital.VCS.Git.Finder-methods*
+
+find({path}[, {opts}])		*Vital.VCS.Git.Finder-instance.find()*
+	
+	Find a Git working tree and repository path and return a |Dictionary|.
+	The dictionary contains the followings
+
+	'worktree'
+	An abstract path of Git working tree found.
+
+	'repository'
+	An abstract path of Git repository (.git directory)
+
+	It will return an empty dictionary if no Git working tree found in
+	parents directories of {path}.
+	If { 'no_cache': 1 } is specified to {opts}, it try to find a Git
+	working tree even if the result is cached in an unified cache system
+	specified in |Vital.VCS.Git.Finder.new()|.
+
+	Without using cache, it is approximately 20 times faster than using
+	'git rev-parse --is-inside-work-tree' command.
+	With using instance based cache (|Vital.System.Cache.Simple|), it is
+	approximately 100 times faster than using the command.
+
+	Benchmark: https://gist.github.com/lambdalisue/c73ad37a33b8242fba13
+
+clear()				*Vital.VCS.Git.Finder-instance.clear()*
+
+	Clear all cache. It might be required to call if user create a new Git
+	working tree in a path which already traced.
+
+gc()				*Vital.VCS.Git.Finder-instance.gc()*
+
+	Call a garbage collection. It will verify all cached values thus might
+	takes a time.
+
+
+==============================================================================
+vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl
+
