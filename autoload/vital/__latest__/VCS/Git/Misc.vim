@@ -150,13 +150,16 @@ function! s:get_meta(repository, ...) abort " {{{
   let meta.merge_mode = s:Core.get_merge_mode(a:repository)
   let meta.commit_editmsg = s:Core.get_commit_editmsg(a:repository)
   let meta.merge_msg = s:Core.get_merge_msg(a:repository)
-  let meta.current_branch = s:Core.get_current_branch(a:repository)
+  let meta.current_branch = meta.head =~? 'refs/heads/'
+        \ ? matchstr(meta.head, 'refs/heads/\zs.\+$')
+        \ : meta.head[:6]
   if !opts.exclude_repository_config
     let meta.repository_config = s:Core.get_config(a:repository)
     let meta.current_branch_remote = s:Core.get_branch_remote(meta.repository_config, meta.current_branch)
     let meta.current_branch_merge = s:Core.get_branch_merge(meta.repository_config, meta.current_branch)
     let meta.current_remote_url = s:Core.get_remote_url(meta.repository_config, meta.current_branch_remote)
     let meta.comment_char = s:Core.get_comment_char(meta.repository_config)
+    let meta.current_remote_branch = matchstr(meta.current_branch_merge, 'refs/heads/\zs.\+$')
   endif
   return meta
 endfunction " }}}

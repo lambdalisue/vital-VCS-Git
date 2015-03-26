@@ -227,20 +227,6 @@ Describe VCS.Git.Core
     End
   End
 
-  Context .get_current_branch({repository})
-    It should return an empty string if HEAD is missing
-      let ret = s:C.get_current_branch(repository)
-      Assert Equals(ret, '')
-    End
-    It should return a current branch name of the git repository
-      let filename = s:P.join(repository, 'HEAD')
-      call writefile(['ref: refs/heads/master'], filename)
-      let ret = s:C.get_current_branch(repository)
-      Assert Equals(ret, 'master')
-      call delete(filename)
-    End
-  End
-
   Context .get_config({repository})
     It should return a parsed config dictionary
       let filename = s:P.join(repository, 'config')

@@ -105,6 +105,7 @@ Describe VCS.Git.Misc
       Assert KeyExists(ret, 'current_branch_merge')
       Assert KeyExists(ret, 'current_remote_url')
       Assert KeyExists(ret, 'comment_char')
+      Assert KeyExists(ret, 'current_remote_branch')
     End
 
     It should exclude repository config related keys in the return dictionary if 'exclude_repository_config' is specified
@@ -123,6 +124,7 @@ Describe VCS.Git.Misc
       Assert KeyNotExists(ret, 'current_branch_merge')
       Assert KeyNotExists(ret, 'current_remote_url')
       Assert KeyNotExists(ret, 'comment_char')
+      Assert KeyNotExists(ret, 'current_remote_branch')
     End
   End
 End

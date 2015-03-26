@@ -138,16 +138,6 @@ function! s:get_merge_msg(repository) abort " {{{
   let filename = s:Path.join(a:repository, 'MERGE_MSG')
   return s:_readfile(filename)
 endfunction " }}}
-function! s:get_current_branch(repository) " {{{
-  let line = s:get_head(a:repository)
-  if !strlen(line)
-    return ''
-  elseif line =~? 'refs/heads/'
-    return matchstr(line, '\vrefs/heads/\zs.+$')
-  else
-    return line[: 6]
-  endif
-endfunction " }}}
 
 " Config (without using 'git config'. read '.git/config' directly)
 function! s:get_config(repository) " {{{
