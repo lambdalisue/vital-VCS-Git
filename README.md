@@ -43,6 +43,16 @@ Benchmark: https://gist.github.com/lambdalisue/c73ad37a33b8242fba13
 This library is strongly inspired by [vim-vcs](https://github.com/thinca/vim-vcs)
 and several mechanisms (especially finding a git repository) is taken from that.
 
+DOCUMENTATIONS
+==============================================================================
+
+-   [Vital.VCS.Git](./doc/vital-vcs-git.txt)
+-   [Vital.VCS.Git.Core](./doc/vital-vcs-git-core.txt)
+-   [Vital.VCS.Git.Misc](./doc/vital-vcs-git-misc.txt)
+-   [Vital.VCS.Git.Finder](./doc/vital-vcs-git-finder.txt)
+-   [Vital.VCS.Git.ConfigParser](./doc/vital-vcs-git-config-parser.txt)
+-   [Vital.VCS.Git.StatusParser](./doc/vital-vcs-git-status-parser.txt)
+
 
 INSTALL
 ==============================================================================
