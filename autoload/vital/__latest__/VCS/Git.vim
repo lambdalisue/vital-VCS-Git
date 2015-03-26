@@ -94,7 +94,8 @@ endfunction " }}}
 
 " Object =====================================================================
 let s:git = {}
-function! s:git._get_cache(name) abort " {{{
+function! s:git._get_cache(name, ...) abort " {{{
+  let default = get(a:000, 0, {})
   let uptime = self.get_index_updated_time()
   if uptime == -1
     " getftime is not available?
@@ -109,9 +110,9 @@ endfunction " }}}
 function! s:git._set_cache(name, obj) abort " {{{
   let uptime = self.get_index_updated_time()
   if uptime == -1
-    let obj = deepcopy(a:obj)
+    let obj = { 'value': a:obj }
   else
-    let obj = extend({ 'actime': uptime }, a:obj)
+    let obj = { 'actime': uptime, 'value': a:obj }
   endif
   call self.cache.set(a:name, obj)
   return obj
@@ -131,12 +132,12 @@ function! s:git.get_parsed_status(...) abort " {{{
         \}, get(a:000, 0, {})))
   let opts = s:Dict.omit(options, ['no_cache'])
   let name = printf('status_%s', string(opts))
-  let result = self._get_cache(name)
-  if !options.no_cache && !empty(result)
-    return result
+  let cached = self._get_cache(name)
+  if !options.no_cache && !empty(cached)
+    return cached.value
   endif
   let result = s:Misc.get_parsed_status(opts)
-  return self._set_cache(name, result)
+  return self._set_cache(name, result).value
 endfunction " }}}
 function! s:git.get_parsed_commit(...) abort " {{{
   let options = self._get_call_opts(extend({
@@ -144,12 +145,12 @@ function! s:git.get_parsed_commit(...) abort " {{{
         \}, get(a:000, 0, {})))
   let opts = s:Dict.omit(options, ['no_cache'])
   let name = printf('commit_%s', string(opts))
-  let result = self._get_cache(name)
-  if !options.no_cache && !empty(result)
-    return result
+  let cached = self._get_cache(name)
+  if !options.no_cache && !empty(cached)
+    return cached.value
   endif
   let result = s:Misc.get_parsed_commit(opts)
-  return self._set_cache(name, result)
+  return self._set_cache(name, result).value
 endfunction " }}}
 function! s:git.get_parsed_config(...) abort " {{{
   let options = self._get_call_opts(extend({
@@ -157,23 +158,24 @@ function! s:git.get_parsed_config(...) abort " {{{
         \}, get(a:000, 0, {})))
   let opts = s:Dict.omit(options, ['no_cache'])
   let name = printf('config_%s', string(opts))
-  let result = self._get_cache(name)
-  if !options.no_cache && !empty(result)
-    return result
+  let cached = self._get_cache(name)
+  if !options.no_cache && !empty(cached)
+    return cached.value
   endif
   let result = s:Misc.get_parsed_config(opts)
-  return self._set_cache(name, result)
+  return self._set_cache(name, result).value
 endfunction " }}}
 function! s:git.get_meta(...) abort " {{{
-  let opts = extend({
+  let options = extend({
         \ 'no_cache': 0,
         \}, get(a:000, 0, {}))
-  let meta = self._get_cache('meta')
-  if !empty(meta) && !opts.no_cache
-    return meta
+  let opts = s:Dict.omit(options, ['no_cache'])
+  let cached = self._get_cache('meta')
+  if !options.no_cache && !empty(cached)
+    return cached.value
   endif
-  let meta = s:Misc.get_meta(self.repository, opts)
-  return self._set_cache('meta', meta)
+  let result = s:Misc.get_meta(self.repository, opts)
+  return self._set_cache('meta', result).value
 endfunction " }}}
 function! s:git.get_last_commitmsg(...) abort " {{{
   let options = self._get_call_opts(extend({
@@ -181,12 +183,12 @@ function! s:git.get_last_commitmsg(...) abort " {{{
         \}, get(a:000, 0, {})))
   let opts = s:Dict.omit(options, ['no_cache'])
   let name = printf('last_commitmsg_%s', string(opts))
-  let result = self._get_cache(name)
-  if !options.no_cache && !empty(result)
-    return result
+  let cached = self._get_cache(name)
+  if !options.no_cache && !empty(cached)
+    return cached.value
   endif
-  let result = s:Misc.last_commitmsg(opts)
-  return self._set_cache(name, result)
+  let result = s:Misc.get_last_commitmsg(opts)
+  return self._set_cache(name, result).value
 endfunction " }}}
 function! s:git.get_commits_ahead_of_remote(...) abort " {{{
   let options = self._get_call_opts(extend({
@@ -194,12 +196,12 @@ function! s:git.get_commits_ahead_of_remote(...) abort " {{{
         \}, get(a:000, 0, {})))
   let opts = s:Dict.omit(options, ['no_cache'])
   let name = printf('commits_ahead_of_remote_%s', string(opts))
-  let result = self._get_cache(name)
-  if !options.no_cache && !empty(result)
-    return result
+  let cached = self._get_cache(name)
+  if !options.no_cache && !empty(cached)
+    return cached.value
   endif
   let result = s:Misc.count_commits_ahead_of_remote(opts)
-  return self._set_cache(name, result)
+  return self._set_cache(name, result).value
 endfunction " }}}
 function! s:git.get_commits_behind_remote(...) abort " {{{
   let options = self._get_call_opts(extend({
@@ -207,12 +209,12 @@ function! s:git.get_commits_behind_remote(...) abort " {{{
         \}, get(a:000, 0, {})))
   let opts = s:Dict.omit(options, ['no_cache'])
   let name = printf('commits_behind_remote_%s', string(opts))
-  let result = self._get_cache(name)
-  if !options.no_cache && !empty(result)
-    return result
+  let cached = self._get_cache(name)
+  if !options.no_cache && !empty(cached)
+    return cached.value
   endif
   let result = s:Misc.count_commits_behind_remote(opts)
-  return self._set_cache(name, result)
+  return self._set_cache(name, result).value
 endfunction " }}}
 
 function! s:git.get_relative_path(path) abort " {{{

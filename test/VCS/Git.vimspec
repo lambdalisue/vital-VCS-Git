@@ -101,7 +101,7 @@ Describe VCS.Git
       End
     End
 
-    Context .get_parsed_status()
+    Context .get_parsed_status([{options}])
       It should return a dictionary which indicate the parsed current repository status
         let ret = s:git.get_parsed_status()
         Assert IsDict(ret)
@@ -127,7 +127,7 @@ Describe VCS.Git
       End
     End
 
-    Context .get_parsed_commit()
+    Context .get_parsed_commit([{options}])
       It should return a dictionary which indicate the parsed current repository commit
         let ret = s:git.get_parsed_commit()
         Assert IsDict(ret)
@@ -153,7 +153,7 @@ Describe VCS.Git
       End
     End
 
-    Context .get_parsed_config()
+    Context .get_parsed_config([{options}])
       It should return a dictionary which indicate the parsed Git config
         let ret = s:git.get_parsed_config()
         Assert IsDict(ret)
@@ -179,7 +179,7 @@ Describe VCS.Git
       End
     End
 
-    Context .get_meta()
+    Context .get_meta([{options}])
       It should return a dictionary which indicate the meta information of the Git repository
         let ret = s:git.get_meta()
         Assert KeyExists(ret, 'head')
@@ -214,6 +214,36 @@ Describe VCS.Git
         Assert KeyNotExists(ret, 'current_remote_url')
         Assert KeyNotExists(ret, 'comment_char')
       End
+    End
+  End
+
+  Context .get_last_commitmsg([{options}])
+    It should return a latest commit message
+      let saved_cwd = getcwd()
+      silent execute 'lcd ' worktree
+      call delete('.git/index')
+      silent execute '!git init -q'
+      silent execute '!git commit -q -m "initial" --allow-empty'
+      silent execute 'lcd ' saved_cwd
+      let result = s:git.get_last_commitmsg()
+      Assert IsList(result)
+      Assert Equals(result, ['initial'])
+    End
+  End
+
+  Context .get_commits_ahead_of_remote([{options}])
+    It should return a number
+      silent execute '!git init -q ' worktree
+      let result = s:git.get_commits_ahead_of_remote()
+      Assert IsNumber(result)
+    End
+  End
+
+  Context .get_commits_behind_remote([{options}])
+    It should return a number
+      silent execute '!git init -q ' worktree
+      let result = s:git.get_commits_behind_remote()
+      Assert IsNumber(result)
     End
   End
 
@@ -258,8 +288,8 @@ Describe VCS.Git
     End
 
     It should execute git command on a top directory of the worktree
-      silent execute printf('!git init -q %s', worktree)
       silent execute 'lcd ' inside
+      silent execute '!git init -q ' worktree
 
       let result = s:git.exec(['rev-parse', '--show-toplevel'])
       let expect = {
