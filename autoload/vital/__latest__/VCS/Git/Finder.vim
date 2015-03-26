@@ -16,42 +16,29 @@ function! s:_vital_loaded(V) dict abort " {{{
   let s:V = a:V
   let s:Prelude = a:V.import('Prelude')
   let s:Path    = a:V.import('System.Filepath')
-  let s:Cache   = a:V.import('System.Cache.File')
   let s:Core    = a:V.import('VCS.Git.Core')
 endfunction " }}}
 function! s:_vital_depends() abort " {{{
   return [
         \ 'Prelude',
         \ 'System.Filepath',
-        \ 'System.Cache.File',
         \ 'VCS.Git.Core',
         \]
 endfunction " }}}
 
-function! s:_get_cache() " {{{
-  if !exists('s:_cache') || s:_cache.cache_dir !=# s:_config.cache_dir
-    let s:_cache = s:Cache.new(s:_config.cache_dir)
-  endif
-  return s:_cache
-endfunction " }}}
-
-function! s:config(...) " {{{
-  let config = get(a:000, 0, {})
-  let s:_config = extend(s:_config, config)
-  return s:_config
-endfunction " }}}
-function! s:find(path) " {{{
-  let cache = s:_get_cache()
+let s:finder = {}
+function! s:finder.find(path, ...) abort " {{{
+  let options = extend({ 'no_cache': 0 }, get(a:000, 0, {}))
   let abspath = s:Prelude.path2directory(fnamemodify(a:path, ':p'))
-  let metainfo = cache.get(abspath, {})
-  if !empty(metainfo) && metainfo.path == abspath
+  let metainfo = self.cache.get(abspath, {})
+  if !empty(metainfo) && metainfo.path == abspath && !options.no_cache
     if strlen(metainfo.worktree)
       return { 'worktree': metainfo.worktree, 'repository': metainfo.repository }
     else
       return {}
     endif
   endif
-  
+
   let worktree = s:Core.find_worktree(abspath)
   let repository = strlen(worktree) ? s:Core.find_repository(worktree) : ''
   let metainfo = {
@@ -59,23 +46,25 @@ function! s:find(path) " {{{
         \ 'worktree': worktree,
         \ 'repository': repository,
         \}
-  call cache.set(abspath, metainfo)
+  call self.cache.set(abspath, metainfo)
   if strlen(metainfo.worktree)
     return { 'worktree': metainfo.worktree, 'repository': metainfo.repository }
   else
     return {}
   endif
 endfunction " }}}
-function! s:gc(...) " {{{
+function! s:finder.clear() abort " {{{
+  call self.cache.clear()
+endfunction " }}}
+function! s:finder.gc() abort " {{{
   let opts = extend({
         \ 'verbose': 1,
         \}, get(a:000, 0, {}))
-  let cache = s:_get_cache()
-  let files = glob(s:Path.join(cache.cache_dir, '*'), 0, 1)
-  let n = len(files)
+  let keys = self.cache.keys()
+  let n = len(keys)
   let c = 1
-  for file in files
-    let metainfo = cache.get(file)
+  for key in keys
+    let metainfo = self.cache.get(key)
     if isdirectory(metainfo.path)
       let metainfo.worktree = s:Core.find_worktree(metainfo.path)
       let metainfo.repository = s:Core.find_repository(metainfo.worktree)
@@ -86,10 +75,10 @@ function! s:gc(...) " {{{
               \ strlen(metainfo.worktree) ? 'worktree' : 'not worktree',
               \)
       endif
-      call cache.set(file, metainfo)
+      call self.cache.set(key, metainfo)
     else
       " missing path
-      call cache.remove(file)
+      call self.cache.remove(key)
       if opts.verbose
         redraw
         echomsg printf("%d/%d: '%s' is missing",
@@ -99,6 +88,17 @@ function! s:gc(...) " {{{
     endif
     let c += 1
   endfor
+endfunction " }}}
+
+function! s:new(cache) abort " {{{
+  " validate cache instance
+  let required_methods = ['get', 'set', 'keys', 'remove', 'clear']
+  for method in required_methods
+    if !has_key(a:cache, method)
+      throw "VCS.Git.Finder: the cache instance does not have required method."
+    endif
+  endfor
+  return extend(deepcopy(s:finder), { 'cache': a:cache })
 endfunction " }}}
 
 let &cpo = s:save_cpo

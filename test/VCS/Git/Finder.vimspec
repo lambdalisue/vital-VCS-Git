@@ -1,5 +1,6 @@
 let s:V = vital#of('vital')
 let s:P = s:V.import('System.Filepath')
+let s:C = s:V.import('System.Cache.Simple')
 call s:V.unload() " make sure that the following modules are not cached version
 let s:F = s:V.import('VCS.Git.Finder')
 
@@ -11,40 +12,114 @@ let s:ROOT = getcwd()
 
 Describe VCS.Git.Finder
 
-  Context .config({config})
-    It should return a config dictionary
-      let config = s:F.config()
-      Assert IsDict(config)
+  Context .new({cache})
+    It should throw a exception if invalid cache instance is specified
+      let Finder = s:F
+      Throws Finder.new({})
     End
 
-    It should extend a config dictionary
-      let config = s:F.config({'foo': 'bar'})
-      Assert IsDict(config)
-      Assert HasKey(config, 'foo')
-      Assert Equals(config.foo, 'bar')
-    End
-  End
-
-  Context .find({path})
-    It should return a dictionary which contains 'worktree' and 'repository'
-      let path = s:P.join([s:ROOT, 'autoload', 'vital'])
-      let ret = s:F.find(path)
-      let exp = {
-            \ 'worktree': s:ROOT,
-            \ 'repository': s:P.join([s:ROOT, '.git']),
-            \}
-      Assert IsDict(ret)
-      Assert HasKey(ret, 'worktree')
-      Assert HasKey(ret, 'repository')
-      Assert Equals(ret, exp)
+    It should return a finder instance
+      let cache = s:C.new()
+      let finder = s:F.new(cache)
+      Assert KeyExists(finder, 'find')
+      Assert KeyExists(finder, 'clear')
+      Assert KeyExists(finder, 'gc')
     End
 
-    It should return an empty dictionary for a non git working tree
-      let path = s:P.join([s:ROOT, '.git', 'info'])
-      let ret = s:F.find(path)
-      let exp = {}
-      Assert IsDict(ret)
-      Assert Equals(ret, exp)
+    Context .find({path}[, {options}])
+      Before each
+        let s:finder = s:F.new(s:C.new())
+      End
+
+      It should return a dictionary which contains 'worktree' and 'repository'
+        let path = s:P.join([s:ROOT, 'autoload', 'vital'])
+        let ret = s:finder.find(path)
+        let exp = {
+              \ 'worktree': s:ROOT,
+              \ 'repository': s:P.join([s:ROOT, '.git']),
+              \}
+        Assert IsDict(ret)
+        Assert HasKey(ret, 'worktree')
+        Assert HasKey(ret, 'repository')
+        Assert Equals(ret, exp)
+      End
+
+      It should return an empty dictionary for a non git working tree
+        let path = s:P.join([s:ROOT, '.git', 'info'])
+        let ret = s:finder.find(path)
+        let exp = {}
+        Assert IsDict(ret)
+        Assert Equals(ret, exp)
+      End
+    End
+
+    Context .clear()
+      Before each
+        let s:cache = s:C.new()
+        let s:finder = s:F.new(s:cache)
+      End
+
+      It should clear all cache
+        call s:cache.set('foo', 'bar')
+        call s:cache.set('hoge', 'hoge')
+        call s:finder.clear()
+        let r = s:cache.keys()
+        Assert Equals(r, [])
+      End
+    End
+
+    Context .gc()
+      Before each
+        let s:cache = s:C.new()
+        let s:finder = s:F.new(s:cache)
+      End
+
+      It should execute garbage collection
+        call s:cache.set('foo', {
+              \ 'path': s:ROOT,
+              \ 'worktree': s:ROOT,
+              \ 'repository': s:P.join(s:ROOT, '.git'),
+              \})
+        call s:cache.set('bar', {
+              \ 'path': s:P.join(s:ROOT, 'autoload', 'vital'),
+              \ 'worktree': '',
+              \ 'repository': '',
+              \})
+        call s:cache.set('hoge', {
+              \ 'path': s:P.join(s:ROOT, '.git'),
+              \ 'worktree': '',
+              \ 'repository': '',
+              \})
+        call s:cache.set('piyo', {
+              \ 'path': s:P.join(s:ROOT, 'invalid'),
+              \ 'worktree': '',
+              \ 'repository': '',
+              \})
+        call s:finder.gc()
+        let keys = s:cache.keys()
+        Assert Equals(sort(keys), sort(['foo', 'bar', 'hoge']))
+        let r = s:cache.get('foo')
+        let e = {
+              \ 'path': s:ROOT,
+              \ 'worktree': s:ROOT,
+              \ 'repository': s:P.join(s:ROOT, '.git'),
+              \}
+        Assert Equals(r, e)
+        let r = s:cache.get('bar')
+        let e = {
+              \ 'path': s:P.join(s:ROOT, 'autoload', 'vital'),
+              \ 'worktree': s:ROOT,
+              \ 'repository': s:P.join(s:ROOT, '.git'),
+              \}
+        Assert Equals(r, e)
+        let r = s:cache.get('hoge')
+        let e = {
+              \ 'path': s:P.join(s:ROOT, '.git'),
+              \ 'worktree': '',
+              \ 'repository': '',
+              \}
+        Assert Equals(r, e)
+      End
     End
   End
 End

@@ -59,6 +59,12 @@ function! s:_opts2args(opts, defaults) abort " {{{
   endfor
   return args
 endfunction " }}}
+function! s:_get_finder() abort " {{{
+  if !exists('s:finder')
+    let s:finder = s:Finder.new(s:SimpleCache.new())
+  endif
+  return s:finder
+endfunction " }}}
 
 " Methods ====================================================================
 function! s:new(worktree, repository, ...) " {{{
@@ -78,8 +84,9 @@ function! s:new(worktree, repository, ...) " {{{
   call s:cache.set(a:worktree, git)
   return git
 endfunction " }}}
-function! s:find(path) " {{{
-  let found = s:Finder.find(a:path)
+function! s:find(path, ...) " {{{
+  let finder = s:_get_finder()
+  let found = finder.find(a:path, get(a:000, 0, {}))
   if empty(found)
     return {}
   endif
