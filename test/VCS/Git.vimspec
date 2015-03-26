@@ -216,7 +216,7 @@ Describe VCS.Git
         Assert KeyNotExists(ret, 'current_remote_fetch')
         Assert KeyNotExists(ret, 'current_remote_url')
         Assert KeyNotExists(ret, 'comment_char')
-        Assert KeyNottExists(ret, 'current_remote_branch')
+        Assert KeyNotExists(ret, 'current_remote_branch')
       End
     End
   End
@@ -237,18 +237,18 @@ Describe VCS.Git
     End
   End
 
-  Context .get_commits_ahead_of_remote([{options}])
+  Context .count_commits_ahead_of_remote([{options}])
     It should return a number
       silent execute '!git init -q ' worktree
-      let result = s:git.get_commits_ahead_of_remote()
+      let result = s:git.count_commits_ahead_of_remote()
       Assert IsNumber(result)
     End
   End
 
-  Context .get_commits_behind_remote([{options}])
+  Context .count_commits_behind_remote([{options}])
     It should return a number
       silent execute '!git init -q ' worktree
-      let result = s:git.get_commits_behind_remote()
+      let result = s:git.count_commits_behind_remote()
       Assert IsNumber(result)
     End
   End
@@ -300,7 +300,7 @@ Describe VCS.Git
       let result = s:git.exec(['rev-parse', '--show-toplevel'])
       let expect = {
             \ 'status': 0,
-            \ 'stdout': printf("%s", worktree),
+            \ 'stdout': resolve(worktree),
             \ 'args': ['git', '-c', 'color.ui=false', 'rev-parse', '--show-toplevel'],
             \ 'opts': {'stdin': '', 'timeout': 0, 'cwd': worktree},
             \}

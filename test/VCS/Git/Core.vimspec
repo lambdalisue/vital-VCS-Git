@@ -358,10 +358,10 @@ Describe VCS.Git.Core
       " FIXME Windows does not have 'pwd'
       let result = s:C.system(['pwd'], { 'cwd': cwd })
       Assert Equals(result.status, 0)
-      Assert Equals(result.stdout, cwd)
+      Assert Equals(result.stdout, resolve(cwd))
       Assert Equals(result.args, ['pwd'])
       Assert Equals(result.opts, {'stdin': '', 'timeout': 0, 'cwd': cwd})
-      Assert Equals(fnamemodify(getcwd(), ':p'), inside . sep)
+      Assert Equals(fnamemodify(getcwd(), ':p'), resolve(inside) . sep)
     End
   End
 
@@ -380,7 +380,7 @@ Describe VCS.Git.Core
       let result = s:C.exec(['rev-parse', '--show-toplevel'])
       let expect = {
             \ 'status': 0,
-            \ 'stdout': worktree,
+            \ 'stdout': resolve(worktree),
             \ 'args': ['git', '-c', 'color.ui=false', 'rev-parse', '--show-toplevel'],
             \ 'opts': {'stdin': '', 'timeout': 0, 'cwd': ''},
             \}
@@ -394,7 +394,7 @@ Describe VCS.Git.Core
       let result = s:C.exec(['rev-parse', '--show-toplevel'], opts)
       let expect = {
             \ 'status': 0,
-            \ 'stdout': worktree,
+            \ 'stdout': resolve(worktree),
             \ 'args': ['git', '-c', 'color.ui=false', 'rev-parse', '--show-toplevel'],
             \ 'opts': {'stdin': '', 'timeout': 0, 'cwd': worktree},
             \}
