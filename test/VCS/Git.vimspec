@@ -225,6 +225,8 @@ Describe VCS.Git
       silent execute 'lcd ' worktree
       call delete('.git/index')
       silent execute '!git init -q'
+      silent execute '!git config user.email "lambdalisue@hashnote.net"'
+      silent execute '!git config user.name "Alisue"'
       silent execute '!git commit -q -m "initial" --allow-empty'
       silent execute 'lcd ' saved_cwd
       let result = s:git.get_last_commitmsg()

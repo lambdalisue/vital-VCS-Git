@@ -49,6 +49,8 @@ Describe VCS.Git.Misc
 
   Context .get_last_commitmsg([{options}])
     It should return a list
+      silent execute '!git config user.email "lambdalisue@hashnote.net"'
+      silent execute '!git config user.name "Alisue"'
       silent execute '!git commit -q -m "initial" --allow-empty'
       let result = s:M.get_last_commitmsg()
       Assert IsList(result)
