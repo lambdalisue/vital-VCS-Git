@@ -311,6 +311,25 @@ add({options}[, {files}])
 	All options will be translated to an argument list of
 	|Vital.VCS.Git.Core.exec()| via |Vital.VCS.Git.Misc.opts2args()|.
 
+			*Vital.VCS.Git-instance.reset()*
+reset({options}[, {files}])
+
+	Call 'reset' command. The {files} is |String| or |List| which
+	is to specify files. The following {options} are available.
+	See 'git reset --help' for meaning of each individual options.
+
+	- quiet
+	- patch
+	- intent_to_add
+	- mixed
+	- soft
+	- merge
+	- keep
+
+	The return value is equal to |Vital.VCS.Git-instance.exec()|.
+	All options will be translated to an argument list of
+	|Vital.VCS.Git.Core.exec()| via |Vital.VCS.Git.Misc.opts2args()|.
+
 
 			*Vital.VCS.Git-instance.rm()*
 rm({options}[, {files}])

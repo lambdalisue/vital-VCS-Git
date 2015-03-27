@@ -255,17 +255,21 @@ function! s:git.add(options, ...) abort " {{{
   endif
   return self.exec(args, opts)
 endfunction " }}}
-function! s:git.rm(options, ...) abort " {{{
+function! s:git.reset(options, commit, ...) abort " {{{
   let defaults = {
-        \ 'force': 0,
-        \ 'dry_run': 0,
-        \ 'r': 0,
-        \ 'cached': 0,
-        \ 'ignore_unmatch': 0,
         \ 'quiet': 0,
+        \ 'patch': 0,
+        \ 'intent_to_add': 0,
+        \ 'mixed': 0,
+        \ 'soft': 0,
+        \ 'merge': 0,
+        \ 'keep': 0,
         \} 
   let opts = s:Dict.omit(a:options, keys(defaults))
-  let args = extend(['rm'], s:Misc.opts2args(a:options, defaults))
+  let args = extend(['reset'], s:Misc.opts2args(a:options, defaults))
+  if strlen(a:commit)
+    call add(args, a:commit)
+  endif
   let filenames = s:_listalize(get(a:000, 0, []))
   if len(filenames) > 0
     call add(args, ['--', filenames])
