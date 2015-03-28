@@ -1,0 +1,131 @@
+*vital-vcs-git-conflict.txt*		A conflict helper
+
+Version: 0.1.0
+Author:  Alisue <lambdalisue@hashnote.net> *Vital.VCS.Git.Conflict-author*
+Support: Vim 7.3 and above
+License: MIT license  {{{
+	Copyright (c) 2014 Alisue, hashnote.net
+
+	Permission is hereby granted, free of charge, to any person obtaining
+	a copy of this software and associated documentation files
+	(the "Software"), to deal in the Software without restriction,
+	including without limitation the rights to use, copy, modify, merge,
+	publish, distribute, sublicense, and/or sell copies of the Software,
+	and to permit persons to whom the Software is furnished to do so,
+	subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be
+	included in all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+	EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+	IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+	CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+	TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+}}}
+
+
+==============================================================================
+CONTENTS				*Vital.VCS.Git.Conflict-contents*
+
+Introduction		|Vital.VCS.Git.Conflict-introduction|
+Functions		|Vital.VCS.Git.Conflict-functions|
+
+
+==============================================================================
+INTRODUCTION				*Vital.VCS.Git.Conflict-introduction*
+
+*Vital.VCS.Git.Conflict* is a helper library to manipulate conflicts.
+
+==============================================================================
+FUNCTIONS				*Vital.VCS.Git.Conflict-functions*
+
+				*Vital.VCS.Git.Conflict.has_ours_marker()*
+has_ours_marker({buflines})
+
+	Check if the {buflines} has a Ours marker (<<<<<<< HEAD) and return 0
+	(not exist) or 1 (exists).
+	The {buflines} can be |List| or |String|.
+	
+				*Vital.VCS.Git.Conflict.has_theirs_marker()*
+has_theirs_marker({buflines})
+
+	Check if the {buflines} has a Theirs marker (>>>>>>> COMMIT ...) and
+	return 0 (not exist) or 1 (exists).
+	The {buflines} can be |List| or |String|.
+	
+				*Vital.VCS.Git.Conflict.has_conflict_marker()*
+has_conflict_marker({buflines})
+
+	Check if the {buflines} has a Ours or Theirs marker and return 0
+	(not exist) or 1 (exists).
+	The {buflines} can be |List| or |String|.
+	
+				*Vital.VCS.Git.Conflict.strip_ours()*
+strip_ours({buflines}[, {list}])
+
+	Strip regions specified by Ours marker, indicating that the return
+	value should be equal to Theirs version of the {buflines}.
+	The {buflines} can be |List| or |String| and a return value will be |List|
+	when {buflines} is |List| or {list} is specified to 1. Otherwhise the
+	return value is |String| which contains <NL>.
+
+				*Vital.VCS.Git.Conflict.strip_theirs()*
+strip_theirs({buflines}[, {list}])
+
+	Strip regions specified by Theirs marker, indicating that the return
+	value should be equal to Ours version of the {buflines}.
+	The {buflines} can be |List| or |String| and a return value will be |List|
+	when {buflines} is |List| or {list} is specified to 1. Otherwhise the
+	return value is |String| which contains <NL>.
+
+				*Vital.VCS.Git.Conflict.strip_conflict()*
+strip_conflict({buflines}[, {list}])
+
+	Strip regions specified by Ours/Theirs marker, indicating that the
+	return value should be equal to Base version of the {buflines}.
+	The {buflines} can be |List| or |String| and a return value will be |List|
+	when {buflines} is |List| or {list} is specified to 1. Otherwhise the
+	return value is |String| which contains <NL>.
+
+				*Vital.VCS.Git.Conflict.get_ours()*
+get_ours({filename}[, {options}])
+
+	Return Ours version of the specified {filename}. The following
+	{options} are available.
+
+	"from_index"
+	If it is specified to 1, the Ours version will be obtained via a Git
+	command, 'git show :2:{filename}'. In this case, {options} will be
+	passed to |Vital.VCS.Git.Core.exec()| and a |Dictionary| will be
+	returned in case of exceptions.
+	If it is specified to 0, the Ours version will be generated from a
+	content of {filename} via |Vital.VCS.Git.strip_theirs()|, mean that
+	the value returnd might not refer a correct Ours version of the
+	{filename}.
+	The default value is 1.
+
+				*Vital.VCS.Git.Conflict.get_theirs()*
+get_theirs({filename}[, {options}])
+
+	Return Theirs version of the specified {filename}. The following
+	{options} are available.
+
+	"from_index"
+	See |Vital.VCS.Git.Conflict.get_ours()|
+
+				*Vital.VCS.Git.Conflict.get_base()*
+get_base({filename}[, {options}])
+
+	Return Base version of the specified {filename}. The following
+	{options} are available.
+
+	"from_index"
+	See |Vital.VCS.Git.Conflict.get_ours()|
+
+
+==============================================================================
+vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl
+

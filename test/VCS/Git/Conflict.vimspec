@@ -1,0 +1,196 @@
+call vital#of('vital').unload()
+let s:V = vital#of('vital')
+let s:A = s:V.import('VCS.Git.Conflict')
+
+Describe VCS.Git.Conflict
+
+  Context .has_ours_makrer({buflines})
+    It should return 0 if the {buflines} does not contain <<<<<<< xxxxxx
+      let buflines = [
+            \ 'Hello',
+            \ 'Bar',
+            \ '>>>>>>> This looks like Theirs marker',
+            \ 'World',
+            \]
+      let ret = s:A.has_ours_marker(buflines)
+      Assert Equals(ret, 0)
+    End
+
+    It should return 1 if the {buflines} does contain <<<<<<< xxxxxx
+      let buflines = [
+            \ 'Hello',
+            \ '<<<<<<< Ours marker',
+            \ 'Foo',
+            \ '======= Separator',
+            \ 'Bar',
+            \ '>>>>>>> Theirs marker',
+            \ 'World',
+            \]
+      let ret = s:A.has_ours_marker(buflines)
+      Assert Equals(ret, 1)
+    End
+  End
+
+  Context .has_theirs_makrer({buflines})
+    It should return 0 if the {buflines} does not contain <<<<<<< xxxxxx
+      let buflines = [
+            \ 'Hello',
+            \ '<<<<<<< This looks like Ours marker',
+            \ 'Foo',
+            \ 'World',
+            \]
+      let ret = s:A.has_theirs_marker(buflines)
+      Assert Equals(ret, 0)
+    End
+
+    It should return 1 if the {buflines} does contain <<<<<<< xxxxxx
+      let buflines = [
+            \ 'Hello',
+            \ '<<<<<<< Ours marker',
+            \ 'Foo',
+            \ '======= Separator',
+            \ 'Bar',
+            \ '>>>>>>> Theirs marker',
+            \ 'World',
+            \]
+      let ret = s:A.has_theirs_marker(buflines)
+      Assert Equals(ret, 1)
+    End
+  End
+
+  Context .has_conflict_makrer({buflines})
+    It should return 0 if the {buflines} does not contain <<<<<<< xxxxxx nor >>>>>>> xxxxxxx
+      let buflines = [
+            \ 'Hello',
+            \ '======= Separator?',
+            \ 'World',
+            \]
+      let ret = s:A.has_conflict_marker(buflines)
+      Assert Equals(ret, 0)
+    End
+
+    It should return 1 if the {buflines} does contain <<<<<<< xxxxxx and >>>>>>> xxxxxxx
+      let buflines = [
+            \ 'Hello',
+            \ '<<<<<<< Ours marker',
+            \ 'Foo',
+            \ '======= Separator',
+            \ 'Bar',
+            \ '>>>>>>> Theirs marker',
+            \ 'World',
+            \]
+      let ret = s:A.has_conflict_marker(buflines)
+      Assert Equals(ret, 1)
+    End
+
+    It should return 1 if the {buflines} does contain <<<<<<< xxxxxx, in case if user forgot to remove the marker
+      let buflines = [
+            \ 'Hello',
+            \ '<<<<<<< Ours marker',
+            \ 'Foo',
+            \ '======= Separator',
+            \ 'World',
+            \]
+      let ret = s:A.has_conflict_marker(buflines)
+      Assert Equals(ret, 1)
+    End
+
+    It should return 1 if the {buflines} does contain >>>>>>> xxxxxxx, in case if user forgot to remove the marker
+      let buflines = [
+            \ 'Hello',
+            \ '======= Separator',
+            \ 'Bar',
+            \ '>>>>>>> Theirs marker',
+            \ 'World',
+            \]
+      let ret = s:A.has_conflict_marker(buflines)
+      Assert Equals(ret, 1)
+    End
+  End
+
+  Context .strip_ours({buflines}[, {list}])
+    It should strip a region specified by Ours marker
+      let buflines = [
+            \ 'Hello',
+            \ '<<<<<<< Ours marker',
+            \ 'Foo',
+            \ '======= Separator',
+            \ 'Bar',
+            \ '>>>>>>> Theirs marker',
+            \ 'World',
+            \]
+      let exp = [
+            \ 'Hello',
+            \ 'Bar',
+            \ 'World',
+            \]
+      let ret = s:A.strip_ours(buflines, 1)
+      Assert Equals(ret, exp)
+    End
+  End
+
+  Context .strip_theirs({buflines}[, {list}])
+    It should strip a region specified by Theirs marker
+      let buflines = [
+            \ 'Hello',
+            \ '<<<<<<< Ours marker',
+            \ 'Foo',
+            \ '======= Separator',
+            \ 'Bar',
+            \ '>>>>>>> Theirs marker',
+            \ 'World',
+            \]
+      let exp = [
+            \ 'Hello',
+            \ 'Foo',
+            \ 'World',
+            \]
+      let ret = s:A.strip_theirs(buflines, 1)
+      Assert Equals(ret, exp)
+    End
+  End
+
+  Context .strip_conflict({buflines}[, {list}])
+    It should strip a region specified by Ours/Theirs marker
+      let buflines = [
+            \ 'Hello',
+            \ '<<<<<<< Ours marker',
+            \ 'Foo',
+            \ '======= Separator',
+            \ 'Bar',
+            \ '>>>>>>> Theirs marker',
+            \ 'World',
+            \ '<<<<<<< Ours marker',
+            \ 'Foo',
+            \ 'Hoge',
+            \ '======= Separator',
+            \ 'Bar',
+            \ '>>>>>>> Theirs marker',
+            \]
+      let exp = [
+            \ 'Hello',
+            \ 'World',
+            \]
+      let ret = s:A.strip_conflict(buflines, 1)
+      Assert Equals(ret, exp)
+    End
+  End
+
+  Context .get_ours({filename}[, {options}])
+    It should return a Ours version of the {filename}
+      Skip 'it is difficult to test while conflicted file is required'
+    End
+  End
+
+  Context .get_theirs({filename}[, {options}])
+    It should return a Theirs version of the {filename}
+      Skip 'it is difficult to test while conflicted file is required'
+    End
+  End
+
+  Context .get_base({filename}[, {options}])
+    It should return a Base version of the {filename}
+      Skip 'it is difficult to test while conflicted file is required'
+    End
+  End
+End

@@ -33,6 +33,7 @@ Git in low level, the following submodules would help you.
 - Vital.VCS.Git.Finder - A fast git repository finder
 - Vital.VCS.Git.ConfigParser - A Git config parser
 - Vital.VCS.Git.StatusParser - A Git status parser
+- Vital.VCS.Git.Conflict - A helper library to manipulate conflicts
 
 All modules above provide a low level API and do not cache any results,
 contrusting to Vital.VCS.Git which try to cache things per each Git
@@ -52,6 +53,7 @@ DOCUMENTATIONS
 -   [Vital.VCS.Git.Finder](./doc/vital-vcs-git-finder.txt)
 -   [Vital.VCS.Git.ConfigParser](./doc/vital-vcs-git-config-parser.txt)
 -   [Vital.VCS.Git.StatusParser](./doc/vital-vcs-git-status-parser.txt)
+-   [Vital.VCS.Git.Conflict](./doc/vital-vcs-git-conflict.txt)
 
 
 INSTALL
