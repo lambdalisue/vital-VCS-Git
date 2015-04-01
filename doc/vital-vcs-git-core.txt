@@ -134,6 +134,16 @@ get_merge_msg({repository})
 
 	Return a commit message shown during merge mode.
 
+				*Vital.VCS.Git.Core.get_local_hash()*
+get_local_hash({repository}, {branch})
+
+	Return a hash reference of a specified local branch.
+
+				*Vital.VCS.Git.Core.get_remote_hash()*
+get_remote_hash({repository}, {remote}, {branch})
+
+	Return a hash reference of a specified remote branch.
+
 				*Vital.VCS.Git.Core.get_repository_config()*
 get_repository_config({repository})
 

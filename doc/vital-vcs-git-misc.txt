@@ -208,6 +208,9 @@ get_meta({repository}[, {opts}])	*Vital.VCS.Git.Misc.get_meta()*
 	'current_branch'
 	A current branch name.
 
+	'current_branch_hash'
+	A hash reference of a current branch.
+
 	'repository_config'
 	A value returnd from |Vital.System.Core.get_repository_config()|.
 	The entry would not exist if 'exclude_repository_config' option is
@@ -244,6 +247,10 @@ get_meta({repository}[, {opts}])	*Vital.VCS.Git.Misc.get_meta()*
 
 	'current_remote_branch'
 	A remote branch which the current branch connected.
+
+	'current_remote_branch_hash'
+	A hash reference of a current remote branch.
+
 
 			*Vital.VCS.Git.Misc.get_last_commitmsg()*
 get_last_commitmsg([{opts}])
