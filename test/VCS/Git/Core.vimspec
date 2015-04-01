@@ -230,22 +230,52 @@ Describe VCS.Git.Core
     End
   End
 
-  Context .get_hash_reference({repository}, {branch})
+  Context .get_local_hash({repository}, {branch})
     It should return an empty list if refs/heads/{branch} is missing
-      let ret = s:C.get_hash_reference(repository, 'invalid_branch')
+      let ret = s:C.get_local_hash(repository, 'invalid_branch')
       Assert Equals(ret, '')
     End
 
     It should return a hash reference of a specified branch
-      let filename = s:P.join(repository, 'refs', 'heads', 'existing')
+      let filename = s:P.join(repository, 'refs', 'heads', 'valid_branch')
       call mkdir(fnamemodify(filename, ':h'), 'p')
       call writefile(['hash reference'], filename)
-      let ret = s:C.get_hash_reference(repository, 'existing')
+      let ret = s:C.get_local_hash(repository, 'valid_branch')
       Assert Equals(ret, 'hash reference')
       call delete(filename)
     End
   End
 
+  Context .get_remote_hash({repository}, {remote}, {branch})
+    It should return an empty list if refs/remotes/{remote}/{branch} is missing
+      let ret = s:C.get_remote_hash(repository, 'invalid_remote', 'invalid_branch')
+      Assert Equals(ret, '')
+    End
+
+    It should return a hash reference of a specified branch
+      let filename = s:P.join(repository, 'refs', 'remotes', 'valid_remote', 'valid_branch')
+      if !isdirectory(fnamemodify(filename, ':h'))
+        call mkdir(fnamemodify(filename, ':h'), 'p')
+      endif
+      call writefile(['hash reference'], filename)
+      let ret = s:C.get_remote_hash(repository, 'valid_remote', 'valid_branch')
+      Assert Equals(ret, 'hash reference')
+      call delete(filename)
+    End
+
+    It should return a hash reference of a specified branch from packed-refs
+      let filename = s:P.join(repository, 'packed-refs')
+      call writefile([
+            \ '# pack-refs with: peeled fully-peeled',
+            \ 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa refs/remotes/valid_remote/master',
+            \ 'hash reference refs/remotes/valid_remote/valid_branch',
+            \ 'cccccccccccccccccccccccccccccccccccccccc refs/remotes/valid_remote/other_branch',
+            \], filename)
+      let ret = s:C.get_remote_hash(repository, 'valid_remote', 'valid_branch')
+      Assert Equals(ret, 'hash reference')
+      call delete(filename)
+    End
+  End
 
   Context .get_repository_config({repository})
     It should return a parsed config dictionary

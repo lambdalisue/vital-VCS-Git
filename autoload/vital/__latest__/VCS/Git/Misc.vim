@@ -153,8 +153,8 @@ function! s:get_meta(repository, ...) abort " {{{
   let meta.current_branch = meta.head =~? 'refs/heads/'
         \ ? matchstr(meta.head, 'refs/heads/\zs.\+$')
         \ : meta.head[:6]
-  let meta.current_hash_reference = s:Core.get_hash_reference(
-        \ a:repository, meta.current_branch,
+  let meta.current_branch_hash = s:Core.get_local_hash(
+        \ a:repository, meta.current_branch
         \)
   if !opts.exclude_repository_config
     let meta.repository_config = s:Core.get_repository_config(a:repository)
