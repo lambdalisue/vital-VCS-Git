@@ -230,6 +230,23 @@ Describe VCS.Git.Core
     End
   End
 
+  Context .get_hash_reference({repository}, {branch})
+    It should return an empty list if refs/heads/{branch} is missing
+      let ret = s:C.get_hash_reference(repository, 'invalid_branch')
+      Assert Equals(ret, '')
+    End
+
+    It should return a hash reference of a specified branch
+      let filename = s:P.join(repository, 'refs', 'heads', 'existing')
+      call mkdir(fnamemodify(filename, ':h'), 'p')
+      call writefile(['hash reference'], filename)
+      let ret = s:C.get_hash_reference(repository, 'existing')
+      Assert Equals(ret, 'hash reference')
+      call delete(filename)
+    End
+  End
+
+
   Context .get_repository_config({repository})
     It should return a parsed config dictionary
       let filename = s:P.join(repository, 'config')

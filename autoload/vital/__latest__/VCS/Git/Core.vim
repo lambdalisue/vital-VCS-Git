@@ -139,6 +139,10 @@ function! s:get_merge_msg(repository) abort " {{{
   let filename = s:Path.join(a:repository, 'MERGE_MSG')
   return s:_readfile(filename)
 endfunction " }}}
+function! s:get_hash_reference(repository, branch) abort " {{{
+  let filename = s:Path.join(a:repository, 'refs', 'heads', a:branch)
+  return s:_readline(filename)
+endfunction " }}}
 
 " Config (without using 'git config'. read '.git/config' directly)
 function! s:get_repository_config(repository) abort " {{{
