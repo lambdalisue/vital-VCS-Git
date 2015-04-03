@@ -147,7 +147,7 @@ function! s:get_remote_hash(repository, remote, branch) abort " {{{
     " sometime the file is missing
     let filename = s:Path.join(a:repository, 'packed-refs')
     let packed_refs = join(s:_readfile(filename), "\n")
-    let pattern = printf('\v\zs[^\n]{-}\ze\srefs/remotes/%s/%s\n?', a:remote, a:branch)
+    let pattern = printf('\v\zs[^\r\n]{-}\ze\srefs/remotes/%s/%s\n?', a:remote, a:branch)
     let hash = matchstr(packed_refs, pattern)
   endif
   return hash
