@@ -17,11 +17,26 @@ Describe VCS.Git
     lockvar repository
     lockvar inside
     lockvar outside
-    call mkdir(repository, 'p')
     call mkdir(inside, 'p')
     call mkdir(outside, 'p')
 
-    call writefile([], s:P.join(repository, 'index'))
+    let s:worktree = worktree
+    function! s:exec(...) abort " {{{
+      let args = s:L.flatten([
+            \ 'git',
+            \ '-C', s:worktree,
+            \ a:000
+            \])
+      silent execute printf('!%s', join(args))
+    endfunction " }}}
+
+    " initialize a git directory
+    call writefile(['foo'], s:P.join(inside, 'foo.txt'))
+    call s:exec('init', '-q', worktree)
+    call s:exec('config', 'user.name', '"Alisue"')
+    call s:exec('config', 'user.email', '"lambdalisue@hashnote.net"')
+    call s:exec('add', '.')
+    call s:exec('commit', '-q', '-m', '"initial"')
   End
 
   After all
@@ -36,7 +51,13 @@ Describe VCS.Git
       Assert KeyExists(ret, 'worktree')
       Assert KeyExists(ret, 'repository')
       Assert KeyExists(ret, 'cache')
-      Assert KeyExists(ret, 'uptime_cache')
+      Assert KeyExists(ret.cache, 'parsed_status')
+      Assert KeyExists(ret.cache, 'parsed_commit')
+      Assert KeyExists(ret.cache, 'parsed_config')
+      Assert KeyExists(ret.cache, 'last_commitmsg')
+      Assert KeyExists(ret.cache, 'commits_ahead_of_remote')
+      Assert KeyExists(ret.cache, 'commits_behind_remote')
+      Assert KeyExists(ret.cache, 'uptime')
     End
 
     It should return a same Git instance for same worktree
@@ -92,37 +113,35 @@ Describe VCS.Git
           return reltime()[0] + 1000
         endfunction
       endfunction
+
+      function! s:git.patch_is_updated() abort " {{{
+        function! self.is_updated(...) abort
+          return reltime()[0] + 1000
+        endfunction
+      endfunction " }}}
     End
 
-    Context .is_updated({filename})
+    Context .is_updated({pathspec})
       It should return 1 for filenames which does not exists in a git repository
         let ret = s:git.is_updated('invalid_filename')
         Assert Equals(ret, 1)
       End
 
       It should return 1 for valid filename in a first time execution
-        let filename = s:P.join(repository, 'HEAD')
+        let filename = s:P.join(repository, 'foo')
         call writefile([], filename)
-        let ret = s:git.is_updated('HEAD')
+        let ret = s:git.is_updated('foo')
         Assert Equals(ret, 1)
         call delete(filename)
       End
 
       It should return 0 for valid filename after the first time execution
-        let filename = s:P.join(repository, 'HEAD')
+        let filename = s:P.join(repository, 'foo')
         call writefile([], filename)
-        call s:git.is_updated('HEAD')
-        let ret = s:git.is_updated('HEAD')
+        call s:git.is_updated('foo')
+        let ret = s:git.is_updated('foo')
         Assert Equals(ret, 0)
         call delete(filename)
-      End
-    End
-
-    Context .get_index_updated_time()
-      It should return a number which indicate an updated time of the repository
-        let ret = s:git.get_index_updated_time()
-        Assert IsNumber(ret)
-        Assert NotEquals(ret, -1, 'an ".git/index" file is not found')
       End
     End
 
@@ -140,7 +159,7 @@ Describe VCS.Git
 
       It should return a different dictionary if the repository is updated
         let ret1 = s:git.get_parsed_status()
-        call s:git.patch_get_index_updated_time()
+        call s:git.patch_is_updated()
         let ret2 = s:git.get_parsed_status()
         Assert NotSame(ret1, ret2)
       End
@@ -166,7 +185,7 @@ Describe VCS.Git
 
       It should return a different dictionary if the repository is updated
         let ret1 = s:git.get_parsed_commit()
-        call s:git.patch_get_index_updated_time()
+        call s:git.patch_is_updated()
         let ret2 = s:git.get_parsed_commit()
         Assert NotSame(ret1, ret2)
       End
@@ -192,7 +211,7 @@ Describe VCS.Git
 
       It should return a different dictionary if the repository is updated
         let ret1 = s:git.get_parsed_config()
-        call s:git.patch_get_index_updated_time()
+        call s:git.patch_is_updated()
         let ret2 = s:git.get_parsed_config()
         Assert NotSame(ret1, ret2)
       End
@@ -252,23 +271,28 @@ Describe VCS.Git
 
   Context .get_last_commitmsg([{options}])
     It should return a latest commit message
-      let saved_cwd = getcwd()
-      silent execute 'lcd ' worktree
-      call delete('.git/index')
-      silent execute '!git init -q'
-      silent execute '!git config user.email "lambdalisue@hashnote.net"'
-      silent execute '!git config user.name "Alisue"'
-      silent execute '!git commit -q -m "initial" --allow-empty'
-      silent execute 'lcd ' saved_cwd
       let result = s:git.get_last_commitmsg()
       Assert IsList(result)
       Assert Equals(result, ['initial'])
     End
+
+    It should return a same list if the repository is not updated
+      let ret1 = s:git.get_last_commitmsg()
+      let ret2 = s:git.get_last_commitmsg()
+      Assert Same(ret1, ret2)
+    End
+
+    It should return a different list if the repository is updated
+      let ret1 = s:git.get_last_commitmsg()
+      call s:git.patch_is_updated()
+      let ret2 = s:git.get_last_commitmsg()
+      Assert NotSame(ret1, ret2)
+    End
+
   End
 
   Context .count_commits_ahead_of_remote([{options}])
     It should return a number
-      silent execute '!git init -q ' worktree
       let result = s:git.count_commits_ahead_of_remote()
       Assert IsNumber(result)
     End
@@ -276,7 +300,6 @@ Describe VCS.Git
 
   Context .count_commits_behind_remote([{options}])
     It should return a number
-      silent execute '!git init -q ' worktree
       let result = s:git.count_commits_behind_remote()
       Assert IsNumber(result)
     End
@@ -315,17 +338,7 @@ Describe VCS.Git
   End
 
   Context .exec({args} [, {opts}])
-    Before
-      let previous_cwd = getcwd()
-    End
-    After
-      silent execute 'lcd ' previous_cwd
-    End
-
     It should execute git command on a top directory of the worktree
-      silent execute 'lcd ' inside
-      silent execute '!git init -q ' worktree
-
       let result = s:git.exec(['rev-parse', '--show-toplevel'])
       let expect = {
             \ 'status': 0,
