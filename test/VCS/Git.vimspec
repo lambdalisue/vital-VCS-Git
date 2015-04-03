@@ -103,12 +103,6 @@ Describe VCS.Git
       " newly create a Git instance
       let s:git = s:G.new(worktree, repository, { 'no_cache': 1 })
 
-      function! s:git.patch_get_index_updated_time()
-        function! self.get_index_updated_time()
-          return reltime()[0] + 1000
-        endfunction
-      endfunction
-
       function! s:git.patch_is_updated() abort " {{{
         function! self.is_updated(...) abort
           return reltime()[0] + 1000

@@ -133,7 +133,7 @@ function! s:git.get_head(...) abort " {{{
         \}, get(a:000, 0, {}))
   let name = 'HEAD'
   let cache = self.cache.repository
-  if options.no_cache || self.is_updated(name)
+  if self.is_updated(name) || options.no_cache || !cache.has(name)
     let result = s:Core.get_head(self.repository)
     call cache.set(name, result)
   endif
@@ -145,7 +145,7 @@ function! s:git.get_fetch_head(...) abort " {{{
         \}, get(a:000, 0, {}))
   let name = 'FETCH_HEAD'
   let cache = self.cache.repository
-  if options.no_cache || self.is_updated(name)
+  if self.is_updated(name) || options.no_cache || !cache.has(name)
     let result = s:Core.get_fetch_head(self.repository)
     call cache.set(name, result)
   endif
@@ -157,7 +157,7 @@ function! s:git.get_orig_head(...) abort " {{{
         \}, get(a:000, 0, {}))
   let name = 'ORIG_HEAD'
   let cache = self.cache.repository
-  if options.no_cache || self.is_updated(name)
+  if self.is_updated(name) || options.no_cache || !cache.has(name)
     let result = s:Core.get_orig_head(self.repository)
     call cache.set(name, result)
   endif
@@ -169,7 +169,7 @@ function! s:git.get_merge_head(...) abort " {{{
         \}, get(a:000, 0, {}))
   let name = 'MERGE_HEAD'
   let cache = self.cache.repository
-  if options.no_cache || self.is_updated(name)
+  if self.is_updated(name) || options.no_cache || !cache.has(name)
     let result = s:Core.get_merge_head(self.repository)
     call cache.set(name, result)
   endif
@@ -181,7 +181,7 @@ function! s:git.get_commit_editmsg(...) abort " {{{
         \}, get(a:000, 0, {}))
   let name = 'COMMIT_EDITMSG'
   let cache = self.cache.repository
-  if options.no_cache || self.is_updated(name)
+  if self.is_updated(name) || options.no_cache || !cache.has(name)
     let result = s:Core.get_commit_editmsg(self.repository)
     call cache.set(name, result)
   endif
@@ -193,7 +193,7 @@ function! s:git.get_merge_msg(...) abort " {{{
         \}, get(a:000, 0, {}))
   let name = 'MERGE_MSG'
   let cache = self.cache.repository
-  if options.no_cache || self.is_updated(name)
+  if self.is_updated(name) || options.no_cache || !cache.has(name)
     let result = s:Core.get_merge_msg(self.repository)
     call cache.set(name, result)
   endif
@@ -205,7 +205,7 @@ function! s:git.get_local_hash(branch, ...) abort " {{{
         \}, get(a:000, 0, {}))
   let name = s:Path.join('refs', 'heads', a:branch)
   let cache = self.cache.repository
-  if options.no_cache || self.is_updated(name)
+  if self.is_updated(name) || options.no_cache || !cache.has(name)
     let result = s:Core.get_local_hash(self.repository, a:branch)
     call cache.set(name, result)
   endif
@@ -217,7 +217,7 @@ function! s:git.get_remote_hash(remote, branch, ...) abort " {{{
         \}, get(a:000, 0, {}))
   let name = s:Path.join('refs', 'remotes', a:remote, a:branch)
   let cache = self.cache.repository
-  if options.no_cache || self.is_updated(['refs', 'remotes', a:remote, a:branch])
+  if self.is_updated(name) || options.no_cache || !cache.has(name)
     let result = s:Core.get_remote_hash(self.repository, a:remote, a:branch)
     call cache.set(name, result)
   endif
@@ -229,7 +229,7 @@ function! s:git.get_repository_config(...) abort " {{{
         \}, get(a:000, 0, {}))
   let name = 'config'
   let cache = self.cache.repository
-  if options.no_cache || self.is_updated(name)
+  if self.is_updated(name) || options.no_cache || !cache.has(name)
     let result = s:Core.get_repository_config(self.repository)
     call cache.set(name, result)
   endif
@@ -268,7 +268,7 @@ function! s:git.get_parsed_status(...) abort " {{{
   let opts = s:Dict.omit(options, ['no_cache'])
   let name = s:Path.join('index', 'parsed_status', string(opts))
   let cache = self.cache.repository
-  let result = (options.no_cache || self.is_updated('index', 'status'))
+  let result = (self.is_updated('index', 'status') || options.no_cache)
         \ ? {}
         \ : cache.get(name, {})
   if empty(result)
@@ -284,7 +284,7 @@ function! s:git.get_parsed_commit(...) abort " {{{
   let opts = s:Dict.omit(options, ['no_cache'])
   let name = s:Path.join('index', 'parsed_commit', string(opts))
   let cache = self.cache.repository
-  let result = (options.no_cache || self.is_updated('index', 'commit'))
+  let result = (self.is_updated('index', 'commit') || options.no_cache)
         \ ? {}
         \ : cache.get(name, {})
   if empty(result)
@@ -300,7 +300,7 @@ function! s:git.get_parsed_config(...) abort " {{{
   let opts = s:Dict.omit(options, ['no_cache'])
   let name = s:Path.join('index', 'parsed_config', string(opts))
   let cache = self.cache.repository
-  let result = (options.no_cache || self.is_updated('index', 'config'))
+  let result = (self.is_updated('index', 'config') || options.no_cache)
         \ ? {}
         \ : cache.get(name, {})
   if empty(result)
@@ -316,7 +316,7 @@ function! s:git.get_last_commitmsg(...) abort " {{{
   let opts = s:Dict.omit(options, ['no_cache'])
   let name = s:Path.join('index', 'last_commitmsg', string(opts))
   let cache = self.cache.repository
-  let result = (options.no_cache || self.is_updated('index', 'last_commitmsg'))
+  let result = (self.is_updated('index', 'last_commitmsg') || options.no_cache)
         \ ? []
         \ : cache.get(name, [])
   if empty(result)
@@ -333,7 +333,7 @@ function! s:git.count_commits_ahead_of_remote(...) abort " {{{
   let opts = s:Dict.omit(options, ['no_cache'])
   let name = s:Path.join('index', 'commits_ahead_of_remote', string(opts))
   let cache = self.cache.repository
-  let result = (options.no_cache || self.is_updated('index', 'commits_ahead_of_remote'))
+  let result = (self.is_updated('index', 'commits_ahead_of_remote') || options.no_cache)
         \ ? -1
         \ : cache.get(name, -1)
   if result == -1
@@ -349,7 +349,7 @@ function! s:git.count_commits_behind_remote(...) abort " {{{
   let opts = s:Dict.omit(options, ['no_cache'])
   let name = s:Path.join('index', 'commits_behind_remote', string(opts))
   let cache = self.cache.repository
-  let result = (options.no_cache || self.is_updated('index', 'commits_behind_remote'))
+  let result = (self.is_updated('index', 'commits_behind_remote') || options.no_cache)
         \ ? -1
         \ : cache.get(name, -1)
   if result == -1
