@@ -147,7 +147,11 @@ function! s:get_remote_hash(repository, remote, branch) abort " {{{
     " sometime the file is missing
     let filename = s:Path.join(a:repository, 'packed-refs')
     let packed_refs = join(s:_readfile(filename), "\n")
-    let pattern = printf('\v\zs[^\r\n]{-}\ze\srefs/remotes/%s/%s\n?', a:remote, a:branch)
+    " Note:
+    "   Vim document said '.' does not hit a new line but it is a LIE.
+    "   And the behavior of regexpengine=1 is quite annoying thus the
+    "   following discusting regex is required...
+    let pattern = printf('\v(\w|\s)*\ze\srefs/remotes/%s/%s', a:remote, a:branch)
     let hash = matchstr(packed_refs, pattern)
   endif
   return hash
