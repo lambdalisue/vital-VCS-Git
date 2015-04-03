@@ -13,7 +13,9 @@ set cpo&vim
 " Vital ======================================================================
 function! s:_vital_loaded(V) dict abort " {{{
   let s:Dict = a:V.import('Data.Dict')
+  let s:List = a:V.import('Data.List')
   let s:Prelude = a:V.import('Prelude')
+  let s:Path = a:V.import('System.Filepath')
   let s:Cache = a:V.import('System.Cache.Simple')
   let s:Core = a:V.import('VCS.Git.Core')
   let s:Misc = a:V.import('VCS.Git.Misc')
@@ -57,6 +59,7 @@ function! s:get_config() abort " {{{
         \   'finder':   s:Cache,
         \   'instance': s:Cache,
         \   'meta':     s:Cache,
+        \   'uptime':   s:Cache,
         \ },
         \}
   return extend(default, deepcopy(s:config))
@@ -81,6 +84,7 @@ function! s:new(worktree, repository, ...) abort " {{{
         \ 'worktree': a:worktree,
         \ 'repository': a:repository,
         \ 'cache': s:get_config().cache.meta.new(),
+        \ 'uptime_cache': s:get_config().cache.uptime.new()
         \})
   call cache.set(a:worktree, git)
   return git
@@ -97,6 +101,13 @@ endfunction " }}}
 
 " Object =====================================================================
 let s:git = {}
+function! s:git.is_updated(filename) abort " {{{
+  let path = s:Path.join(s:List.flatten([self.repository, a:filename]))
+  let cached = self.uptime_cache.get(path, -1)
+  let actual = getftime(path)
+  call self.uptime_cache.set(path, actual)
+  return actual == -1 || actual > cached
+endfunction " }}}
 function! s:git._get_cache(name, ...) abort " {{{
   let default = get(a:000, 0, {})
   let uptime = self.get_index_updated_time()

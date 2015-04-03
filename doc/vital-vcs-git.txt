@@ -187,6 +187,15 @@ METHODS						*Vital.VCS.Git-methods*
 Note: All Git commands internally calld in the following methods are called in
 a top directory of the Git working tree which the Git instance belongs.
 
+			*Vital.VCS.Git-instance.is_updated()*
+is_updated({filename})
+
+	Return 0 or 1. It return 1 when {filename} in a Git repository is
+	updated or this execution is first time. Otherwise it return 0.
+	Note that this method is for checking a file modification in git
+	repository and not working tree.
+	The value is obtained by |getftime| function.
+
 			*Vital.VCS.Git-instance.get_index_updated_time()*
 get_index_updated_time()
 

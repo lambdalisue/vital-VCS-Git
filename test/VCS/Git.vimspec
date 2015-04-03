@@ -36,6 +36,7 @@ Describe VCS.Git
       Assert KeyExists(ret, 'worktree')
       Assert KeyExists(ret, 'repository')
       Assert KeyExists(ret, 'cache')
+      Assert KeyExists(ret, 'uptime_cache')
     End
 
     It should return a same Git instance for same worktree
@@ -91,6 +92,30 @@ Describe VCS.Git
           return reltime()[0] + 1000
         endfunction
       endfunction
+    End
+
+    Context .is_updated({filename})
+      It should return 1 for filenames which does not exists in a git repository
+        let ret = s:git.is_updated('invalid_filename')
+        Assert Equals(ret, 1)
+      End
+
+      It should return 1 for valid filename in a first time execution
+        let filename = s:P.join(repository, 'HEAD')
+        call writefile([], filename)
+        let ret = s:git.is_updated('HEAD')
+        Assert Equals(ret, 1)
+        call delete(filename)
+      End
+
+      It should return 0 for valid filename after the first time execution
+        let filename = s:P.join(repository, 'HEAD')
+        call writefile([], filename)
+        call s:git.is_updated('HEAD')
+        let ret = s:git.is_updated('HEAD')
+        Assert Equals(ret, 0)
+        call delete(filename)
+      End
     End
 
     Context .get_index_updated_time()
