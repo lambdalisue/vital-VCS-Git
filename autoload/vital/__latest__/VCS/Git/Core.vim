@@ -97,9 +97,6 @@ function! s:get_absolute_path(worktree, path) abort " {{{
 endfunction " }}}
 
 " Meta (without using 'git rev-parse'. read '.git/*' directory)
-function! s:get_index_updated_time(repository) abort " {{{
-  return getftime(s:Path.join(a:repository, 'index'))
-endfunction " }}}
 function! s:get_head(repository) abort " {{{
   " The current ref that you’re looking at.
   let filename = s:Path.join(a:repository, 'HEAD')

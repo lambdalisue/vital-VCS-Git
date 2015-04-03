@@ -111,20 +111,6 @@ Describe VCS.Git.Core
     End
   End
 
-  Context .get_index_updated_time(repository)
-    Before
-      let filename = s:P.join(repository, 'index')
-      call writefile([], filename)
-    End
-    After
-      call delete(filename)
-    End
-    It should return a number which indicate the updated time of repository index
-      let ret = s:C.get_index_updated_time(repository)
-      Assert Equals(ret, getftime(filename))
-    End
-  End
-
   Context .get_head({repository})
     It should return an empty string if HEAD is missing
       let ret = s:C.get_head(repository)

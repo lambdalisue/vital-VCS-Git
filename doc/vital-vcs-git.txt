@@ -33,29 +33,29 @@ Introductions		|Vital.VCS.Git-introduction|
 Requirements		|Vital.VCS.Git-requirements|
 Usage			|Vital.VCS.Git-usage|
 Interface		|Vital.VCS.Git-interface|
-	Functions		|Vital.VCS.Git-funcionss|
+  Functions		|Vital.VCS.Git-funcionss|
 
 
 ==============================================================================
 INTRODUCTIONS				*Vital.VCS.Git-introduction*
 
-*Vital.VCS.Git* is a fundemental Git manipulation library powerd by vital.vim.
+*Vital.VCS.Git* is a fundemental git manipulation library powerd by vital.vim.
 It provide the following features.
 
-1. Find git repository recursively from a specified path
-2. Parse Git repository config (.git/config)
-2. Parse Git config (git config --list)
-3. Parse Git status (git status --porcelain)
-4. Parse Git commit status (git commit --dry-run --porcelain)
-5. Fetch Git meta information (e.g. current branch name)
-6. Execute Git command
+1. Find a git repository recursively from a specified path
+2. Parse a git repository config (.git/config)
+2. Parse a git config (git config --list)
+3. Parse a git status (git status --porcelain)
+4. Parse a git commit status (git commit --dry-run --porcelain)
+5. Fetch a git meta information (e.g. current branch name)
+6. Execute a git command
 
-The library try to NOT use Git command as much as possible and try to cache
-result as much as possible to improve the speed. With this strategy, the
-response speed would 100 times faster than executing Git command everytime.
+The library try to NOT use git command and try to cache result as much as
+possible to improve the response. With this strategy, the response speed would
+100 times faster than executing git command everytime.
 
 General vim plugin developer do not need to know but if you want to manipulate
-Git in low level, the following submodules would help you.
+git in low level, the following submodules would help you.
 
 - |Vital.VCS.Git.Core| - A core function module of Git manipulation
 - |Vital.VCS.Git.Misc| - A misc function module of Git manipulation
@@ -65,7 +65,7 @@ Git in low level, the following submodules would help you.
 - |Vital.VCS.Git.Conflict| - A helper library for manipulating conflicts
 
 All modules above provide a low level API and do not cache any results,
-contrusting to |Vital.VCS.Git| which try to cache things per each Git
+contrusting to |Vital.VCS.Git| which try to cache things per each git
 repository.
 
 Benchmark: https://gist.github.com/lambdalisue/c73ad37a33b8242fba13
@@ -89,7 +89,7 @@ modules.
 USAGE					*Vital.VCS.Git-usage*
 
 First of all, call |Vital.VCS.Git.new()| or |Vital.VCS.Git.find()| to create
-a Git instance. The instance will cached per each Git working tree.
+a git instance. The instance will cached per each git working tree.
 >
 	let s:G = s:V.import('VCS.Git')
 	" find a git working tree and repository to create a Git instance
@@ -128,15 +128,15 @@ FUNCTIONS				*Vital.VCS.Git-functions*
 
 get_config()			*Vital.VCS.Git.get_config()*
 
-	Return a config |Dictionary|. The following attributes are available.
+	Return a config |Dictionary|. Following attributes are available.
 
 	'executable'
-	A |String| or |Dictionary| used to execute a Git command (used in
+	A |String| or |Dictionary| used to execute a git command (used in
 	|Vital.VCS.Git.Core.exec()|.
 	The default value is 'git'
 
 	'arguments'
-	A |List| used to execute a Git command (used in
+	A |List| used to execute a git command (used in
 	|Vital.VCS.Git.Core.exec()|.
 	The default value is ['-c', 'color.ui=false']
 
@@ -149,14 +149,20 @@ get_config()			*Vital.VCS.Git.get_config()*
 		The default value is |Vital.System.Cache.Simple|.
 
 		'instance'
-		An unified cache system used for cache a Git instance per each
-		Git working tree.
+		An unified cache system used for cache a git instance per each
+		git working tree.
 		The default value is |Vital.System.Cache.Simple|.
 
-		'meta'
-		An unified cache system used for cache meta information of
-		each Git instance.
+		'repository'
+		An unified cache system used for cache repository information
+		of each git instance.
 		The default value is |Vital.System.Cache.Simple|.
+
+		'uptime'
+		An unified cache system used for uptime of each files of each
+		git instance.
+		The default value is |Vital.System.Cache.Simple|.
+
 
 set_config({config})		*Vital.VCS.Git.set_config()*
 
@@ -166,49 +172,165 @@ set_config({config})		*Vital.VCS.Git.set_config()*
 				*Vital.VCS.Git.new()*
 new({worktree}, {repository}[, {opts}])
 
-	Create or get a Git instance of {worktree}.
-	If { 'no_cache': 1 } is specified to {opts}, re-create a Git instance
-	of {worktree}.
-	If you have no idea about {repository}, use |Vital.VCS.Git.find()|
-	instead.
+	Create or get a git instance of {worktree}. If a git instance of
+	{worktree} exists in 'instance' cache explained in
+	|Vital.VCS.Git.get_config()|, it return the cached instance. Otherwise
+	it create a new git instance.
+	Following attributes are available in the git instance
+
+	'worktree'
+	A worktree path which the git instance belongs
+
+	'repository'
+	A repository path (.git directory) which the git instance connect.
+
+	'cache'
+	A |Dictonary| which contains a cache instance of 'repository' and
+	'uptime' explained in |Vital.VCS.Git.get_config()|.
+
+
+	If { 'no_cache': 1 } is specified to {opts}, a new git instance will
+	be created even a git instance of {worktree} found in a cache.
+	See |Vital.VCS.Git.find()| as well.
 
 find({path}[, {opts}])		*Vital.VCS.Git.find()*
 
-	Create or get a Git instance of a Git working tree which {path}
-	belongs. It will return an empty |Dictionary| if no Git working tree
+	Create or get a git instance of a git working tree which {path}
+	belongs. It will return an empty |Dictionary| if no git working tree
 	is found in parents directories of {path}.
-	If { 'no_cache': 1 } is specified to {opts}, re-create a Git instance
-	of the working tree found. See |Vital.VCS.Git.Finder-instance.find()|
-	for other options of {opts}.
+	See |Vital.VCS.Git.new()| for attributes of the instance.
+	See |Vital.VCS.Git.Finder-instance.find()| for extra options of {opts}.
 
 ------------------------------------------------------------------------------
 METHODS						*Vital.VCS.Git-methods*
 
-Note: All Git commands internally calld in the following methods are called in
-a top directory of the Git working tree which the Git instance belongs.
-
 			*Vital.VCS.Git-instance.is_updated()*
 is_updated({filename})
 
-	Return 0 or 1. It return 1 when {filename} in a Git repository is
+	Return 0 or 1. It return 1 when {filename} in a git repository is
 	updated or this execution is first time. Otherwise it return 0.
 	Note that this method is for checking a file modification in git
 	repository and not working tree.
 	The value is obtained by |getftime| function.
 
-			*Vital.VCS.Git-instance.get_index_updated_time()*
-get_index_updated_time()
+			*Vital.VCS.Git-instance.get_relative_path()*
+get_relative_path({path})
 
-	Return a |Number| which indicate the updated time of 'index' file in a
-	Git repository. The value is obtained by |getftime| function.
+	Return a relative path of {path} from the working tree which the git
+	instance belongs.
+	See |Vital.VCS.Git.Core.get_relative_path()| for more detail.
+
+			*Vital.VCS.Git-instance.get_absolute_path()*
+get_absolute_path({path})
+
+	Return an absolute path of {path} from the working tree which the git
+	instance belongs.
+	See |Vital.VCS.Git.Core.get_absolute_path()| for more detail.
+
+			*Vital.VCS.Git-instance.get_head()*
+get_head()
+
+	Return a current reference that a git repository lookin at.
+	The return value will be cached until a corresponding file is updated.
+
+				*Vital.VCS.Git-instance.get_fetch_head()*
+get_fetch_head()
+
+	Return a SHAs of branch/remote heads that were updated during the last
+	git fetch.
+	The return value will be cached until a corresponding file is updated.
+
+				*Vital.VCS.Git-instance.get_orig_head()*
+get_orig_head()
+
+	Return a SHAs of the branch you're merging into during a merge.
+	The return value will be cached until a corresponding file is updated.
+
+				*Vital.VCS.Git-instance.get_merge_head()*
+get_merge_head()
+
+	Return a SHAs of the branch you're merging from during a merge.
+	The return value will be cached until a corresponding file is updated.
+
+				*Vital.VCS.Git-instance.get_commit_editmsg()*
+get_commit_editmsg()
+
+	Return a cached commit message in a git repository. This is a last
+	commit message in general.
+	The return value will be cached until a corresponding file is updated.
+
+				*Vital.VCS.Git-instance.get_merge_msg()*
+get_merge_msg()
+
+	Return a commit message shown during merge mode.
+	The return value will be cached until a corresponding file is updated.
+
+				*Vital.VCS.Git-instance.get_local_hash()*
+get_local_hash({branch})
+
+	Return a hash reference of a specified local branch.
+	The return value will be cached until a corresponding file is updated.
+
+				*Vital.VCS.Git-instance.get_remote_hash()*
+get_remote_hash({remote}, {branch})
+
+	Return a hash reference of a specified remote branch.
+	The return value will be cached until a corresponding file is updated.
+
+				*Vital.VCS.Git-instance.get_repository_config()*
+get_repository_config()
+
+	Return a parsed config dictionary of a git repository.
+	The return value will be cached until a corresponding file is updated.
+
+				*Vital.VCS.Git-instance.get_branch_remote()*
+get_branch_remote({branch})
+
+	Return a remote name of the specified {local_branch}.
+	The return value will be cached until a corresponding file is updated.
+
+				*Vital.VCS.Git-instance.get_branch_merge()*
+get_branch_merge({branch})
+
+	Return a remote branch name of the {local_branch} connected.
+	The return value will be cached until a corresponding file is updated.
+	You may need to execute the following code to clop name.
+>
+	let merge = s:Core.get_branch_merge(config, 'master')
+	let remote_branch_name = substitute(merge, '^refs/heads', '', '')
+<
+				*Vital.VCS.Git-instance.get_remote_fetch()*
+get_remote_fetch({remote})
+
+	Return an fetch address of the specified {remote}.
+	The return value will be cached until a corresponding file is updated.
+
+				*Vital.VCS.Git-instance.get_remote_url()*
+get_remote_url({remote})
+
+	Return an url of the specified {remote}.
+	The return value will be cached until a corresponding file is updated.
+
+				*Vital.VCS.Git-instance.get_comment_char()*
+get_comment_char()
+
+	Return an comment character used in commit message.
+	The return value will be cached until a corresponding file is updated.
+
+			*Vital.VCS.Git-instance.exec()*
+exec({args}[, {opts}])
+
+	Execute a git command specified in {args} under the top directory of
+	the working tree of the git instance belongs.
+	See |Vital.VCS.Git.Core.exec()| for more detail.
 
 			*Vital.VCS.Git-instance.get_parsed_status()*
 get_parsed_status([{opts}])
 
-	Return a parsed status |Dictionary| of a current Git working tree.
+	Return a parsed status |Dictionary| of a current git working tree.
 	If { 'no_cache': 1 } is specified to {opts}, it won't use any cached
 	status. Otherwise it will use cached status until 'index' file in a
-	Git repository is updated.
+	git repository is updated.
 	See |Vital.VCS.Git.Misc.get_parsed_status()| for {opts} detail.
 
 			*Vital.VCS.Git-instance.get_parsed_commit()*
@@ -218,35 +340,25 @@ get_parsed_commit([{opts}])
 	parsed status |Dictionary| of next commit.
 	If { 'no_cache': 1 } is specified to {opts}, it won't use any cached
 	status. Otherwise it will use cached status until 'index' file in a
-	Git repository is updated.
+	git repository is updated.
 	See |Vital.VCS.Git.Misc.get_parsed_commit()| for {opts} detail.
 
 			*Vital.VCS.Git-instance.get_parsed_config()*
 get_parsed_config([{opts}])
 
-	Return a parsed config |Dictionary| of Git config.
+	Return a parsed config |Dictionary| of git config.
 	If { 'no_cache': 1 } is specified to {opts}, it won't use any cached
 	config. Otherwise it will use cached config until 'index' file in a
-	Git repository is updated.
+	git repository is updated.
 	See |Vital.VCS.Git.Misc.get_parsed_config()| for {opts} detail.
-
-			*Vital.VCS.Git-instance.get_meta()*
-get_meta([{opts}])
-
-	Return a meta information |Dictionary| of the current Git working
-	tree.
-	If { 'no_cache': 1 } is specified to {opts}, it won't use any cached
-	meta. Otherwise it will use cached meta until 'index' file in a
-	Git repository is updated.
-	See |Vital.VCS.Git.Misc.get_meta()| for {opts} and returnd dictionary detail.
 
 			*Vital.VCS.Git-instance.get_last_commitmsg()*
 get_last_commitmsg([{opts}])
 
-	Return a last commit message |String| of the current Git working tree.
+	Return a last commit message |String| of the current git working tree.
 	If { 'no_cache': 1 } is specified to {opts}, it won't use any cached
 	string. Otherwise it will use cached string until 'index' file in a
-	Git repository is updated.
+	git repository is updated.
 	See |Vital.VCS.Git.Misc.get_last_commitmsg()| for {opts} detail.
 
 			*Vital.VCS.Git-instance.count_commits_ahead_of_remote()*
@@ -256,7 +368,7 @@ count_commits_ahead_of_remote([{opts}])
 	commits).
 	If { 'no_cache': 1 } is specified to {opts}, it won't use any cached
 	number. Otherwise it will use cached number until 'index' file in a
-	Git repository is updated.
+	git repository is updated.
 	See |Vital.VCS.Git.Misc.count_commits_ahead_of_remote()| for {opts} detail.
 
 			*Vital.VCS.Git-instance.count_commits_behind_remote()*
@@ -266,29 +378,79 @@ count_commits_behind_remote([{opts}])
 	commits).
 	If { 'no_cache': 1 } is specified to {opts}, it won't use any cached
 	number. Otherwise it will use cached number until 'index' file in a
-	Git repository is updated.
+	git repository is updated.
 	See |Vital.VCS.Git.Misc.count_commits_behind_remote()| for {opts} detail.
 
-			*Vital.VCS.Git-instance.get_relative_path()*
-get_relative_path({path})
+get_meta()		*Vital.VCS.Git-instance.get_meta()*
 
-	Return a relative path of {path} from the working tree which the Git
-	instance belongs.
-	See |Vital.VCS.Git.Core.get_relative_path()| for more detail.
+	Return a dictionary which contains meta informations of the repository.
+	The following meta informations are included:
 
-			*Vital.VCS.Git-instance.get_absolute_path()*
-get_absolute_path({path})
+	'head'
+	A value returnd from |Vital.VCS.Git.get_head()|
 
-	Return an absolute path of {path} from the working tree which the Git
-	instance belongs.
-	See |Vital.VCS.Git.Core.get_absolute_path()| for more detail.
+	'fetch_head'
+	A value returnd from |Vital.VCS.Git.get_fetch_head()|
 
-			*Vital.VCS.Git-instance.exec()*
-exec({args}[, {opts}])
+	'orig_head'
+	A value returnd from |Vital.VCS.Git.get_orig_head()|
 
-	Execute a Git command specified in {args} under the top directory of
-	the working tree of the Git instance belongs.
-	See |Vital.VCS.Git.Core.exec()| for more detail.
+	'merge_head'
+	A value returnd from |Vital.VCS.Git.get_merge_head()|
+
+	'commit_editmsg'
+	A value returnd from |Vital.VCS.Git.get_commit_editmsg()|
+
+	'merge_msg'
+	A value returnd from |Vital.VCS.Git.get_merge_msg()|
+
+	'last_commitmsg'
+	A last commitmsg. If 'fetch_head' and 'orig_head' is equal, it return
+	a value returnd from |Vital.VCS.Git.get_last_commitmsg()|. Otherwise
+	it return a value returnd from |Vital.VCS.Git.get_commit_editmsg()| to
+	improve a response. Note: COMMIT_EDITMSG does not refer a correct
+	last commit message when user just close/pull the branch.
+
+	'current_branch'
+	A current branch name.
+
+	'current_branch_hash'
+	A hash reference of a current branch.
+
+	'repository_config'
+	A value returnd from |Vital.VCS.Git.get_repository_config()|.
+
+	'current_branch_remote'
+	A value returnd from |Vital.VCS.Git.get_branch_remote()| of current
+	branch.
+
+	'current_branch_merge'
+	A value returnd from |Vital.VCS.Git.get_branch_merge()| of current
+	branch.
+
+	'current_remote_fetch'
+	A value returnd from |Vital.VCS.Git.get_remote_fetch()| of current
+	branch remote.
+
+	'current_remote_url'
+	A value returnd from |Vital.VCS.Git.get_remote_url()| of current branch
+	remote.
+
+	'comment_char'
+	A value returnd from |Vital.VCS.Git.get_comment_char()|.
+
+	'current_remote_branch'
+	A remote branch which the current branch connected.
+
+	'current_remote_branch_hash'
+	A hash reference of a current remote branch.
+
+	'commits_ahead_of_remote'
+	A value returned from |Vital.VCS.Git.count_commits_ahead_of_remote|.
+
+	'commits_behind_remote'
+	A value returned from |Vital.VCS.Git.count_commits_behind_remote|.
+
 
 ------------------------------------------------------------------------------
 GIT COMMANDS					*Vital.VCS.Git-git-commands*
