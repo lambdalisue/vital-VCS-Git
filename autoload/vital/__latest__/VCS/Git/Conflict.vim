@@ -18,9 +18,9 @@ function! s:_vital_loaded(V) dict abort " {{{
   let s:const.markers.separator   = repeat('\=', 7)
   let s:const.markers.theirs = repeat('\>', 7)
   let s:const.patterns = {}
-  let s:const.patterns.ours = printf('%s[^\n]*', s:const.markers.ours)
-  let s:const.patterns.separator = printf('%s[^\n]*', s:const.markers.separator)
-  let s:const.patterns.theirs = printf('%s[^\n]*', s:const.markers.theirs)
+  let s:const.patterns.ours = printf('%s[^\n]{-}%(\n|$)', s:const.markers.ours)
+  let s:const.patterns.separator = printf('%s[^\n]{-}%(\n|$)', s:const.markers.separator)
+  let s:const.patterns.theirs = printf('%s[^\n]{-}%(\n|$)', s:const.markers.theirs)
   lockvar s:const
   let self.const = s:const
 endfunction " }}}
@@ -50,7 +50,7 @@ endfunction " }}}
 
 function! s:strip_ours(buflines, ...) " {{{
   let buflines = s:P.is_list(a:buflines) ? join(a:buflines, "\n") : a:buflines
-  let region_pattern = printf('%s\_.{-}%s',
+  let region_pattern = printf('%s.{-}%s',
         \ s:const.patterns.ours,
         \ s:const.patterns.separator,
         \)
@@ -60,7 +60,7 @@ function! s:strip_ours(buflines, ...) " {{{
 endfunction " }}}
 function! s:strip_theirs(buflines, ...) " {{{
   let buflines = s:P.is_list(a:buflines) ? join(a:buflines, "\n") : a:buflines
-  let region_pattern = printf('%s\_.{-}%s',
+  let region_pattern = printf('%s.{-}%s',
         \ s:const.patterns.separator,
         \ s:const.patterns.theirs,
         \)
@@ -70,7 +70,7 @@ function! s:strip_theirs(buflines, ...) " {{{
 endfunction " }}}
 function! s:strip_conflict(buflines, ...) " {{{
   let buflines = s:P.is_list(a:buflines) ? join(a:buflines, "\n") : a:buflines
-  let region_pattern = printf('%s\_.{-}%s',
+  let region_pattern = printf('%s.{-}%s',
         \ s:const.patterns.ours,
         \ s:const.patterns.theirs,
         \)

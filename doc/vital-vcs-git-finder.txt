@@ -33,7 +33,7 @@ CONTENTS				*Vital.VCS.Git.Finder-contents*
 Introduction		|Vital.VCS.Git.Finder-introduction|
 Functions		|Vital.VCS.Git.Finder-functions|
 Instance		|Vital.VCS.Git.Finder-instance|
-	Methods		|Vital.VCS.Git.Finder-methods|
+  Methods		|Vital.VCS.Git.Finder-methods|
 
 
 ==============================================================================

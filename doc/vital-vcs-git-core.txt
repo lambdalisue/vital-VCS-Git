@@ -90,13 +90,6 @@ get_absolute_path({worktree}, {path})
 	Return an absolute path of the {path} which is relative from the
 	{worktree}. It return the {path} if the {path} is a relative path.
 
-				*Vital.VCS.Git.Core.get_index_updated_time()*
-get_index_updated_time({repository})
-
-	Return a positive/negative number which indicate the last updated time
-	of an index of the {repository}. It use |getftime| to get the time so see
-	the help of that function for more detail.
-
 				*Vital.VCS.Git.Core.get_head()*
 get_head({repository})
 
@@ -133,6 +126,16 @@ get_commit_editmsg({repository})
 get_merge_msg({repository})
 
 	Return a commit message shown during merge mode.
+
+				*Vital.VCS.Git.Core.get_local_hash()*
+get_local_hash({repository}, {branch})
+
+	Return a hash reference of a specified local branch.
+
+				*Vital.VCS.Git.Core.get_remote_hash()*
+get_remote_hash({repository}, {remote}, {branch})
+
+	Return a hash reference of a specified remote branch.
 
 				*Vital.VCS.Git.Core.get_repository_config()*
 get_repository_config({repository})

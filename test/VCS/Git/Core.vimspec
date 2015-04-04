@@ -111,20 +111,6 @@ Describe VCS.Git.Core
     End
   End
 
-  Context .get_index_updated_time(repository)
-    Before
-      let filename = s:P.join(repository, 'index')
-      call writefile([], filename)
-    End
-    After
-      call delete(filename)
-    End
-    It should return a number which indicate the updated time of repository index
-      let ret = s:C.get_index_updated_time(repository)
-      Assert Equals(ret, getftime(filename))
-    End
-  End
-
   Context .get_head({repository})
     It should return an empty string if HEAD is missing
       let ret = s:C.get_head(repository)
@@ -226,6 +212,53 @@ Describe VCS.Git.Core
       call writefile(['foo'], filename)
       let ret = s:C.get_merge_msg(repository)
       Assert Equals(ret, ['foo'])
+      call delete(filename)
+    End
+  End
+
+  Context .get_local_hash({repository}, {branch})
+    It should return an empty list if refs/heads/{branch} is missing
+      let ret = s:C.get_local_hash(repository, 'invalid_branch')
+      Assert Equals(ret, '')
+    End
+
+    It should return a hash reference of a specified branch
+      let filename = s:P.join(repository, 'refs', 'heads', 'valid_branch')
+      call mkdir(fnamemodify(filename, ':h'), 'p')
+      call writefile(['hash reference'], filename)
+      let ret = s:C.get_local_hash(repository, 'valid_branch')
+      Assert Equals(ret, 'hash reference')
+      call delete(filename)
+    End
+  End
+
+  Context .get_remote_hash({repository}, {remote}, {branch})
+    It should return an empty list if refs/remotes/{remote}/{branch} is missing
+      let ret = s:C.get_remote_hash(repository, 'invalid_remote', 'invalid_branch')
+      Assert Equals(ret, '')
+    End
+
+    It should return a hash reference of a specified branch
+      let filename = s:P.join(repository, 'refs', 'remotes', 'valid_remote', 'valid_branch')
+      if !isdirectory(fnamemodify(filename, ':h'))
+        call mkdir(fnamemodify(filename, ':h'), 'p')
+      endif
+      call writefile(['hash reference'], filename)
+      let ret = s:C.get_remote_hash(repository, 'valid_remote', 'valid_branch')
+      Assert Equals(ret, 'hash reference')
+      call delete(filename)
+    End
+
+    It should return a hash reference of a specified branch from packed-refs
+      let filename = s:P.join(repository, 'packed-refs')
+      call writefile([
+            \ '# pack-refs with: peeled fully-peeled',
+            \ 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa refs/remotes/valid_remote/master',
+            \ 'hash reference refs/remotes/valid_remote/valid_branch',
+            \ 'cccccccccccccccccccccccccccccccccccccccc refs/remotes/valid_remote/other_branch',
+            \], filename)
+      let ret = s:C.get_remote_hash(repository, 'valid_remote', 'valid_branch')
+      Assert Equals(ret, 'hash reference')
       call delete(filename)
     End
   End

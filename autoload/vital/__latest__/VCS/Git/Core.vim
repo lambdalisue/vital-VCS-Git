@@ -97,9 +97,6 @@ function! s:get_absolute_path(worktree, path) abort " {{{
 endfunction " }}}
 
 " Meta (without using 'git rev-parse'. read '.git/*' directory)
-function! s:get_index_updated_time(repository) abort " {{{
-  return getftime(s:Path.join(a:repository, 'index'))
-endfunction " }}}
 function! s:get_head(repository) abort " {{{
   " The current ref that you’re looking at.
   let filename = s:Path.join(a:repository, 'HEAD')
@@ -138,6 +135,26 @@ function! s:get_merge_msg(repository) abort " {{{
   " Enumerates conflicts that happen during your current merge.
   let filename = s:Path.join(a:repository, 'MERGE_MSG')
   return s:_readfile(filename)
+endfunction " }}}
+function! s:get_local_hash(repository, branch) abort " {{{
+  let filename = s:Path.join(a:repository, 'refs', 'heads', a:branch)
+  return s:_readline(filename)
+endfunction " }}}
+function! s:get_remote_hash(repository, remote, branch) abort " {{{
+  let filename = s:Path.join(a:repository, 'refs', 'remotes', a:remote, a:branch)
+  let hash = s:_readline(filename)
+  if empty(hash)
+    " sometime the file is missing
+    let filename = s:Path.join(a:repository, 'packed-refs')
+    let packed_refs = join(s:_readfile(filename), "\n")
+    " Note:
+    "   Vim document said '.' does not hit a new line but it is a LIE.
+    "   And the behavior of regexpengine=1 is quite annoying thus the
+    "   following discusting regex is required...
+    let pattern = printf('\v(\w|\s)*\ze\srefs/remotes/%s/%s', a:remote, a:branch)
+    let hash = matchstr(packed_refs, pattern)
+  endif
+  return hash
 endfunction " }}}
 
 " Config (without using 'git config'. read '.git/config' directly)
