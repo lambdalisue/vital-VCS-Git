@@ -368,7 +368,7 @@ function! s:git.get_meta() abort " {{{
   let meta.merge_head = self.get_merge_head()
   let meta.commit_editmsg = self.get_commit_editmsg()
   let meta.last_commitmsg =
-        \ meta.fetch_head ==# meta.orig_head
+        \ empty(meta.commit_editmsg)
         \ ? self.get_last_commitmsg()
         \ : meta.commit_editmsg
   let meta.merge_msg = self.get_merge_msg()
