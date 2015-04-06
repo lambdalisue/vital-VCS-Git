@@ -174,9 +174,9 @@ Describe VCS.Git
     End
 
     Context .get_fetch_head([{options}])
-      It should return a content of FETCH_HEAD as a string
+      It should return a content of FETCH_HEAD as a list
         let ret = s:git.get_fetch_head()
-        Assert IsString(ret)
+        Assert IsList(ret)
       End
     End
 

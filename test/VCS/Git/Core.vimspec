@@ -129,14 +129,14 @@ Describe VCS.Git.Core
   Context .get_fetch_head({repository})
     It should return an empty string if FETCH_HEAD is missing
       let ret = s:C.get_fetch_head(repository)
-      Assert Equals(ret, '')
+      Assert Equals(ret, [])
     End
 
     It should return a string of FETCH_HEAD content
       let filename = s:P.join(repository, 'FETCH_HEAD')
-      call writefile(['foo'], filename)
+      call writefile(['foo', 'bar'], filename)
       let ret = s:C.get_fetch_head(repository)
-      Assert Equals(ret, 'foo')
+      Assert Equals(ret, ['foo', 'bar'])
       call delete(filename)
     End
   End
@@ -370,7 +370,7 @@ Describe VCS.Git.Core
       Assert Equals(result.status, 0)
       Assert Equals(result.stdout, 'hello')
       Assert Equals(result.args, ['echo', '-n', 'hello'])
-      Assert Equals(result.opts, {'stdin': '', 'timeout': 0, 'cwd': ''})
+      Assert Equals(result.opts, {'stdin': '', 'timeout': 0, 'cwd': getcwd()})
     End
 
     It should execute system command with nested {args}
@@ -378,7 +378,7 @@ Describe VCS.Git.Core
       Assert Equals(result.status, 0)
       Assert Equals(result.stdout, 'hello')
       Assert Equals(result.args, ['echo', '-n', 'hello'])
-      Assert Equals(result.opts, {'stdin': '', 'timeout': 0, 'cwd': ''})
+      Assert Equals(result.opts, {'stdin': '', 'timeout': 0, 'cwd': getcwd()})
     End
 
     It should execute system command on a specified working directory
@@ -415,7 +415,7 @@ Describe VCS.Git.Core
             \ 'status': 0,
             \ 'stdout': resolve(worktree),
             \ 'args': ['git', '-c', 'color.ui=false', 'rev-parse', '--show-toplevel'],
-            \ 'opts': {'stdin': '', 'timeout': 0, 'cwd': ''},
+            \ 'opts': {'stdin': '', 'timeout': 0, 'cwd': getcwd()},
             \}
       Assert Equals(result, expect)
     End

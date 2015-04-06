@@ -56,7 +56,7 @@ Describe VCS.Git.Misc
     End
     It should return [] for ({'a': '0'}, {'a': '=0'})
       let r = s:M.opts2args({'a': '0'}, {'a': '=0'})
-      Assert Equals(r, [])
+      Assert Equals(r, ['-a0'])
     End
     It should return ['--foo=bar'] for ({'foo': 'bar'}, {'foo': '=all'})
       let r = s:M.opts2args({'foo': 'bar'}, {'foo': '=all'})
@@ -64,7 +64,7 @@ Describe VCS.Git.Misc
     End
     It should return [] for ({'foo': 'all'}, {'foo': '=all'})
       let r = s:M.opts2args({'foo': 'all'}, {'foo': '=all'})
-      Assert Equals(r, [])
+      Assert Equals(r, ['--foo=all'])
     End
     It should return ['-a', '1'] for ({'a': '1'}, {'a': '0'})
       let r = s:M.opts2args({'a': '1'}, {'a': '0'})
