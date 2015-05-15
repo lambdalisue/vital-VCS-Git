@@ -33,57 +33,6 @@ Describe VCS.Git.Misc
     call s:V.import('System.File').rmdir(root, 'r')
   End
 
-  Context .opt2args({opts}, {defaults})
-    It should return ['-a'] for ({'a': 1}, {'a': 0})
-      let r = s:M.opts2args({'a': 1}, {'a': 0})
-      Assert Equals(r, ['-a'])
-    End
-    It should return [] for ({'a': 0}, {'a': 0})
-      let r = s:M.opts2args({'a': 0}, {'a': 0})
-      Assert Equals(r, [])
-    End
-    It should return ['--foo'] for ({'foo': 1}, {'foo': 0})
-      let r = s:M.opts2args({'foo': 1}, {'foo': 0})
-      Assert Equals(r, ['--foo'])
-    End
-    It should return [] for ({'foo': 0}, {'foo': 0})
-      let r = s:M.opts2args({'foo': 0}, {'foo': 0})
-      Assert Equals(r, [])
-    End
-    It should return ['-a1'] for ({'a': '1'}, {'a': '=0'})
-      let r = s:M.opts2args({'a': '1'}, {'a': '=0'})
-      Assert Equals(r, ['-a1'])
-    End
-    It should return [] for ({'a': '0'}, {'a': '=0'})
-      let r = s:M.opts2args({'a': '0'}, {'a': '=0'})
-      Assert Equals(r, ['-a0'])
-    End
-    It should return ['--foo=bar'] for ({'foo': 'bar'}, {'foo': '=all'})
-      let r = s:M.opts2args({'foo': 'bar'}, {'foo': '=all'})
-      Assert Equals(r, ['--foo=bar'])
-    End
-    It should return [] for ({'foo': 'all'}, {'foo': '=all'})
-      let r = s:M.opts2args({'foo': 'all'}, {'foo': '=all'})
-      Assert Equals(r, ['--foo=all'])
-    End
-    It should return ['-a', '1'] for ({'a': '1'}, {'a': '0'})
-      let r = s:M.opts2args({'a': '1'}, {'a': '0'})
-      Assert Equals(r, ['-a', '1'])
-    End
-    It should return [] for ({'a': '0'}, {'a': '0'})
-      let r = s:M.opts2args({'a': '0'}, {'a': '0'})
-      Assert Equals(r, [])
-    End
-    It should return ['--foo', 'bar'] for ({'foo': 'bar'}, {'foo': 'all'})
-      let r = s:M.opts2args({'foo': 'bar'}, {'foo': 'all'})
-      Assert Equals(r, ['--foo', 'bar'])
-    End
-    It should return [] for ({'foo': 'all'}, {'foo': 'all'})
-      let r = s:M.opts2args({'foo': 'all'}, {'foo': 'all'})
-      Assert Equals(r, [])
-    End
-  End
-
   Context .count_commits_ahead_of_remote([{options}])
     It should return number
       let result = s:M.count_commits_ahead_of_remote()
@@ -118,7 +67,7 @@ Describe VCS.Git.Misc
     End
 
     It should add extra arguments specified
-      let ret = s:M.get_parsed_status({ 'branch': 1 })
+      let ret = s:M.get_parsed_status({ 'args': ['--branch'] })
       Assert IsDict(ret)
       Assert KeyExists(ret, 'current_branch')
       Assert KeyExists(ret, 'remote_branch')

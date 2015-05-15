@@ -44,138 +44,30 @@ user friendly and efficient APIs.
 ==============================================================================
 FUNCTIONS				*Vital.VCS.Git.Misc-functions*
 
-opts2args({opts}, {defaults})		*Vital.VCS.Git.Misc.opts2args()*
-
-	Translate a option |Dictionary| to argument |List| for executing a Git
-	command.
-
-	All keys in {opts} will be added to an argument list by the following
-	rules.
-
-	1. If the value of key in {defaults} is |Number|, the key will be
-	   added to an argument list when the value in {opts} is not 0.
-	2. If the value of key in {defaults} is |String| and start from '=',
-	   the key and value will be added to an argument list as '-%s%s' or
-	   '--%s=%s' format when the value in {opts} is different from the
-	   value in {defaults}.
-	3. If the value of key in {defaults} is |String| and not start from
-	   '=', the key and value will be added to an argument list
-	   sequentially when the value in {opts} is different from the value
-	   in {defaults}.
-
-	All keys added to the argument list will be translated by the
-	following rules.
-
-	1. If the length of key is 1, a hyphen (-) is added to the key
-	2. Otherwise two hyphen (--) is added to the key
-	
-	See the example below
->
-	let s:M = s:V.import('VCS.Git.Misc')
-	echo s:M.opts2args({'a': 1}, {'a': 0})
-	" ['-a']
-	echo s:M.opts2args({'a': 0}, {'a': 0})
-	" []
-	echo s:M.opts2args({'foo': 1}, {'foo': 0})
-	" ['--foo']
-	echo s:M.opts2args({'foo': 0}, {'foo': 0})
-	" []
-	echo s:M.opts2args({'a': '1'}, {'a': '=0'})
-	" ['-a1']
-	echo s:M.opts2args({'a': '0'}, {'a': '=0'})
-	" []
-	echo s:M.opts2args({'foo': 'bar'}, {'foo': '=all'})
-	" ['--foo=bar']
-	echo s:M.opts2args({'foo': 'all'}, {'foo': '=all'})
-	" []
-	echo s:M.opts2args({'a': '1'}, {'a': '0'})
-	" ['-a', '1']
-	echo s:M.opts2args({'a': '0'}, {'a': '0'})
-	" []
-	echo s:M.opts2args({'foo': 'bar'}, {'foo': 'all'})
-	" ['--foo', 'bar']
-	echo s:M.opts2args({'foo': 'all'}, {'foo': 'all'})
-	" []
-	echo s:M.opts2args({'foo': 'all'}, {'foo': 'all'})
-	" []
-<
 get_parsed_status([{opts}])		*Vital.VCS.Git.Misc.get_parsed_status()*
 
 	Get |Vital.VCS.Git.StatusParser| parsed current working tree status.
-	The {opts} are passed to |Vital.VCS.Git.Core.exec()| and the following
-	options are available in {opts}.
-	See 'git status --help' for means of indivisual options.
-
-	- branch
-	- untracked_files
-	- ignore_submodules
-	- ignored
-	- z
-	
-	All options will be translated to an argument list of
-	|Vital.VCS.Git.Core.exec()| via |Vital.VCS.Git.Misc.opts2args()|.
-
+	The {opts} are passed to |Vital.VCS.Git.Core.exec()| and {opts.args}
+	will be used as extra arguments of 'git status' if specified.
+>
+	let M = s:V.import('VCS.Git.Misc')
+	let statuses = M.get_parsed_status({
+		\ 'args': ['--branch', '--ignore-submodules'],
+		\])
+<
 get_parsed_commit([{opts}])		*Vital.VCS.Git.Misc.get_parsed_commit()*
 
 	Get |Vital.VCS.Git.StatusParser| parsed current working tree status
 	for commit.
-	The {opts} are passed to |Vital.VCS.Git.Core.exec()| and the following
-	options are available in {opts}.
-	See 'git commit --help' for means of indivisual options.
-	
-	- all
-	- patch
-	- reuse_message
-	- reedit_message
-	- fixup
-	- squash
-	- reset_author
-	- short
-	- z
-	- file
-	- author
-	- date
-	- message
-	- template
-	- signoff
-	- no_verify
-	- allow_empty
-	- allow_empty_message
-	- cleanup
-	- edit
-	- amend
-	- include
-	- only
-	- untracked_files
-	- verbose
-	- quiet
-	- status
-	- no_status
-
-	All options will be translated to an argument list of
-	|Vital.VCS.Git.Core.exec()| via |Vital.VCS.Git.Misc.opts2args()|.
+	The {opts} are passed to |Vital.VCS.Git.Core.exec()| and {opts.args}
+	will be used as extra arguments of 'git commit' if specified.
 
 get_parsed_config([{opts}])		*Vital.VCS.Git.Misc.get_config_status()*
 
 	Get |Vital.VCS.Git.ConfigParser| parsed Git config (note this is not a
 	repository config).
-	The {opts} are passed to |Vital.VCS.Git.Core.exec()| and the following
-	options are available in {opts}.
-	See 'git config --help' for means of indivisual options.
-
-	- local
-	- global
-	- system
-	- file
-	- blob
-	- bool
-	- int
-	- bool_or_int
-	- path
-	- includes
-
-	All options will be translated to an argument list of
-	|Vital.VCS.Git.Core.exec()| via |Vital.VCS.Git.Misc.opts2args()|.
+	The {opts} are passed to |Vital.VCS.Git.Core.exec()| and {opts.args}
+	will be used as extra arguments of 'git config' if specified.
 
 			*Vital.VCS.Git.Misc.get_last_commitmsg()*
 get_last_commitmsg([{opts}])
