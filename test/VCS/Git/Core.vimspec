@@ -243,9 +243,9 @@ Describe VCS.Git.Core
       if !isdirectory(fnamemodify(filename, ':h'))
         call mkdir(fnamemodify(filename, ':h'), 'p')
       endif
-      call writefile(['hash reference'], filename)
+      call writefile(['hash-reference'], filename)
       let ret = s:C.get_remote_hash(repository, 'valid_remote', 'valid_branch')
-      Assert Equals(ret, 'hash reference')
+      Assert Equals(ret, 'hash-reference')
       call delete(filename)
     End
 
@@ -254,11 +254,11 @@ Describe VCS.Git.Core
       call writefile([
             \ '# pack-refs with: peeled fully-peeled',
             \ 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa refs/remotes/valid_remote/master',
-            \ 'hash reference refs/remotes/valid_remote/valid_branch',
+            \ 'hash-reference refs/remotes/valid_remote/valid_branch',
             \ 'cccccccccccccccccccccccccccccccccccccccc refs/remotes/valid_remote/other_branch',
             \], filename)
       let ret = s:C.get_remote_hash(repository, 'valid_remote', 'valid_branch')
-      Assert Equals(ret, 'hash reference')
+      Assert Equals(ret, 'hash-reference')
       call delete(filename)
     End
   End
