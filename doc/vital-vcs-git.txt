@@ -58,7 +58,6 @@ General vim plugin developer do not need to know but if you want to manipulate
 git in low level, the following submodules would help you.
 
 - |Vital.VCS.Git.Core| - A core function module of Git manipulation
-- |Vital.VCS.Git.Misc| - A misc function module of Git manipulation
 - |Vital.VCS.Git.Finder| - A fast git repository finder
 - |Vital.VCS.Git.ConfigParser| - A Git config parser
 - |Vital.VCS.Git.StatusParser| - A Git status parser
@@ -316,66 +315,84 @@ get_comment_char()
 			*Vital.VCS.Git-instance.exec()*
 exec({args}[, {opts}])
 
-	Execute a git command specified in {args} under the top directory of
-	the working tree of the git instance belongs.
+	Execute a git command specified in {args}.
+	The working tree of the git instance automatically specified as '-C'
+	option.
 	See |Vital.VCS.Git.Core.exec()| for more detail.
 
 			*Vital.VCS.Git-instance.get_parsed_status()*
 get_parsed_status([{opts}])
 
-	Return a parsed status |Dictionary| of a current git working tree.
+	Get |Vital.VCS.Git.StatusParser| parsed current working tree status.
+	The {opts} are passed to |Vital.VCS.Git-instance.exec()| and {opts.args}
+	will be used as extra arguments of 'git status' if specified.
+>
+	let statuses = git.get_parsed_status({
+		\ 'args': ['--branch', '--ignore-submodules'],
+		\])
+<
 	If { 'no_cache': 1 } is specified to {opts}, it won't use any cached
 	status. Otherwise it will use cached status until 'index' file in a
 	git repository is updated.
-	See |Vital.VCS.Git.Misc.get_parsed_status()| for {opts} detail.
 
 			*Vital.VCS.Git-instance.get_parsed_commit()*
 get_parsed_commit([{opts}])
 
 	Similar to |Vital.VCS.Git-instance.get_parsed_status()| but return a
 	parsed status |Dictionary| of next commit.
+
 	If { 'no_cache': 1 } is specified to {opts}, it won't use any cached
 	status. Otherwise it will use cached status until 'index' file in a
 	git repository is updated.
-	See |Vital.VCS.Git.Misc.get_parsed_commit()| for {opts} detail.
 
 			*Vital.VCS.Git-instance.get_parsed_config()*
 get_parsed_config([{opts}])
 
-	Return a parsed config |Dictionary| of git config.
+	Get |Vital.VCS.Git.ConfigParser| parsed Git config (note this is not a
+	repository config).
+	The {opts} are passed to |Vital.VCS.Git-instance.exec()| and {opts.args}
+	will be used as extra arguments of 'git config' if specified.
+
 	If { 'no_cache': 1 } is specified to {opts}, it won't use any cached
 	config. Otherwise it will use cached config until 'index' file in a
 	git repository is updated.
-	See |Vital.VCS.Git.Misc.get_parsed_config()| for {opts} detail.
 
 			*Vital.VCS.Git-instance.get_last_commitmsg()*
 get_last_commitmsg([{opts}])
 
-	Return a last commit message |String| of the current git working tree.
+	Return a last commit message. Generally it is equal to
+	'commit_editmsg' attribute of a return dictionary from
+	|Vital.VCS.Git.get_meta()| but this is more acculate.
+	The {opts} are passed to |Vital.VCS.Git-instance.exec()| and {opts.args}
+	will be used as extra arguments if specified.
+
 	If { 'no_cache': 1 } is specified to {opts}, it won't use any cached
 	string. Otherwise it will use cached string until 'index' file in a
 	git repository is updated.
-	See |Vital.VCS.Git.Misc.get_last_commitmsg()| for {opts} detail.
 
 			*Vital.VCS.Git-instance.count_commits_ahead_of_remote()*
 count_commits_ahead_of_remote([{opts}])
 
 	Return a |Number| of commits ahead of connected remote (outgoing
 	commits).
+	The {opts} are passed to |Vital.VCS.Git-instance.exec()| and {opts.args}
+	will be used as extra arguments if specified.
+
 	If { 'no_cache': 1 } is specified to {opts}, it won't use any cached
 	number. Otherwise it will use cached number until 'index' file in a
 	git repository is updated.
-	See |Vital.VCS.Git.Misc.count_commits_ahead_of_remote()| for {opts} detail.
 
 			*Vital.VCS.Git-instance.count_commits_behind_remote()*
 count_commits_behind_remote([{opts}])
 
 	Return a |Number| of commits behind connected remote (incoming
 	commits).
+	The {opts} are passed to |Vital.VCS.Git-instance.exec()| and {opts.args}
+	will be used as extra arguments if specified.
+
 	If { 'no_cache': 1 } is specified to {opts}, it won't use any cached
 	number. Otherwise it will use cached number until 'index' file in a
 	git repository is updated.
-	See |Vital.VCS.Git.Misc.count_commits_behind_remote()| for {opts} detail.
 
 get_meta()		*Vital.VCS.Git-instance.get_meta()*
 
@@ -401,11 +418,10 @@ get_meta()		*Vital.VCS.Git-instance.get_meta()*
 	A value returnd from |Vital.VCS.Git.get_merge_msg()|
 
 	'last_commitmsg'
-	A last commitmsg. If 'fetch_head' and 'orig_head' is equal, it return
-	a value returnd from |Vital.VCS.Git.get_last_commitmsg()|. Otherwise
-	it return a value returnd from |Vital.VCS.Git.get_commit_editmsg()| to
-	improve a response. Note: COMMIT_EDITMSG does not refer a correct
-	last commit message when user just close/pull the branch.
+	A last commitmsg. If 'commit_editmsg' is not empty, it return that.
+	Otherwise it call |Vital.VCS.Git-instance.get_last_commitmsg()|.
+	Note: COMMIT_EDITMSG does not refer a correct last commit message when
+	user just close/pull the branch.
 
 	'current_branch'
 	A current branch name.

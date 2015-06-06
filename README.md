@@ -29,7 +29,6 @@ General vim plugin developer do not need to know but if you want to manipulate
 Git in low level, the following submodules would help you.
 
 - Vital.VCS.Git.Core - A core function module of Git manipulation
-- Vital.VCS.Git.Misc - A misc function module of Git manipulation
 - Vital.VCS.Git.Finder - A fast git repository finder
 - Vital.VCS.Git.ConfigParser - A Git config parser
 - Vital.VCS.Git.StatusParser - A Git status parser
@@ -49,7 +48,6 @@ DOCUMENTATIONS
 
 -   [Vital.VCS.Git](./doc/vital-vcs-git.txt)
 -   [Vital.VCS.Git.Core](./doc/vital-vcs-git-core.txt)
--   [Vital.VCS.Git.Misc](./doc/vital-vcs-git-misc.txt)
 -   [Vital.VCS.Git.Finder](./doc/vital-vcs-git-finder.txt)
 -   [Vital.VCS.Git.ConfigParser](./doc/vital-vcs-git-config-parser.txt)
 -   [Vital.VCS.Git.StatusParser](./doc/vital-vcs-git-status-parser.txt)
@@ -59,21 +57,10 @@ DOCUMENTATIONS
 INSTALL
 ==============================================================================
 
-The following external vital modules are required to bundle Vital.VCS.Git.
-
-- vital-System-Cache-Unified
-  https://github.com/lambdalisue/vital-System-Cache-Unified
-
-Note that the external vital modules above are required only when you want to
-bundle Vital.VCS.Git into your plugin. After you bundle it, the modules are
-no longer required, mean that your plugin users do not required to install the
-modules.
-
 To install it and requirements, use neobundle.vim (or other vim plugin
 managers) like:
 
 ```vim
-NeoBundle 'lambdalisue/vital-System-Cache-Unified'
 NeoBundle 'lambdalisue/vital-VCS-Git'
 ```
 

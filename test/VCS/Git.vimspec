@@ -419,8 +419,8 @@ Describe VCS.Git
         let expect = {
               \ 'status': 0,
               \ 'stdout': resolve(worktree),
-              \ 'args': ['git', '-c', 'color.ui=false', 'rev-parse', '--show-toplevel'],
-              \ 'opts': {'stdin': '', 'timeout': 0, 'cwd': worktree},
+              \ 'args': ['git', '-c', 'color.ui=false', '-C', worktree, 'rev-parse', '--show-toplevel'],
+              \ 'opts': {'stdin': '', 'timeout': 0},
               \}
         Assert Equals(result, expect)
       End
