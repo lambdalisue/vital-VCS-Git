@@ -370,7 +370,7 @@ Describe VCS.Git.Core
       Assert Equals(result.status, 0)
       Assert Equals(result.stdout, 'hello')
       Assert Equals(result.args, ['echo', '-n', 'hello'])
-      Assert Equals(result.opts, {'stdin': '', 'timeout': 0, 'cwd': getcwd()})
+      Assert Equals(result.opts, {'stdin': '', 'timeout': 0})
     End
 
     It should execute system command with nested {args}
@@ -378,24 +378,9 @@ Describe VCS.Git.Core
       Assert Equals(result.status, 0)
       Assert Equals(result.stdout, 'hello')
       Assert Equals(result.args, ['echo', '-n', 'hello'])
-      Assert Equals(result.opts, {'stdin': '', 'timeout': 0, 'cwd': getcwd()})
+      Assert Equals(result.opts, {'stdin': '', 'timeout': 0})
     End
 
-    It should execute system command on a specified working directory
-      let cwd = outside
-      " 'pwd' command does not include the last separator thus remove it
-      " for comparison
-      let cwd = s:P.remove_last_separator(cwd)
-      let sep = s:P.separator()
-
-      " FIXME Windows does not have 'pwd'
-      let result = s:C.system(['pwd'], { 'cwd': cwd })
-      Assert Equals(result.status, 0)
-      Assert Equals(result.stdout, resolve(cwd))
-      Assert Equals(result.args, ['pwd'])
-      Assert Equals(result.opts, {'stdin': '', 'timeout': 0, 'cwd': cwd})
-      Assert Equals(fnamemodify(getcwd(), ':p'), resolve(inside) . sep)
-    End
   End
 
   Context .exec({args} [, {opts}])
@@ -415,36 +400,7 @@ Describe VCS.Git.Core
             \ 'status': 0,
             \ 'stdout': resolve(worktree),
             \ 'args': ['git', '-c', 'color.ui=false', 'rev-parse', '--show-toplevel'],
-            \ 'opts': {'stdin': '', 'timeout': 0, 'cwd': getcwd()},
-            \}
-      Assert Equals(result, expect)
-    End
-
-    It should execute git command on a specified directory
-      silent execute 'lcd ' outside
-
-      let opts = { 'cwd': worktree }
-      let result = s:C.exec(['rev-parse', '--show-toplevel'], opts)
-      let expect = {
-            \ 'status': 0,
-            \ 'stdout': resolve(worktree),
-            \ 'args': ['git', '-c', 'color.ui=false', 'rev-parse', '--show-toplevel'],
-            \ 'opts': {'stdin': '', 'timeout': 0, 'cwd': worktree},
-            \}
-      Assert Equals(result, expect)
-    End
-
-    It should execute git command on a parent directory of a specified file
-      silent execute 'lcd ' outside
-
-      let cwd = s:P.join([inside, 'piyo.txt'])
-      let opts = { 'cwd': cwd }
-      let result = s:C.exec(['rev-parse', '--show-prefix'], opts)
-      let expect = {
-            \ 'status': 0,
-            \ 'stdout': s:P.join('foo', 'bar') . s:P.separator(),
-            \ 'args': ['git', '-c', 'color.ui=false', 'rev-parse', '--show-prefix'],
-            \ 'opts': {'stdin': '', 'timeout': 0, 'cwd': cwd},
+            \ 'opts': {'stdin': '', 'timeout': 0},
             \}
       Assert Equals(result, expect)
     End
