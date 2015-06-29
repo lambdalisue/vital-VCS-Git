@@ -320,43 +320,6 @@ exec({args}[, {opts}])
 	option.
 	See |Vital.VCS.Git.Core.exec()| for more detail.
 
-			*Vital.VCS.Git-instance.get_parsed_status()*
-get_parsed_status([{opts}])
-
-	Get |Vital.VCS.Git.StatusParser| parsed current working tree status.
-	The {opts} are passed to |Vital.VCS.Git-instance.exec()| and {opts.args}
-	will be used as extra arguments of 'git status' if specified.
->
-	let statuses = git.get_parsed_status({
-		\ 'args': ['--branch', '--ignore-submodules'],
-		\])
-<
-	If { 'no_cache': 1 } is specified to {opts}, it won't use any cached
-	status. Otherwise it will use cached status until 'index' file in a
-	git repository is updated.
-
-			*Vital.VCS.Git-instance.get_parsed_commit()*
-get_parsed_commit([{opts}])
-
-	Similar to |Vital.VCS.Git-instance.get_parsed_status()| but return a
-	parsed status |Dictionary| of next commit.
-
-	If { 'no_cache': 1 } is specified to {opts}, it won't use any cached
-	status. Otherwise it will use cached status until 'index' file in a
-	git repository is updated.
-
-			*Vital.VCS.Git-instance.get_parsed_config()*
-get_parsed_config([{opts}])
-
-	Get |Vital.VCS.Git.ConfigParser| parsed Git config (note this is not a
-	repository config).
-	The {opts} are passed to |Vital.VCS.Git-instance.exec()| and {opts.args}
-	will be used as extra arguments of 'git config' if specified.
-
-	If { 'no_cache': 1 } is specified to {opts}, it won't use any cached
-	config. Otherwise it will use cached config until 'index' file in a
-	git repository is updated.
-
 			*Vital.VCS.Git-instance.get_last_commitmsg()*
 get_last_commitmsg([{opts}])
 
