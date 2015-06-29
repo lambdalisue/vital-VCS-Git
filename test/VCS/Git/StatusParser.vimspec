@@ -303,6 +303,68 @@ Describe VCS.Git.StatusParser
             \}
       Assert Equals(result, expected)
     End
+
+    It should parse formatted status text ('git status --porcelain') and return flatten list
+      let status = join([
+            \ ' M foo/bar/hoge1.vim',
+            \ 'M  foo/bar/hoge2.vim',
+            \ 'UU foo/bar/hoge3.vim',
+            \ 'RM foo/bar/hoge4.vim -> foo/bar/hoge5.vim',
+            \], "\n")
+      let result = s:R.parse(status, { 'flatten': 1 })
+      let expected = [
+            \ {
+            \   'index': ' ',
+            \   'worktree': 'M',
+            \   'path': 'foo/bar/hoge1.vim',
+            \   'record': ' M foo/bar/hoge1.vim',
+            \   'sign': ' M',
+            \   'is_conflicted': 0,
+            \   'is_staged': 0,
+            \   'is_unstaged': 1,
+            \   'is_untracked': 0,
+            \   'is_ignored': 0,
+            \ },
+            \ {
+            \   'index': 'M',
+            \   'worktree': ' ',
+            \   'path': 'foo/bar/hoge2.vim',
+            \   'record': 'M  foo/bar/hoge2.vim',
+            \   'sign': 'M ',
+            \   'is_conflicted': 0,
+            \   'is_staged': 1,
+            \   'is_unstaged': 0,
+            \   'is_untracked': 0,
+            \   'is_ignored': 0,
+            \ },
+            \ {
+            \   'index': 'U',
+            \   'worktree': 'U',
+            \   'path': 'foo/bar/hoge3.vim',
+            \   'record': 'UU foo/bar/hoge3.vim',
+            \   'sign': 'UU',
+            \   'is_conflicted': 1,
+            \   'is_staged': 0,
+            \   'is_unstaged': 0,
+            \   'is_untracked': 0,
+            \   'is_ignored': 0,
+            \ },
+            \ {
+            \   'index': 'R',
+            \   'worktree': 'M',
+            \   'path': 'foo/bar/hoge4.vim',
+            \   'path2': 'foo/bar/hoge5.vim',
+            \   'record': 'RM foo/bar/hoge4.vim -> foo/bar/hoge5.vim',
+            \   'sign': 'RM',
+            \   'is_conflicted': 0,
+            \   'is_staged': 1,
+            \   'is_unstaged': 1,
+            \   'is_untracked': 0,
+            \   'is_ignored': 0,
+            \ },
+            \]
+      Assert Equals(result, expected)
+    End
   End
 
 
