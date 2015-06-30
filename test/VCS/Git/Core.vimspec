@@ -33,7 +33,7 @@ Describe VCS.Git.Core
       Assert IsDict(config)
       Assert Equals(config, {
             \ 'executable': 'git',
-            \ 'arguments': ['-c', 'color.ui=false'],
+            \ 'arguments': ['-c', 'color.ui=false', '--no-pager'],
             \})
     End
   End
@@ -399,7 +399,7 @@ Describe VCS.Git.Core
       let expect = {
             \ 'status': 0,
             \ 'stdout': resolve(worktree),
-            \ 'args': ['git', '-c', 'color.ui=false', 'rev-parse', '--show-toplevel'],
+            \ 'args': ['git', '-c', 'color.ui=false', '--no-pager', 'rev-parse', '--show-toplevel'],
             \ 'opts': {'stdin': '', 'timeout': 0},
             \}
       Assert Equals(result, expect)
