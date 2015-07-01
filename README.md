@@ -17,9 +17,10 @@ It provide the following features.
 2. Parse Git repository config (.git/config)
 2. Parse Git config (git config --list)
 3. Parse Git status (git status --porcelain)
-4. Parse Git commit status (git commit --dry-run --porcelain)
-5. Fetch Git meta information (e.g. current branch name)
-6. Execute Git command
+4. Parse Git blame (git blame --porcelain)
+5. Parse Git commit status (git commit --dry-run --porcelain)
+6. Fetch Git meta information (e.g. current branch name)
+7. Execute Git command
 
 The library try to NOT use Git command as much as possible and try to cache
 result as much as possible to improve the speed. With this strategy, the
@@ -32,6 +33,7 @@ Git in low level, the following submodules would help you.
 - Vital.VCS.Git.Finder - A fast git repository finder
 - Vital.VCS.Git.ConfigParser - A Git config parser
 - Vital.VCS.Git.StatusParser - A Git status parser
+- Vital.VCS.Git.BlameParser - A Git blame parser
 - Vital.VCS.Git.Conflict - A helper library to manipulate conflicts
 
 All modules above provide a low level API and do not cache any results,
@@ -51,6 +53,7 @@ DOCUMENTATIONS
 -   [Vital.VCS.Git.Finder](./doc/vital-vcs-git-finder.txt)
 -   [Vital.VCS.Git.ConfigParser](./doc/vital-vcs-git-config-parser.txt)
 -   [Vital.VCS.Git.StatusParser](./doc/vital-vcs-git-status-parser.txt)
+-   [Vital.VCS.Git.BlameParser](./doc/vital-vcs-git-blame-parser.txt)
 -   [Vital.VCS.Git.Conflict](./doc/vital-vcs-git-conflict.txt)
 
 

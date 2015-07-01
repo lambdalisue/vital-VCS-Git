@@ -38,19 +38,19 @@ Functions		|Vital.VCS.Git.ConfigParser-functions|
 INTRODUCTION				*Vital.VCS.Git.ConfigParser-introduction*
 
 *Vital.VCS.Git.ConfigParser* is a Git config parser module of |Vital.VCS.Git|.
-The module should not be used directly while |Vital.VCS.Git| provide more
-user friendly and efficient APIs.
 
 ==============================================================================
 FUNCTIONS				*Vital.VCS.Git.ConfigParser-functions*
 
 parse_record({line})		*Vital.VCS.Git.ConfigParser.parse_record()*
 
-	Parse a {line} of 'git config -l'. It return a nested |Dictionary|.
+	Parse a {line} of 'git config -l'. It return a nested |Dictionary|
+	which indicate the structure of the config.
 
 parse({config})			*Vital.VCS.Git.ConfigParser.parse()*
 
-	Parse a {config} of 'git config -l'. It return a nested |Dictionary|.
+	Parse a {config} of 'git config -l'. It return a nested |Dictionary|
+	which indicate the structure of the config.
 
 
 ==============================================================================

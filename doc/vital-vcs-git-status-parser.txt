@@ -39,8 +39,6 @@ Statuses		|Vital.VCS.Git.StatusParser-status|
 INTRODUCTION				*Vital.VCS.Git.StatusParser-introduction*
 
 *Vital.VCS.Git.StatusParser* is a Git status parser module of |Vital.VCS.Git|.
-The module should not be used directly while |Vital.VCS.Git| provide more
-user friendly and efficient APIs.
 
 ==============================================================================
 FUNCTIONS				*Vital.VCS.Git.StatusParser-functions*

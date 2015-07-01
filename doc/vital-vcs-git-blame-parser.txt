@@ -1,0 +1,207 @@
+*vital-vcs-git-blame-parser.txt*		A 'git blame' parser
+
+Version: 0.1.0
+Author:  Alisue <lambdalisue@hashnote.net> *Vital.VCS.Git.BlameParser-author*
+Support: Vim 7.3 and above
+License: MIT license  {{{
+	Copyright (c) 2015 Alisue, hashnote.net
+
+	Permission is hereby granted, free of charge, to any person obtaining
+	a copy of this software and associated documentation files
+	(the "Software"), to deal in the Software without restriction,
+	including without limitation the rights to use, copy, modify, merge,
+	publish, distribute, sublicense, and/or sell copies of the Software,
+	and to permit persons to whom the Software is furnished to do so,
+	subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be
+	included in all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+	EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+	IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+	CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+	TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+}}}
+
+
+==============================================================================
+CONTENTS				*Vital.VCS.Git.BlameParser-contents*
+
+Introduction		|Vital.VCS.Git.BlameParser-introduction|
+Interface		|Vital.VCS.Git.BlameParser-interface|
+  Variables		|Vital.VCS.Git.BlameParser-variables|
+  Functions		|Vital.VCS.Git.BlameParser-functions|
+
+
+==============================================================================
+INTRODUCTION				*Vital.VCS.Git.BlameParser-introduction*
+
+*Vital.VCS.Git.BlameParser* is a parser module for parsing the stdout of
+git blame --porcelain command.
+
+
+==============================================================================
+INTERFACE				*Vital.VCS.Git.BlameParser-interface*
+
+-------------------------------------------------------------------------------
+VARIABLES				*Vital.VCS.Git.BlameParser-variables*
+
+HEADLINE_PATTERN		*Vital.VCS.Git.BlameParser.HEADLINE_PATTERN*
+
+	A readonly regex pattern string which is used to parse a head line.
+
+INFOLINE_PATTERN		*Vital.VCS.Git.BlameParser.INFOLINE_PATTERN*
+
+	A readonly regex pattern string which is used to parse a information
+	line.
+
+CONTENTS_PATTERN		*Vital.VCS.Git.BlameParser.CONTENTS_PATTERN*
+
+	A readonly regex pattern string which is used to parse a contents
+	line.
+
+-------------------------------------------------------------------------------
+FUNCTIONS				*Vital.VCS.Git.BlameParser-functions*
+
+parse_headline({line})		*Vital.VCS.Git.BlameParser.parse_headline()*
+
+	Parse a {line} of 'git blame --porcelain'. The {line} must match to a
+	|Vital.VCS.Git.BlameParser.HEADLINE_PATTERN| regex.
+	It return a nested |Dictionary| described below
+
+	'revision'
+	A 40-byte SHA-1 of the commit the line is attributed to
+
+	'linenum'
+	A |Dictionary| which contains the following informations
+
+		'original'
+		The line number of the line in the original file
+		
+		'final'
+		The line number of the line in the final file
+
+	'nlines'
+	The number of lines in the chunk (group)
+
+
+parse_infoline({line})		*Vital.VCS.Git.BlameParser.parse_infoline()*
+
+	Parse a {line} of 'git blame --porcelain'. The {line} must match to a
+	|Vital.VCS.Git.BlameParser.INFOLINE_PATTERN| regex.
+	It return a nested |Dictionary| and the attributes are depends on the
+	extra options specified to 'git blame --porcelain'.
+	The following describe a general case
+
+	'author'
+	A name of the author
+
+	'author_mail'
+	An email address of the author
+
+	'author_time'
+	A timestamp of the author
+
+	'author_tz'
+	A timezone of the author
+
+	'committer'
+	A name of the committer
+
+	'committer_mail'
+	An email address of the committer
+
+	'committer_time'
+	A timestamp of the committer
+
+	'committer_tz'
+	A timezone of the committer
+
+	'summary'
+	A first line of the commit log message
+
+	'previous'
+
+	A 40-byte SHA-1 and filename of the previous commit
+
+	'filename'
+	A filename
+
+parse_contents({line})		*Vital.VCS.Git.BlameParser.parse_contents()*
+
+	Parse a {line} of 'git blame --porcelain'. The {line} must match to a
+	|Vital.VCS.Git.BlameParser.CONTENTS_PATTERN| regex.
+	It return a |String| of the contents.
+
+parse({blame}[, {opts}])	*Vital.VCS.Git.BlameParser.parse()*
+	
+	Parse a stdout |String| of 'git blame --porcelain' ({blame}).
+	It throw an exception when the parsing a line has failed. Give
+	{ 'fail_silently': 1 } to {opts} if you just want to skip the line
+	failed.
+	It return a |List| of nested |Dictionary|. The dictionary contains the
+	following attributes (may not all, dependes on the extra options
+	specified to 'git blame --porcelain' command).
+
+	'revision'
+	A 40-byte SHA-1 of the commit the line is attributed to
+
+	'linenum'
+	A |Dictionary| which contains the following informations
+
+		'original'
+		The line number of the line in the original file
+		
+		'final'
+		The line number of the line in the final file
+
+	'nlines'
+	The number of lines in the chunk (a continuous lines group)
+
+	'author'
+	A name of the author
+
+	'author_mail'
+	An email address of the author
+
+	'author_time'
+	A timestamp of the author
+
+	'author_tz'
+	A timezone of the author
+
+	'committer'
+	A name of the committer
+
+	'committer_mail'
+	An email address of the committer
+
+	'committer_time'
+	A timestamp of the committer
+
+	'committer_tz'
+	A timezone of the committer
+
+	'summary'
+	A first line of the commit log message
+
+	'previous'
+
+	A 40-byte SHA-1 and filename of the previous commit
+
+	'filename'
+	A filename
+
+	'boundary'
+	1 if the commit is a boundary commit
+
+	'contents'
+	A |List| contains all lines which belongs to this commit chunk (a
+	continuous lines group)
+
+
+==============================================================================
+vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl
