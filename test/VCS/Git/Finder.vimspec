@@ -1,7 +1,7 @@
 call vital#of('vital').unload()
 let s:V = vital#of('vital')
 let s:P = s:V.import('System.Filepath')
-let s:C = s:V.import('System.Cache.Simple')
+let s:C = s:V.import('System.Cache.Memory')
 let s:F = s:V.import('VCS.Git.Finder')
 
 

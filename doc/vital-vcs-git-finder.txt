@@ -53,7 +53,7 @@ new([{cache}])			*Vital.VCS.Git.Finder.new()*
 	instance.
 >
 	let s:F = s:V.import('VCS.Git.Finder')
-	let s:C = s:V.import('System.Cache.Simple')
+	let s:C = s:V.import('System.Cache.Memory')
 	let finder = s:F.new(s:C.new())
 <
 ==============================================================================
@@ -81,7 +81,7 @@ find({path}[, {opts}])		*Vital.VCS.Git.Finder-instance.find()*
 
 	Without using cache, it is approximately 20 times faster than using
 	'git rev-parse --is-inside-work-tree' command.
-	With using instance based cache (|Vital.System.Cache.Simple|), it is
+	With using instance based cache (|Vital.System.Cache.Memory|), it is
 	approximately 100 times faster than using the command.
 
 	Benchmark: https://gist.github.com/lambdalisue/c73ad37a33b8242fba13

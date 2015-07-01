@@ -224,6 +224,10 @@ exec({args} [, {opts}])			*Vital.VCS.Git.Core.exec()*
 	will be added to {args} before execution. {opts} is a |Dictionary|
 	equals to {opts} in |Vital.VCS.Git.Core.system()|.
 
+get_version()				*Vital.VCS.Git.Core.get_version()*
+
+	Return a Git version via 'git --version' command.
+	If the command fail, it return '0.0.0' instead.
 
 ==============================================================================
 vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl

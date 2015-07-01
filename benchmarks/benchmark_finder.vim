@@ -45,7 +45,7 @@ function! Tests()
   call Test(1, "Via git rev-parse --is-inside-work-tree", {})
   call Test(2, "Via VCS.Git.Finder (with dummy cache)", s:V.import('System.Cache.Dummy').new())
   call Test(2, "Via VCS.Git.Finder (with file cache)", s:V.import('System.Cache.File').new('.cache' ))
-  call Test(2, "Via VCS.Git.Finder (with simple cache)", s:V.import('System.Cache.Simple').new())
+  call Test(2, "Via VCS.Git.Finder (with simple cache)", s:V.import('System.Cache.Memory').new())
 endfunction
 
 Messages maintainer: Bram Moolenaar <Bram@vim.org>

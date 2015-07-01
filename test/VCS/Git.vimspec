@@ -3,6 +3,7 @@ let s:P = s:V.import('System.Filepath')
 let s:L = s:V.import('Data.List')
 call s:V.unload() " make sure that the following modules are not cached version
 let s:G = s:V.import('VCS.Git')
+let s:C = s:V.import('VCS.Git.Core')
 
 Describe VCS.Git
   Before all
@@ -275,7 +276,7 @@ Describe VCS.Git
         let ret = s:git.get_comment_char()
         Assert IsString(ret)
       End
-    End
+   End
 
     Context .get_last_commitmsg([{options}])
       It should return a latest commit message
@@ -345,6 +346,17 @@ Describe VCS.Git
               \ 'opts': {'stdin': '', 'timeout': 0},
               \}
         Assert Equals(result, expect)
+      End
+    End
+
+    Context .get_version()
+      It should return a git version string
+        let git_version = s:git.get_version()
+        let result  = s:C.exec(['--version'])
+        Assert Equals(
+              \ printf('git version %s', git_version),
+              \ split(result.stdout, '\v\r?\n')[0]
+              \)
       End
     End
   End

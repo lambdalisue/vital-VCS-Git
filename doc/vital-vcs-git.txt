@@ -141,22 +141,22 @@ get_config()			*Vital.VCS.Git.get_config()*
 
 		'finder'
 		An unified cache system used for |Vital.VCS.Git.Finder|.
-		The default value is |Vital.System.Cache.Simple|.
+		The default value is |Vital.System.Cache.Memory|.
 
 		'instance'
 		An unified cache system used for cache a git instance per each
 		git working tree.
-		The default value is |Vital.System.Cache.Simple|.
+		The default value is |Vital.System.Cache.Memory|.
 
 		'repository'
 		An unified cache system used for cache repository information
 		of each git instance.
-		The default value is |Vital.System.Cache.Simple|.
+		The default value is |Vital.System.Cache.Memory|.
 
 		'uptime'
 		An unified cache system used for uptime of each files of each
 		git instance.
-		The default value is |Vital.System.Cache.Simple|.
+		The default value is |Vital.System.Cache.Memory|.
 
 
 set_config({config})		*Vital.VCS.Git.set_config()*
@@ -319,6 +319,11 @@ exec({args}[, {opts}])
 	The working tree of the git instance automatically specified as '-C'
 	option.
 	See |Vital.VCS.Git.Core.exec()| for more detail.
+
+get_version()		*Vital.VCS.Git-instance.get_version()*
+
+	Return a git version via 'git --version' command.
+	If the command fail, it return '0.0.0' instead.
 
 			*Vital.VCS.Git-instance.get_last_commitmsg()*
 get_last_commitmsg([{opts}])

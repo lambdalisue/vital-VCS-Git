@@ -405,4 +405,15 @@ Describe VCS.Git.Core
       Assert Equals(result, expect)
     End
   End
+
+  Context .get_version()
+    It should return a git version string
+      let git_version = s:C.get_version()
+      let result  = s:C.exec(['--version'])
+      Assert Equals(
+            \ printf('git version %s', git_version),
+            \ split(result.stdout, '\v\r?\n')[0]
+            \)
+    End
+  End
 End

@@ -2,6 +2,4 @@
 themis --reporter dot \
        --runtimepath $HOME/.vim/bundle/vital.vim \
        --runtimepath $HOME/.vim/bundle/vimproc.vim \
-       --runtimepath $HOME/.vim/bundle/vital-System-Cache-Unified \
        $@
-
