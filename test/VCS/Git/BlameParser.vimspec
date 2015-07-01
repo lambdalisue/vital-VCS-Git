@@ -1,0 +1,244 @@
+call vital#of('vital').unload()
+let s:V = vital#of('vital')
+let s:P = s:V.import('System.Filepath')
+let s:B = s:V.import('VCS.Git.BlameParser')
+
+
+Describe VCS.Git.BlameParser
+  Context .HEADLINE_PATTERN
+    let PATTERN = s:B.HEADLINE_PATTERN
+    It should parse a head line
+      " With a group lines column
+      let m = matchlist(
+            \ '3525bd96d78786d3e256248ff813163d5fb7930b 10 1 3',
+            \ PATTERN,
+            \)
+      Assert Equals(m[0], '3525bd96d78786d3e256248ff813163d5fb7930b 10 1 3')
+      Assert Equals(m[1], '3525bd96d78786d3e256248ff813163d5fb7930b')
+      Assert Equals(m[2], '10')
+      Assert Equals(m[3], '1')
+      Assert Equals(m[4], '3')
+
+      " Without a group lines column
+      let m = matchlist(
+            \ '3525bd96d78786d3e256248ff813163d5fb7930b 10 1',
+            \ PATTERN,
+            \)
+      Assert Equals(m[0], '3525bd96d78786d3e256248ff813163d5fb7930b 10 1')
+      Assert Equals(m[1], '3525bd96d78786d3e256248ff813163d5fb7930b')
+      Assert Equals(m[2], '10')
+      Assert Equals(m[3], '1')
+    End
+
+    It should NOT parse a info line
+      let m = matchlist('author lambdalisue', PATTERN)
+      Assert True(empty(m))
+
+      let m = matchlist('author-mail <lambdalisue@hashnote.net>', PATTERN)
+      Assert True(empty(m))
+
+      let m = matchlist('author-time 1426159163', PATTERN)
+      Assert True(empty(m))
+
+      let m = matchlist('author-tz +0900', PATTERN)
+      Assert True(empty(m))
+
+      let m = matchlist('summary travis-ci use Vim 7.3.', PATTERN)
+      Assert True(empty(m))
+
+      let m = matchlist(
+            \ 'previous 8eacdabdd0765e910b59662c36d73401e3fda9e8 README.md',
+            \ PATTERN,
+            \)
+      Assert True(empty(m))
+
+      let m = matchlist('filename README.md', PATTERN)
+      Assert True(empty(m))
+    End
+
+    It should NOT parse a content line
+      let m = matchlist('	vital-VCS-Git', PATTERN)
+      Assert True(empty(m))
+    End
+  End
+
+  Context .INFOLINE_PATTERN
+    let PATTERN = s:B.INFOLINE_PATTERN
+
+    It accidentally parse a head line
+      " With a group lines column
+      let m = matchlist(
+            \ '3525bd96d78786d3e256248ff813163d5fb7930b 10 1 3',
+            \ PATTERN,
+            \)
+      Assert Equals(m[0], '3525bd96d78786d3e256248ff813163d5fb7930b 10 1 3')
+      Assert Equals(m[1], '3525bd96d78786d3e256248ff813163d5fb7930b')
+      Assert Equals(m[2], '10 1 3')
+
+      " Without a group lines column
+      let m = matchlist(
+            \ '3525bd96d78786d3e256248ff813163d5fb7930b 10 1',
+            \ PATTERN,
+            \)
+      Assert Equals(m[0], '3525bd96d78786d3e256248ff813163d5fb7930b 10 1')
+      Assert Equals(m[1], '3525bd96d78786d3e256248ff813163d5fb7930b')
+      Assert Equals(m[2], '10 1')
+    End
+
+    It should parse a info line
+      let m = matchlist('author lambdalisue', PATTERN)
+      Assert Equals(m[0], 'author lambdalisue')
+      Assert Equals(m[1], 'author')
+      Assert Equals(m[2], 'lambdalisue')
+
+      let m = matchlist('author-mail <lambdalisue@hashnote.net>', PATTERN)
+      Assert Equals(m[0], 'author-mail <lambdalisue@hashnote.net>')
+      Assert Equals(m[1], 'author-mail')
+      Assert Equals(m[2], '<lambdalisue@hashnote.net>')
+
+      let m = matchlist('author-time 1426159163', PATTERN)
+      Assert Equals(m[0], 'author-time 1426159163')
+      Assert Equals(m[1], 'author-time')
+      Assert Equals(m[2], '1426159163')
+
+      let m = matchlist('author-tz +0900', PATTERN)
+      Assert Equals(m[0], 'author-tz +0900')
+      Assert Equals(m[1], 'author-tz')
+      Assert Equals(m[2], '+0900')
+
+      let m = matchlist('summary travis-ci use Vim 7.3.', PATTERN)
+      Assert Equals(m[0], 'summary travis-ci use Vim 7.3.')
+      Assert Equals(m[1], 'summary')
+      Assert Equals(m[2], 'travis-ci use Vim 7.3.')
+
+      let m = matchlist(
+            \ 'previous 8eacdabdd0765e910b59662c36d73401e3fda9e8 README.md',
+            \ PATTERN,
+            \)
+      Assert Equals(m[0], 'previous 8eacdabdd0765e910b59662c36d73401e3fda9e8 README.md')
+      Assert Equals(m[1], 'previous')
+      Assert Equals(m[2], '8eacdabdd0765e910b59662c36d73401e3fda9e8 README.md')
+
+      let m = matchlist('filename README.md', PATTERN)
+      Assert Equals(m[0], 'filename README.md')
+      Assert Equals(m[1], 'filename')
+      Assert Equals(m[2], 'README.md')
+    End
+
+    It should NOT parse a content line (which starts from \t)
+      let m = matchlist('	vital-VCS-Git', PATTERN)
+      Assert True(empty(m))
+    End
+  End
+
+  Context .CONTENTS_PATTERN
+    let PATTERN = s:B.CONTENTS_PATTERN
+
+    It should NOT parse a head line
+      " With a group lines column
+      let m = matchlist(
+            \ '3525bd96d78786d3e256248ff813163d5fb7930b 10 1 3',
+            \ PATTERN,
+            \)
+      Assert True(empty(m))
+
+      " Without a group lines column
+      let m = matchlist(
+            \ '3525bd96d78786d3e256248ff813163d5fb7930b 10 1',
+            \ PATTERN,
+            \)
+      Assert True(empty(m))
+    End
+
+    It should NOT parse a info line
+      let m = matchlist('filename README.md', PATTERN)
+      Assert True(empty(m))
+    End
+
+    It should parse a content line (which starts from \t)
+      let m = matchlist('	This is a content', PATTERN)
+      Assert Equals(m[0], 'This is a content')
+    End
+  End
+
+  Context .parse_headline({line})
+    It should parse a head line
+      let m = s:B.parse_headline(
+            \ '3525bd96d78786d3e256248ff813163d5fb7930b 10 1 3',
+            \)
+      Assert Equals(m.revision, '3525bd96d78786d3e256248ff813163d5fb7930b')
+      Assert Equals(m.linenum.original, 10)
+      Assert Equals(m.linenum.final, 1)
+      Assert Equals(m.nlines, 3)
+    End
+  End
+
+  Context .parse_infoline({line})
+    It should parse a info line
+      let m = s:B.parse_infoline('author lambdalisue')
+      Assert Equals(m, { 'author': 'lambdalisue' })
+    End
+  End
+
+  Context .parse_contents({line})
+    It should parse a contents
+      let m = s:B.parse_contents('	This is a content')
+      Assert Equals(m, 'This is a content')
+    End
+  End
+
+  Context .parse({blame}[, {opts}])
+    let filename = s:P.join(getcwd(), 'test', 'VCS', 'Git', 'misc', 'blame.txt')
+    let blame = join(readfile(filename), "\n")
+
+    It should parse a blame output and return line chunks
+      let chunks = s:B.parse(blame)
+      Assert Equals(len(chunks), 16)
+      Assert Equals(chunks[0], {
+            \ 'revision': 'b6046d9340852c570b9cad13bbdddd2dd5bac8f8',
+            \ 'linenum': {
+            \   'original': 1,
+            \   'final': 1,
+            \ },
+            \ 'nlines': 1,
+            \ 'author': 'lambdalisue',
+            \ 'author_mail': '<lambdalisue@hashnote.net>',
+            \ 'author_time': '1426159163',
+            \ 'author_tz': '+0900',
+            \ 'committer': 'lambdalisue',
+            \ 'committer_mail': '<lambdalisue@hashnote.net>',
+            \ 'committer_time': '1426159163',
+            \ 'committer_tz': '+0900',
+            \ 'summary': 'travis-ci use Vim 7.3.',
+            \ 'previous': '8eacdabdd0765e910b59662c36d73401e3fda9e8 README.md',
+            \ 'filename': 'README.md',
+            \ 'contents': ['vital-VCS-Git [![Build Status](https://travis-ci.org/lambdalisue/vital-VCS-Git.svg)](https://travis-ci.org/lambdalisue/vital-VCS-Git)'],
+            \})
+      Assert Equals(chunks[3], {
+            \ 'revision': '8a7be73ccc36d10526ec3d31a4fde1043815a784',
+            \ 'linenum': {
+            \   'original': 10,
+            \   'final': 9,
+            \ },
+            \ 'nlines': 4,
+            \ 'author': 'lambdalisue',
+            \ 'author_mail': '<lambdalisue@hashnote.net>',
+            \ 'author_time': '1426159219',
+            \ 'author_tz': '+0900',
+            \ 'committer': 'lambdalisue',
+            \ 'committer_mail': '<lambdalisue@hashnote.net>',
+            \ 'committer_time': '1426159219',
+            \ 'committer_tz': '+0900',
+            \ 'summary': 'Fix Markdown',
+            \ 'previous': 'b6046d9340852c570b9cad13bbdddd2dd5bac8f8 README.md',
+            \ 'filename': 'README.md',
+            \ 'contents': [
+            \   '',
+            \   '',
+            \   'INTRODUCTIONS',
+            \   '==============================================================================',
+            \ ],
+            \})
+    End
+  End
+End
