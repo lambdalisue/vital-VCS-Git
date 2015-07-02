@@ -192,15 +192,11 @@ Describe VCS.Git.BlameParser
     let blame = join(readfile(filename), "\n")
 
     It should parse a blame output and return line chunks
-      let chunks = s:B.parse(blame)
-      Assert Equals(len(chunks), 16)
-      Assert Equals(chunks[0], {
-            \ 'revision': 'b6046d9340852c570b9cad13bbdddd2dd5bac8f8',
-            \ 'linenum': {
-            \   'original': 1,
-            \   'final': 1,
-            \ },
-            \ 'nlines': 1,
+      let blameobj = s:B.parse(blame)
+      Assert KeyExists(blameobj, 'revisions')
+      Assert KeyExists(blameobj, 'lineinfos')
+      Assert Equals(len(blameobj.revisions), 6)
+      Assert Equals(blameobj.revisions['b6046d9340852c570b9cad13bbdddd2dd5bac8f8'], {
             \ 'author': 'lambdalisue',
             \ 'author_mail': '<lambdalisue@hashnote.net>',
             \ 'author_time': '1426159163',
@@ -212,15 +208,21 @@ Describe VCS.Git.BlameParser
             \ 'summary': 'travis-ci use Vim 7.3.',
             \ 'previous': '8eacdabdd0765e910b59662c36d73401e3fda9e8 README.md',
             \ 'filename': 'README.md',
-            \ 'contents': ['vital-VCS-Git [![Build Status](https://travis-ci.org/lambdalisue/vital-VCS-Git.svg)](https://travis-ci.org/lambdalisue/vital-VCS-Git)'],
             \})
-      Assert Equals(chunks[3], {
-            \ 'revision': '8a7be73ccc36d10526ec3d31a4fde1043815a784',
-            \ 'linenum': {
-            \   'original': 10,
-            \   'final': 9,
-            \ },
-            \ 'nlines': 4,
+      Assert Equals(blameobj.revisions['8a7be73ccc36d10526ec3d31a4fde1043815a784'], {
+            \ 'author': 'lambdalisue',
+            \ 'author_mail': '<lambdalisue@hashnote.net>',
+            \ 'author_time': '1419974246',
+            \ 'author_tz': '+0900',
+            \ 'committer': 'lambdalisue',
+            \ 'committer_mail': '<lambdalisue@hashnote.net>',
+            \ 'committer_time': '1419974356',
+            \ 'committer_tz': '+0900',
+            \ 'summary': 'Initial',
+            \ 'boundary': 1,
+            \ 'filename': 'README.md',
+            \})
+      Assert Equals(blameobj.revisions['d0af4b00b66f56a4a560e41968f3e362df3c1a0e'], {
             \ 'author': 'lambdalisue',
             \ 'author_mail': '<lambdalisue@hashnote.net>',
             \ 'author_time': '1426159219',
@@ -232,12 +234,25 @@ Describe VCS.Git.BlameParser
             \ 'summary': 'Fix Markdown',
             \ 'previous': 'b6046d9340852c570b9cad13bbdddd2dd5bac8f8 README.md',
             \ 'filename': 'README.md',
-            \ 'contents': [
-            \   '',
-            \   '',
-            \   'INTRODUCTIONS',
-            \   '==============================================================================',
-            \ ],
+            \})
+      Assert Equals(len(blameobj.lineinfos), 135)
+      Assert Equals(blameobj.lineinfos[0], {
+            \ 'revision': 'b6046d9340852c570b9cad13bbdddd2dd5bac8f8',
+            \ 'linenum': {
+            \   'original': 1,
+            \   'final': 1,
+            \ },
+            \ 'nlines': 1,
+            \ 'contents': 'vital-VCS-Git [![Build Status](https://travis-ci.org/lambdalisue/vital-VCS-Git.svg)](https://travis-ci.org/lambdalisue/vital-VCS-Git)',
+            \})
+      Assert Equals(blameobj.lineinfos[1], {
+            \ 'revision': '8a7be73ccc36d10526ec3d31a4fde1043815a784',
+            \ 'linenum': {
+            \   'original': 2,
+            \   'final': 2,
+            \ },
+            \ 'nlines': 1,
+            \ 'contents': '==============================================================================',
             \})
     End
   End

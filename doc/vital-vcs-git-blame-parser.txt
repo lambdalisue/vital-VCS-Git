@@ -86,49 +86,14 @@ parse_headline({line})		*Vital.VCS.Git.BlameParser.parse_headline()*
 
 	'nlines'
 	The number of lines in the chunk (group)
+	This attribute might be missing
 
 
 parse_infoline({line})		*Vital.VCS.Git.BlameParser.parse_infoline()*
 
 	Parse a {line} of 'git blame --porcelain'. The {line} must match to a
 	|Vital.VCS.Git.BlameParser.INFOLINE_PATTERN| regex.
-	It return a nested |Dictionary| and the attributes are depends on the
-	extra options specified to 'git blame --porcelain'.
-	The following describe a general case
-
-	'author'
-	A name of the author
-
-	'author_mail'
-	An email address of the author
-
-	'author_time'
-	A timestamp of the author
-
-	'author_tz'
-	A timezone of the author
-
-	'committer'
-	A name of the committer
-
-	'committer_mail'
-	An email address of the committer
-
-	'committer_time'
-	A timestamp of the committer
-
-	'committer_tz'
-	A timezone of the committer
-
-	'summary'
-	A first line of the commit log message
-
-	'previous'
-
-	A 40-byte SHA-1 and filename of the previous commit
-
-	'filename'
-	A filename
+	It return a |Dictionary|.
 
 parse_contents({line})		*Vital.VCS.Git.BlameParser.parse_contents()*
 
@@ -142,65 +107,72 @@ parse({blame}[, {opts}])	*Vital.VCS.Git.BlameParser.parse()*
 	It throw an exception when the parsing a line has failed. Give
 	{ 'fail_silently': 1 } to {opts} if you just want to skip the line
 	failed.
-	It return a |List| of nested |Dictionary|. The dictionary contains the
-	following attributes (may not all, dependes on the extra options
-	specified to 'git blame --porcelain' command).
+	It return a ||Dictionary|. The dictionary contains the following
+	attributes
 
-	'revision'
-	A 40-byte SHA-1 of the commit the line is attributed to
+	'revisions'
+	A |Dictionary| which key and values are a revision string and revision
+	information dictionary described below
 
-	'linenum'
-	A |Dictionary| which contains the following informations
+		'author'
+		A name of the author
 
-		'original'
-		The line number of the line in the original file
-		
-		'final'
-		The line number of the line in the final file
+		'author_mail'
+		An email address of the author
 
-	'nlines'
-	The number of lines in the chunk (a continuous lines group)
+		'author_time'
+		A timestamp of the author
 
-	'author'
-	A name of the author
+		'author_tz'
+		A timezone of the author
 
-	'author_mail'
-	An email address of the author
+		'committer'
+		A name of the committer
 
-	'author_time'
-	A timestamp of the author
+		'committer_mail'
+		An email address of the committer
 
-	'author_tz'
-	A timezone of the author
+		'committer_time'
+		A timestamp of the committer
 
-	'committer'
-	A name of the committer
+		'committer_tz'
+		A timezone of the committer
 
-	'committer_mail'
-	An email address of the committer
+		'summary'
+		A first line of the commit log message
 
-	'committer_time'
-	A timestamp of the committer
+		'previous'
 
-	'committer_tz'
-	A timezone of the committer
+		A 40-byte SHA-1 and filename of the previous commit
 
-	'summary'
-	A first line of the commit log message
+		'filename'
+		A filename
 
-	'previous'
+		'boundary'
+		1 if the commit is a boundary commit
 
-	A 40-byte SHA-1 and filename of the previous commit
+	'lineinfos'
+	A |List| which contains a lineinfo dictionary of each lines.
+	The lineinfo dictionary has the following attributes:
 
-	'filename'
-	A filename
+		'revision'
+		A 40-byte SHA-1 of the commit the line is attributed to
 
-	'boundary'
-	1 if the commit is a boundary commit
+		'linenum'
+		A |Dictionary| which contains the following informations
 
-	'contents'
-	A |List| contains all lines which belongs to this commit chunk (a
-	continuous lines group)
+			'original'
+			The line number of the line in the original file
+			
+			'final'
+			The line number of the line in the final file
+
+		'nlines'
+		The number of lines in the chunk (a continuous lines group)
+		This attribute might be missing
+
+		'contents'
+		A contents of the line
 
 
 ==============================================================================
