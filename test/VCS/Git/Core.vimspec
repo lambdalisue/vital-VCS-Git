@@ -87,11 +87,10 @@ Describe VCS.Git.Core
       Assert Equals(ret, exp)
     End
 
-    It should return a {path} if {path} is not absolute path
+    It should throw an exception if {path} is not absolute path
       let path = s:P.join(['foo', 'bar'])
-      let exp = path
-      let ret = s:C.get_relative_path(worktree, path)
-      Assert Equals(ret, exp)
+      let C = s:C
+      Throw C.get_relative_path(worktree, path) /vital: VCS\.Git\.Core: ".*" is already/
     End
   End
 
@@ -105,9 +104,7 @@ Describe VCS.Git.Core
 
     It should return a {path} if {path} is not relative path
       let path = outside
-      let exp = path
-      let ret = s:C.get_absolute_path(worktree, path)
-      Assert Equals(ret, exp)
+      Throw C.get_absolute_path(worktree, path) /vital: VCS\.Git\.Core: ".*" is already/
     End
   End
 
