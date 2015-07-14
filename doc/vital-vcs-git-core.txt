@@ -82,13 +82,14 @@ find_repository({worktree}		*Vital.VCS.Git.Core.find_repository()*
 get_relative_path({worktree}, {path})
 	
 	Return a relative path of the {path} from the {worktree}.
-	It return the {path} if the {path} is an absolute path.
+	It throw an exception if the {path} is already a relative path.
 
 				*Vital.VCS.Git.Core.get_absolute_path()*
 get_absolute_path({worktree}, {path})
 
 	Return an absolute path of the {path} which is relative from the
-	{worktree}. It return the {path} if the {path} is a relative path.
+	{worktree}.
+	It throw an exception if the {path} is already an absolute path.
 
 				*Vital.VCS.Git.Core.get_head()*
 get_head({repository})
