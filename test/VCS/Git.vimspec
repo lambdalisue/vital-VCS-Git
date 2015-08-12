@@ -193,6 +193,139 @@ Describe VCS.Git
       End
     End
 
+    Context .get_cherry_pick_head([{options}])
+      It should return a content of CHERRY_PICK_HEAD as a string
+        let ret = s:git.get_cherry_pick_head()
+        Assert IsString(ret)
+      End
+    End
+
+    Context .get_revert_head([{options}])
+      It should return a content of REVERT_HEAD as a string
+        let ret = s:git.get_revert_head()
+        Assert IsString(ret)
+      End
+    End
+
+    Context .get_bisect_log([{options}])
+      It should return a content of REVERT_HEAD as a string
+        let ret = s:git.get_bisect_log()
+        Assert IsString(ret)
+      End
+    End
+
+    Context .get_rebase_merge_head([{options}])
+      It should return a content of rebase-merge/head-name as a string
+        let ret = s:git.get_rebase_merge_head()
+        Assert IsString(ret)
+      End
+    End
+
+    Context .get_rebase_merge_step([{options}])
+      It should return a content of rebase-merge/msgnum as a string
+        let ret = s:git.get_rebase_merge_step()
+        Assert IsString(ret)
+      End
+    End
+
+    Context .get_rebase_merge_total([{options}])
+      It should return a content of rebase-merge/msgnum as a string
+        let ret = s:git.get_rebase_merge_total()
+        Assert IsString(ret)
+      End
+    End
+
+    Context .get_rebase_apply_head([{options}])
+      It should return a content of rebase-apply/head-name as a string
+        let ret = s:git.get_rebase_apply_head()
+        Assert IsString(ret)
+      End
+    End
+
+    Context .get_rebase_apply_step([{options}])
+      It should return a content of rebase-apply/msgnum as a string
+        let ret = s:git.get_rebase_apply_step()
+        Assert IsString(ret)
+      End
+    End
+
+    Context .get_rebase_apply_total([{options}])
+      It should return a content of rebase-apply/msgnum as a string
+        let ret = s:git.get_rebase_apply_total()
+        Assert IsString(ret)
+      End
+    End
+
+    Context .is_merging()
+      It should return 0 or 1 to indicate the mode
+        let ret = s:git.is_merging()
+        Assert Equals(ret, 0)
+      End
+    End
+
+    Context .is_cherry_picking()
+      It should return 0 or 1 to indicate the mode
+        let ret = s:git.is_cherry_picking()
+        Assert Equals(ret, 0)
+      End
+    End
+
+    Context .is_reverting()
+      It should return 0 or 1 to indicate the mode
+        let ret = s:git.is_reverting()
+        Assert Equals(ret, 0)
+      End
+    End
+
+    Context .is_bisecting()
+      It should return 0 or 1 to indicate the mode
+        let ret = s:git.is_bisecting()
+        Assert Equals(ret, 0)
+      End
+    End
+
+    Context .is_rebase_merging()
+      It should return 0 or 1 to indicate the mode
+        let ret = s:git.is_rebase_merging()
+        Assert Equals(ret, 0)
+      End
+    End
+
+    Context .is_rebase_merging_interactive()
+      It should return 0 or 1 to indicate the mode
+        let ret = s:git.is_rebase_merging_interactive()
+        Assert Equals(ret, 0)
+      End
+    End
+
+    Context .is_rebase_applying()
+      It should return 0 or 1 to indicate the mode
+        let ret = s:git.is_rebase_applying()
+        Assert Equals(ret, 0)
+      End
+    End
+
+    Context .is_rebase_applying_rebase()
+      It should return 0 or 1 to indicate the mode
+        let ret = s:git.is_rebase_applying_rebase()
+        Assert Equals(ret, 0)
+      End
+    End
+
+    Context .is_rebase_applying_am()
+      It should return 0 or 1 to indicate the mode
+        let ret = s:git.is_rebase_applying_am()
+        Assert Equals(ret, 0)
+      End
+    End
+
+    Context .get_mode()
+      It should return a mode string
+        let ret = s:git.get_mode()
+        Assert Equals(ret, '')
+      End
+    End
+
     Context .get_commit_editmsg([{options}])
       It should return a content of COMMIT_EDITMSG as a list
         let ret = s:git.get_commit_editmsg()

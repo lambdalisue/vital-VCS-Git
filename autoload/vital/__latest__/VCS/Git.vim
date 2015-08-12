@@ -151,6 +151,7 @@ endfunction " }}}
 function! s:git.get_absolute_path(path) abort " {{{
   return s:Core.get_absolute_path(self.worktree, a:path)
 endfunction " }}}
+
 function! s:git.get_head(...) abort " {{{
   let options = extend({
         \ 'no_cache': 0,
@@ -198,6 +199,157 @@ function! s:git.get_merge_head(...) abort " {{{
     call cache.set(name, result)
   endif
   return cache.get(name)
+endfunction " }}}
+function! s:git.get_cherry_pick_head(...) abort " {{{
+  let options = extend({
+        \ 'no_cache': 0,
+        \}, get(a:000, 0, {}))
+  let name = 'CHERRY_PICK_HEAD'
+  let cache = self.cache.repository
+  if self.is_updated(name) || options.no_cache || !cache.has(name)
+    let result = s:Core.get_cherry_pick_head(self.repository)
+    call cache.set(name, result)
+  endif
+  return cache.get(name)
+endfunction " }}}
+function! s:git.get_revert_head(...) abort " {{{
+  let options = extend({
+        \ 'no_cache': 0,
+        \}, get(a:000, 0, {}))
+  let name = 'REVERT_HEAD'
+  let cache = self.cache.repository
+  if self.is_updated(name) || options.no_cache || !cache.has(name)
+    let result = s:Core.get_revert_head(self.repository)
+    call cache.set(name, result)
+  endif
+  return cache.get(name)
+endfunction " }}}
+function! s:git.get_bisect_log(...) abort " {{{
+  let options = extend({
+        \ 'no_cache': 0,
+        \}, get(a:000, 0, {}))
+  let name = 'BISECT_LOG'
+  let cache = self.cache.repository
+  if self.is_updated(name) || options.no_cache || !cache.has(name)
+    let result = s:Core.get_bisect_log(self.repository)
+    call cache.set(name, result)
+  endif
+  return cache.get(name)
+endfunction " }}}
+function! s:git.get_rebase_merge_head(...) abort " {{{
+  let options = extend({
+        \ 'no_cache': 0,
+        \}, get(a:000, 0, {}))
+  let name = s:Path.join('rebase-merge', 'head-name')
+  let cache = self.cache.repository
+  if self.is_updated(name) || options.no_cache || !cache.has(name)
+    let result = s:Core.get_rebase_merge_head(self.repository)
+    call cache.set(name, result)
+  endif
+  return cache.get(name)
+endfunction " }}}
+function! s:git.get_rebase_merge_step(...) abort " {{{
+  let options = extend({
+        \ 'no_cache': 0,
+        \}, get(a:000, 0, {}))
+  let name = s:Path.join('rebase-merge', 'msgnum')
+  let cache = self.cache.repository
+  if self.is_updated(name) || options.no_cache || !cache.has(name)
+    let result = s:Core.get_rebase_merge_step(self.repository)
+    call cache.set(name, result)
+  endif
+  return cache.get(name)
+endfunction " }}}
+function! s:git.get_rebase_merge_total(...) abort " {{{
+  let options = extend({
+        \ 'no_cache': 0,
+        \}, get(a:000, 0, {}))
+  let name = s:Path.join('rebase-merge', 'end')
+  let cache = self.cache.repository
+  if self.is_updated(name) || options.no_cache || !cache.has(name)
+    let result = s:Core.get_rebase_merge_total(self.repository)
+    call cache.set(name, result)
+  endif
+  return cache.get(name)
+endfunction " }}}
+function! s:git.get_rebase_apply_head(...) abort " {{{
+  let options = extend({
+        \ 'no_cache': 0,
+        \}, get(a:000, 0, {}))
+  let name = s:Path.join('rebase-apply', 'head-name')
+  let cache = self.cache.repository
+  if self.is_updated(name) || options.no_cache || !cache.has(name)
+    let result = s:Core.get_rebase_apply_head(self.repository)
+    call cache.set(name, result)
+  endif
+  return cache.get(name)
+endfunction " }}}
+function! s:git.get_rebase_apply_step(...) abort " {{{
+  let options = extend({
+        \ 'no_cache': 0,
+        \}, get(a:000, 0, {}))
+  let name = s:Path.join('rebase-apply', 'next')
+  let cache = self.cache.repository
+  if self.is_updated(name) || options.no_cache || !cache.has(name)
+    let result = s:Core.get_rebase_apply_step(self.repository)
+    call cache.set(name, result)
+  endif
+  return cache.get(name)
+endfunction " }}}
+function! s:git.get_rebase_apply_total(...) abort " {{{
+  let options = extend({
+        \ 'no_cache': 0,
+        \}, get(a:000, 0, {}))
+  let name = s:Path.join('rebase-apply', 'last')
+  let cache = self.cache.repository
+  if self.is_updated(name) || options.no_cache || !cache.has(name)
+    let result = s:Core.get_rebase_apply_total(self.repository)
+    call cache.set(name, result)
+  endif
+  return cache.get(name)
+endfunction " }}}
+
+function! s:git.is_merging() abort " {{{
+  " is_xxxxx just check existence, thus no cache mech. required
+  return s:Core.is_merging(self.repository)
+endfunction " }}}
+function! s:git.is_cherry_picking() abort " {{{
+  " is_xxxxx just check existence, thus no cache mech. required
+  return s:Core.is_cherry_picking(self.repository)
+endfunction " }}}
+function! s:git.is_reverting() abort " {{{
+  " is_xxxxx just check existence, thus no cache mech. required
+  return s:Core.is_reverting(self.repository)
+endfunction " }}}
+function! s:git.is_bisecting() abort " {{{
+  " is_xxxxx just check existence, thus no cache mech. required
+  return s:Core.is_bisecting(self.repository)
+endfunction " }}}
+function! s:git.is_rebase_merging() abort " {{{
+  " is_xxxxx just check existence, thus no cache mech. required
+  return s:Core.is_rebase_merging(self.repository)
+endfunction " }}}
+function! s:git.is_rebase_merging_interactive() abort " {{{
+  " is_xxxxx just check existence, thus no cache mech. required
+  return s:Core.is_rebase_merging_interactive(self.repository)
+endfunction " }}}
+function! s:git.is_rebase_applying() abort " {{{
+  " is_xxxxx just check existence, thus no cache mech. required
+  return s:Core.is_rebase_applying(self.repository)
+endfunction " }}}
+function! s:git.is_rebase_applying_rebase() abort " {{{
+  " is_xxxxx just check existence, thus no cache mech. required
+  return s:Core.is_rebase_applying_rebase(self.repository)
+endfunction " }}}
+function! s:git.is_rebase_applying_am() abort " {{{
+  " is_xxxxx just check existence, thus no cache mech. required
+  return s:Core.is_rebase_applying_am(self.repository)
+endfunction " }}}
+
+function! s:git.get_mode() abort " {{{
+  " Core.get_mode mainly use filereadable internally thus no cache mech. is
+  " required
+  return s:Core.get_mode(self.repository)
 endfunction " }}}
 function! s:git.get_commit_editmsg(...) abort " {{{
   let options = extend({
