@@ -1,6 +1,7 @@
 call vital#of('vital').unload()
 let s:V = vital#of('vital')
 let s:P = s:V.import('System.Filepath')
+let s:F = s:V.import('System.File')
 let s:C = s:V.import('VCS.Git.Core')
 
 
@@ -180,6 +181,449 @@ Describe VCS.Git.Core
       let ret = s:C.get_merge_mode(repository)
       Assert Equals(ret, 'foo')
       call delete(filename)
+    End
+  End
+
+  Context .get_rebase_merge_head({repository})
+    Before
+      let dirname = s:P.join(repository, 'rebase-merge')
+      let filename = s:P.join(dirname, 'head-name')
+      call mkdir(dirname, 'p')
+    End
+    After
+      call s:F.rmdir(dirname)
+    End
+
+    It should return an empty string if rebase-merge/head-name is missing
+      let ret = s:C.get_rebase_merge_head(repository)
+      Assert Equals(ret, '')
+    End
+
+    It should return a string of the file content
+      call writefile(['foo'], filename)
+      let ret = s:C.get_rebase_merge_head(repository)
+      Assert Equals(ret, 'foo')
+      call delete(filename)
+    End
+  End
+
+  Context .get_rebase_merge_step({repository})
+    Before
+      let dirname = s:P.join(repository, 'rebase-merge')
+      let filename = s:P.join(dirname, 'msgnum')
+      call mkdir(dirname, 'p')
+    End
+    After
+      call s:F.rmdir(dirname)
+    End
+
+    It should return an empty string if rebase-merge/msgnum is missing
+      let ret = s:C.get_rebase_merge_step(repository)
+      Assert Equals(ret, '')
+    End
+
+    It should return a string of the file content
+      call writefile(['foo'], filename)
+      let ret = s:C.get_rebase_merge_step(repository)
+      Assert Equals(ret, 'foo')
+      call delete(filename)
+    End
+  End
+
+  Context .get_rebase_merge_total({repository})
+    Before
+      let dirname = s:P.join(repository, 'rebase-merge')
+      let filename = s:P.join(dirname, 'end')
+      call mkdir(dirname, 'p')
+    End
+    After
+      call s:F.rmdir(dirname)
+    End
+
+    It should return an empty string if rebase-merge/end is missing
+      let ret = s:C.get_rebase_merge_total(repository)
+      Assert Equals(ret, '')
+    End
+
+    It should return a string of the file content
+      call writefile(['foo'], filename)
+      let ret = s:C.get_rebase_merge_total(repository)
+      Assert Equals(ret, 'foo')
+      call delete(filename)
+    End
+  End
+
+  Context .get_rebase_apply_head({repository})
+    Before
+      let dirname = s:P.join(repository, 'rebase-apply')
+      let filename = s:P.join(dirname, 'head-name')
+      call mkdir(dirname, 'p')
+    End
+    After
+      call s:F.rmdir(dirname)
+    End
+
+    It should return an empty string if rebase-apply/head-name is missing
+      let ret = s:C.get_rebase_apply_head(repository)
+      Assert Equals(ret, '')
+    End
+
+    It should return a string of the file content
+      call writefile(['foo'], filename)
+      let ret = s:C.get_rebase_apply_head(repository)
+      Assert Equals(ret, 'foo')
+      call delete(filename)
+    End
+  End
+
+  Context .get_rebase_apply_step({repository})
+    Before
+      let dirname = s:P.join(repository, 'rebase-apply')
+      let filename = s:P.join(dirname, 'next')
+      call mkdir(dirname, 'p')
+    End
+    After
+      call s:F.rmdir(dirname)
+    End
+
+    It should return an empty string if rebase-apply/next is missing
+      let ret = s:C.get_rebase_apply_step(repository)
+      Assert Equals(ret, '')
+    End
+
+    It should return a string of the file content
+      call writefile(['foo'], filename)
+      let ret = s:C.get_rebase_apply_step(repository)
+      Assert Equals(ret, 'foo')
+      call delete(filename)
+    End
+  End
+
+  Context .get_rebase_apply_total({repository})
+    Before
+      let dirname = s:P.join(repository, 'rebase-apply')
+      let filename = s:P.join(dirname, 'last')
+      call mkdir(dirname, 'p')
+    End
+    After
+      call s:F.rmdir(dirname)
+    End
+
+    It should return an empty string if rebase-apply/last is missing
+      let ret = s:C.get_rebase_apply_total(repository)
+      Assert Equals(ret, '')
+    End
+
+    It should return a string of the file content
+      call writefile(['foo'], filename)
+      let ret = s:C.get_rebase_apply_total(repository)
+      Assert Equals(ret, 'foo')
+      call delete(filename)
+    End
+  End
+
+  Context .get_cherry_pick_head({repository})
+    It should return an empty string if CHERRY_PICK_HEAD is missing
+      let ret = s:C.get_cherry_pick_head(repository)
+      Assert Equals(ret, '')
+    End
+
+    It should return a string of CHERRY_PICK_HEAD content
+      let filename = s:P.join(repository, 'CHERRY_PICK_HEAD')
+      call writefile(['foo'], filename)
+      let ret = s:C.get_cherry_pick_head(repository)
+      Assert Equals(ret, 'foo')
+      call delete(filename)
+    End
+  End
+
+  Context .get_revert_head({repository})
+    It should return an empty string if REVERT_HEAD is missing
+      let ret = s:C.get_revert_head(repository)
+      Assert Equals(ret, '')
+    End
+
+    It should return a string of REVERT_HEAD content
+      let filename = s:P.join(repository, 'REVERT_HEAD')
+      call writefile(['foo'], filename)
+      let ret = s:C.get_revert_head(repository)
+      Assert Equals(ret, 'foo')
+      call delete(filename)
+    End
+  End
+
+  Context .get_bisect_log({repository})
+    It should return an empty string if BISECT_LOG is missing
+      let ret = s:C.get_bisect_log(repository)
+      Assert Equals(ret, '')
+    End
+
+    It should return a string of BISECT_LOG content
+      let filename = s:P.join(repository, 'BISECT_LOG')
+      call writefile(['foo'], filename)
+      let ret = s:C.get_bisect_log(repository)
+      Assert Equals(ret, 'foo')
+      call delete(filename)
+    End
+  End
+
+  Context .is_rebase_merging({repository})
+    Before
+      let dirname = s:P.join(repository, 'rebase-merge')
+    End
+
+    It should return 0 if rebase-merge is missing
+      let ret = s:C.is_rebase_merging(repository)
+      Assert Equals(ret, 0)
+    End
+
+    It should return 1 otherwise
+      call mkdir(dirname, 'p')
+      let ret = s:C.is_rebase_merging(repository)
+      Assert Equals(ret, 1)
+      call s:F.rmdir(dirname)
+    End
+  End
+
+  Context .is_rebase_merging_interactive({repository})
+    Before
+      let dirname = s:P.join(repository, 'rebase-merge')
+      let filename = s:P.join(dirname, 'interactive')
+      call mkdir(dirname, 'p')
+    End
+    After
+      call s:F.rmdir(dirname)
+    End
+
+    It should return 0 if rebase-merge/interactive is missing
+      let ret = s:C.is_rebase_merging_interactive(repository)
+      Assert Equals(ret, 0)
+    End
+
+    It should return 1 otherwise
+      call writefile([], filename)
+      let ret = s:C.is_rebase_merging_interactive(repository)
+      Assert Equals(ret, 1)
+      call delete(filename)
+    End
+  End
+
+  Context .is_rebase_applying({repository})
+    Before
+      let dirname = s:P.join(repository, 'rebase-apply')
+    End
+
+    It should return 0 if rebase-apply is missing
+      let ret = s:C.is_rebase_applying(repository)
+      Assert Equals(ret, 0)
+    End
+
+    It should return 1 otherwise
+      call mkdir(dirname, 'p')
+      let ret = s:C.is_rebase_applying(repository)
+      Assert Equals(ret, 1)
+      call s:F.rmdir(dirname)
+    End
+  End
+
+  Context .is_rebase_applying_rebase({repository})
+    Before
+      let dirname = s:P.join(repository, 'rebase-apply')
+      let filename = s:P.join(dirname, 'rebasing')
+      call mkdir(dirname, 'p')
+    End
+    After
+      call s:F.rmdir(dirname)
+    End
+
+    It should return 0 if rebase-apply/rebasing is missing
+      let ret = s:C.is_rebase_applying_rebase(repository)
+      Assert Equals(ret, 0)
+    End
+
+    It should return 1 otherwise
+      call writefile([], filename)
+      let ret = s:C.is_rebase_applying_rebase(repository)
+      Assert Equals(ret, 1)
+      call delete(filename)
+    End
+  End
+
+  Context .is_rebase_applying_am({repository})
+    Before
+      let dirname = s:P.join(repository, 'rebase-apply')
+      let filename = s:P.join(dirname, 'applying')
+      call mkdir(dirname, 'p')
+    End
+    After
+      call s:F.rmdir(dirname)
+    End
+
+    It should return 0 if rebase-apply/applying is missing
+      let ret = s:C.is_rebase_applying_am(repository)
+      Assert Equals(ret, 0)
+    End
+
+    It should return 1 otherwise
+      call writefile([], filename)
+      let ret = s:C.is_rebase_applying_am(repository)
+      Assert Equals(ret, 1)
+      call delete(filename)
+    End
+  End
+
+  Context .is_merging({repository})
+    Before
+      let filename = s:P.join(repository, 'MERGE_HEAD')
+    End
+
+    It should return 0 if MERGE_HEAD is missing
+      let ret = s:C.is_merging(repository)
+      Assert Equals(ret, 0)
+    End
+
+    It should return 1 otherwise
+      call writefile([], filename)
+      let ret = s:C.is_merging(repository)
+      Assert Equals(ret, 1)
+      call delete(filename)
+    End
+  End
+
+  Context .is_cherry_picking({repository})
+    Before
+      let filename = s:P.join(repository, 'CHERRY_PICK_HEAD')
+    End
+
+    It should return 0 if CHERRY_PICK_HEAD is missing
+      let ret = s:C.is_cherry_picking(repository)
+      Assert Equals(ret, 0)
+    End
+
+    It should return 1 otherwise
+      call writefile([], filename)
+      let ret = s:C.is_cherry_picking(repository)
+      Assert Equals(ret, 1)
+      call delete(filename)
+    End
+  End
+
+  Context .is_reverting({repository})
+    Before
+      let filename = s:P.join(repository, 'REVERT_HEAD')
+    End
+
+    It should return 0 if REVERT_HEAD is missing
+      let ret = s:C.is_reverting(repository)
+      Assert Equals(ret, 0)
+    End
+
+    It should return 1 otherwise
+      call writefile([], filename)
+      let ret = s:C.is_reverting(repository)
+      Assert Equals(ret, 1)
+      call delete(filename)
+    End
+  End
+
+  Context .is_bisecting({repository})
+    Before
+      let filename = s:P.join(repository, 'BISECT_LOG')
+    End
+
+    It should return 0 if BISECT_LOG is missing
+      let ret = s:C.is_bisecting(repository)
+      Assert Equals(ret, 0)
+    End
+
+    It should return 1 otherwise
+      call writefile([], filename)
+      let ret = s:C.is_bisecting(repository)
+      Assert Equals(ret, 1)
+      call delete(filename)
+    End
+  End
+
+  Context .get_mode({repository})
+    It should return 'REBASE-i 0/5' during interactive rebasing
+      call mkdir(s:P.join(repository, 'rebase-merge'))
+      call writefile(['0'], s:P.join(repository, 'rebase-merge', 'msgnum'))
+      call writefile(['5'], s:P.join(repository, 'rebase-merge', 'end'))
+      call writefile([], s:P.join(repository, 'rebase-merge', 'interactive'))
+      let ret = s:C.get_mode(repository)
+      Assert Equals(ret, 'REBASE-i 0/5')
+      call s:F.rmdir(s:P.join(repository, 'rebase-merge'), 'r')
+    End
+
+    It should return 'REBASE-m 0/5' during rebasing
+      call mkdir(s:P.join(repository, 'rebase-merge'))
+      call writefile(['0'], s:P.join(repository, 'rebase-merge', 'msgnum'))
+      call writefile(['5'], s:P.join(repository, 'rebase-merge', 'end'))
+      let ret = s:C.get_mode(repository)
+      Assert Equals(ret, 'REBASE-m 0/5')
+      call s:F.rmdir(s:P.join(repository, 'rebase-merge'), 'r')
+    End
+
+    It should return 'REBASE 0/5' during rebase applying
+      call mkdir(s:P.join(repository, 'rebase-apply'))
+      call writefile(['0'], s:P.join(repository, 'rebase-apply', 'next'))
+      call writefile(['5'], s:P.join(repository, 'rebase-apply', 'last'))
+      call writefile([], s:P.join(repository, 'rebase-apply', 'rebasing'))
+      let ret = s:C.get_mode(repository)
+      Assert Equals(ret, 'REBASE 0/5')
+      call s:F.rmdir(s:P.join(repository, 'rebase-apply'), 'r')
+    End
+
+    It should return 'AM 0/5' during rebase applying via git am
+      call mkdir(s:P.join(repository, 'rebase-apply'))
+      call writefile(['0'], s:P.join(repository, 'rebase-apply', 'next'))
+      call writefile(['5'], s:P.join(repository, 'rebase-apply', 'last'))
+      call writefile([], s:P.join(repository, 'rebase-apply', 'applying'))
+      let ret = s:C.get_mode(repository)
+      Assert Equals(ret, 'AM 0/5')
+      call s:F.rmdir(s:P.join(repository, 'rebase-apply'), 'r')
+    End
+
+    It should return 'AM/REBASE 0/5' during applying
+      call mkdir(s:P.join(repository, 'rebase-apply'))
+      call writefile(['0'], s:P.join(repository, 'rebase-apply', 'next'))
+      call writefile(['5'], s:P.join(repository, 'rebase-apply', 'last'))
+      let ret = s:C.get_mode(repository)
+      Assert Equals(ret, 'AM/REBASE 0/5')
+      call s:F.rmdir(s:P.join(repository, 'rebase-apply'), 'r')
+    End
+
+    It should return 'MERGING' during merging
+      call writefile([], s:P.join(repository, 'MERGE_HEAD'))
+      let ret = s:C.get_mode(repository)
+      Assert Equals(ret, 'MERGING')
+      call delete(s:P.join(repository, 'MERGE_HEAD'))
+    End
+
+    It should return 'CHERRY-PICKING' during cherry picking
+      call writefile([], s:P.join(repository, 'CHERRY_PICK_HEAD'))
+      let ret = s:C.get_mode(repository)
+      Assert Equals(ret, 'CHERRY-PICKING')
+      call delete(s:P.join(repository, 'CHERRY_PICK_HEAD'))
+    End
+
+    It should return 'REVERTING' during reverting
+      call writefile([], s:P.join(repository, 'REVERT_HEAD'))
+      let ret = s:C.get_mode(repository)
+      Assert Equals(ret, 'REVERTING')
+      call delete(s:P.join(repository, 'REVERT_HEAD'))
+    End
+
+    It should return 'BISECTING' during bisecting
+      call writefile([], s:P.join(repository, 'BISECT_LOG'))
+      let ret = s:C.get_mode(repository)
+      Assert Equals(ret, 'BISECTING')
+      call delete(s:P.join(repository, 'BISECT_LOG'))
+    End
+
+    It should return '' otherwise
+      let ret = s:C.get_mode(repository)
+      Assert Equals(ret, '')
     End
   End
 

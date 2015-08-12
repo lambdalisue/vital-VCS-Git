@@ -122,6 +122,113 @@ function! s:get_merge_mode(repository) abort " {{{
   let filename = s:Path.join(a:repository, 'MERGE_MODE')
   return s:_readline(filename)
 endfunction " }}}
+function! s:get_rebase_merge_head(repository) abort " {{{
+  let filename = s:Path.join(a:repository, 'rebase-merge', 'head-name')
+  return s:_readline(filename)
+endfunction " }}}
+function! s:get_rebase_merge_step(repository) abort " {{{
+  let filename = s:Path.join(a:repository, 'rebase-merge', 'msgnum')
+  return s:_readline(filename)
+endfunction " }}}
+function! s:get_rebase_merge_total(repository) abort " {{{
+  let filename = s:Path.join(a:repository, 'rebase-merge', 'end')
+  return s:_readline(filename)
+endfunction " }}}
+function! s:get_rebase_apply_head(repository) abort " {{{
+  let filename = s:Path.join(a:repository, 'rebase-apply', 'head-name')
+  return s:_readline(filename)
+endfunction " }}}
+function! s:get_rebase_apply_step(repository) abort " {{{
+  let filename = s:Path.join(a:repository, 'rebase-apply', 'next')
+  return s:_readline(filename)
+endfunction " }}}
+function! s:get_rebase_apply_total(repository) abort " {{{
+  let filename = s:Path.join(a:repository, 'rebase-apply', 'last')
+  return s:_readline(filename)
+endfunction " }}}
+function! s:get_cherry_pick_head(repository) abort " {{{
+  let filename = s:Path.join(a:repository, 'CHERRY_PICK_HEAD')
+  return s:_readline(filename)
+endfunction " }}}
+function! s:get_revert_head(repository) abort " {{{
+  let filename = s:Path.join(a:repository, 'REVERT_HEAD')
+  return s:_readline(filename)
+endfunction " }}}
+function! s:get_bisect_log(repository) abort " {{{
+  let filename = s:Path.join(a:repository, 'BISECT_LOG')
+  return s:_readline(filename)
+endfunction " }}}
+
+function! s:is_rebase_merging(repository) abort " {{{
+  let path = s:Path.join(a:repository, 'rebase-merge')
+  return isdirectory(path)
+endfunction " }}}
+function! s:is_rebase_merging_interactive(repository) abort " {{{
+  let filename = s:Path.join(a:repository, 'rebase-merge', 'interactive')
+  return filereadable(filename)
+endfunction " }}}
+function! s:is_rebase_applying(repository) abort " {{{
+  let path = s:Path.join(a:repository, 'rebase-apply')
+  return isdirectory(path)
+endfunction " }}}
+function! s:is_rebase_applying_rebase(repository) abort " {{{
+  let path = s:Path.join(a:repository, 'rebase-apply', 'rebasing')
+  return filereadable(path)
+endfunction " }}}
+function! s:is_rebase_applying_am(repository) abort " {{{
+  let path = s:Path.join(a:repository, 'rebase-apply', 'applying')
+  return filereadable(path)
+endfunction " }}}
+function! s:is_merging(repository) abort " {{{
+  let path = s:Path.join(a:repository, 'MERGE_HEAD')
+  return filereadable(path)
+endfunction " }}}
+function! s:is_cherry_picking(repository) abort " {{{
+  let path = s:Path.join(a:repository, 'CHERRY_PICK_HEAD')
+  return filereadable(path)
+endfunction " }}}
+function! s:is_reverting(repository) abort " {{{
+  let path = s:Path.join(a:repository, 'REVERT_HEAD')
+  return filereadable(path)
+endfunction " }}}
+function! s:is_bisecting(repository) abort " {{{
+  let path = s:Path.join(a:repository, 'BISECT_LOG')
+  return filereadable(path)
+endfunction " }}}
+
+function! s:get_mode(repository) abort " {{{
+  " https://github.com/git/git/blob/dd160d7/contrib/completion/git-prompt.sh#L391-L460
+  if s:is_rebase_merging(a:repository)
+    let step  = s:get_rebase_merge_step(a:repository)
+    let total = s:get_rebase_merge_total(a:repository)
+    if s:is_rebase_merging_interactive(a:repository)
+      return printf('REBASE-i %d/%d', step, total)
+    else
+      return printf('REBASE-m %d/%d', step, total)
+    endif
+  else
+    if s:is_rebase_applying(a:repository)
+      let step  = s:get_rebase_apply_step(a:repository)
+      let total = s:get_rebase_apply_total(a:repository)
+      if s:is_rebase_applying_rebase(a:repository)
+        return printf('REBASE %d/%d', step, total)
+      elseif s:is_rebase_applying_am(a:repository)
+        return printf('AM %d/%d', step, total)
+      else
+        return printf('AM/REBASE %d/%d', step, total)
+      endif
+    elseif s:is_merging(a:repository)
+      return 'MERGING'
+    elseif s:is_cherry_picking(a:repository)
+      return 'CHERRY-PICKING'
+    elseif s:is_reverting(a:repository)
+      return 'REVERTING'
+    elseif s:is_bisecting(a:repository)
+      return 'BISECTING'
+    endif
+  endif
+  return ''
+endfunction " }}}
 function! s:get_commit_editmsg(repository) abort " {{{
   " This is the last commit’s message. It’s not actually used by Git at all,
   " but it’s there mostly for your reference after you made a commit.
