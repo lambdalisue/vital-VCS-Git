@@ -115,11 +115,16 @@ function! s:get_merge_head(repository) abort " {{{
   let filename = s:Path.join(a:repository, 'MERGE_HEAD')
   return s:_readline(filename)
 endfunction " }}}
-function! s:get_merge_mode(repository) abort " {{{
-  " Used to communicate constraints that were originally given to git merge to
-  " git commit when a merge conflicts, and a separate git commit is needed to
-  " conclude it. Currently --no-ff is the only constraints passed this way.
-  let filename = s:Path.join(a:repository, 'MERGE_MODE')
+function! s:get_cherry_pick_head(repository) abort " {{{
+  let filename = s:Path.join(a:repository, 'CHERRY_PICK_HEAD')
+  return s:_readline(filename)
+endfunction " }}}
+function! s:get_revert_head(repository) abort " {{{
+  let filename = s:Path.join(a:repository, 'REVERT_HEAD')
+  return s:_readline(filename)
+endfunction " }}}
+function! s:get_bisect_log(repository) abort " {{{
+  let filename = s:Path.join(a:repository, 'BISECT_LOG')
   return s:_readline(filename)
 endfunction " }}}
 function! s:get_rebase_merge_head(repository) abort " {{{
@@ -146,19 +151,23 @@ function! s:get_rebase_apply_total(repository) abort " {{{
   let filename = s:Path.join(a:repository, 'rebase-apply', 'last')
   return s:_readline(filename)
 endfunction " }}}
-function! s:get_cherry_pick_head(repository) abort " {{{
-  let filename = s:Path.join(a:repository, 'CHERRY_PICK_HEAD')
-  return s:_readline(filename)
-endfunction " }}}
-function! s:get_revert_head(repository) abort " {{{
-  let filename = s:Path.join(a:repository, 'REVERT_HEAD')
-  return s:_readline(filename)
-endfunction " }}}
-function! s:get_bisect_log(repository) abort " {{{
-  let filename = s:Path.join(a:repository, 'BISECT_LOG')
-  return s:_readline(filename)
-endfunction " }}}
 
+function! s:is_merging(repository) abort " {{{
+  let path = s:Path.join(a:repository, 'MERGE_HEAD')
+  return filereadable(path)
+endfunction " }}}
+function! s:is_cherry_picking(repository) abort " {{{
+  let path = s:Path.join(a:repository, 'CHERRY_PICK_HEAD')
+  return filereadable(path)
+endfunction " }}}
+function! s:is_reverting(repository) abort " {{{
+  let path = s:Path.join(a:repository, 'REVERT_HEAD')
+  return filereadable(path)
+endfunction " }}}
+function! s:is_bisecting(repository) abort " {{{
+  let path = s:Path.join(a:repository, 'BISECT_LOG')
+  return filereadable(path)
+endfunction " }}}
 function! s:is_rebase_merging(repository) abort " {{{
   let path = s:Path.join(a:repository, 'rebase-merge')
   return isdirectory(path)
@@ -177,22 +186,6 @@ function! s:is_rebase_applying_rebase(repository) abort " {{{
 endfunction " }}}
 function! s:is_rebase_applying_am(repository) abort " {{{
   let path = s:Path.join(a:repository, 'rebase-apply', 'applying')
-  return filereadable(path)
-endfunction " }}}
-function! s:is_merging(repository) abort " {{{
-  let path = s:Path.join(a:repository, 'MERGE_HEAD')
-  return filereadable(path)
-endfunction " }}}
-function! s:is_cherry_picking(repository) abort " {{{
-  let path = s:Path.join(a:repository, 'CHERRY_PICK_HEAD')
-  return filereadable(path)
-endfunction " }}}
-function! s:is_reverting(repository) abort " {{{
-  let path = s:Path.join(a:repository, 'REVERT_HEAD')
-  return filereadable(path)
-endfunction " }}}
-function! s:is_bisecting(repository) abort " {{{
-  let path = s:Path.join(a:repository, 'BISECT_LOG')
   return filereadable(path)
 endfunction " }}}
 

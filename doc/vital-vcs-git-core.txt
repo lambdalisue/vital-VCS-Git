@@ -112,10 +112,133 @@ get_merge_head({repository})
 
 	Return a SHAs of the branch you're merging from during a merge.
 
-				*Vital.VCS.Git.Core.get_merge_mode()*
-get_merge_mode({repository})
+			*Vital.VCS.Git.Core.get_rebase_merge_head()*
+get_rebase_merge_head({repository})
 
-	Return a content of 'MERGE_MODE' in the {repository}
+	Return a content of 'rebase-merge/head-name' in the {repository}
+
+			*Vital.VCS.Git.Core.get_rebase_merge_step()*
+get_rebase_merge_step({repository})
+
+	Return a content of 'rebase-merge/msgnum' in the {repository}
+
+			*Vital.VCS.Git.Core.get_rebase_merge_total()*
+get_rebase_merge_total({repository})
+
+	Return a content of 'rebase-merge/end' in the {repository}
+
+			*Vital.VCS.Git.Core.get_rebase_apply_head()*
+get_rebase_apply_head({repository})
+
+	Return a content of 'rebase-apply/head-name' in the {repository}
+
+			*Vital.VCS.Git.Core.get_rebase_apply_step()*
+get_rebase_apply_step({repository})
+
+	Return a content of 'rebase-apply/next' in the {repository}
+
+			*Vital.VCS.Git.Core.get_rebase_apply_total()*
+get_rebase_apply_total({repository})
+
+	Return a content of 'rebase-apply/total' in the {repository}
+
+			*Vital.VCS.Git.Core.get_cherry_pick_head()*
+get_cherry_pick_head({repository})
+
+	Return a content of 'CHERRY_PICK_HEAD' in the {repository}
+
+			*Vital.VCS.Git.Core.get_revert_head()*
+get_revert_head({repository})
+
+	Return a content of 'REVERT_HEAD' in the {repository}
+
+			*Vital.VCS.Git.Core.get_bisect_log()*
+get_bisect_log({repository})
+
+	Return a content of 'BISECT_LOG' in the {repository}
+
+			*Vital.VCS.Git.Core.is_merging()*
+is_merging({repository})
+
+	Return 0 or 1 to indicate the {repository} is in merge mode.
+	It just return the existence of a corresponding file and does not
+	refer the real situation. See |Vital.VCS.Git.Core.get_mode()| for
+	getting the real situation.
+
+			*Vital.VCS.Git.Core.is_cherry_picking()*
+is_cherry_picking({repository})
+
+	Return 0 or 1 to indicate the {repository} is in cherry-pick mode.
+	It just return the existence of a corresponding file and does not
+	refer the real situation. See |Vital.VCS.Git.Core.get_mode()| for
+	getting the real situation.
+
+			*Vital.VCS.Git.Core.is_reverting()*
+is_reverting({repository})
+
+	Return 0 or 1 to indicate the {repository} is in revert mode.
+	It just return the existence of a corresponding file and does not
+	refer the real situation. See |Vital.VCS.Git.Core.get_mode()| for
+	getting the real situation.
+
+			*Vital.VCS.Git.Core.is_bisecting()*
+is_bisecting({repository})
+
+	Return 0 or 1 to indicate the {repository} is in bisect mode.
+	It just return the existence of a corresponding file and does not
+	refer the real situation. See |Vital.VCS.Git.Core.get_mode()| for
+	getting the real situation.
+
+			*Vital.VCS.Git.Core.is_rebase_merging()*
+is_rebase_merging({repository})
+
+	Return 0 or 1 to indicate the {repository} is in rebase merge mode.
+	It just return the existence of a corresponding file and does not
+	refer the real situation. See |Vital.VCS.Git.Core.get_mode()| for
+	getting the real situation.
+
+			*Vital.VCS.Git.Core.is_rebase_merging_interactive()*
+is_rebase_merging_interactive({repository})
+
+	Return 0 or 1 to indicate the {repository} is in interactive rebase
+	merge mode.
+	It just return the existence of a corresponding file and does not
+	refer the real situation. See |Vital.VCS.Git.Core.get_mode()| for
+	getting the real situation.
+
+			*Vital.VCS.Git.Core.is_rebase_applying()*
+is_rebase_applying({repository})
+
+	Return 0 or 1 to indicate the {repository} is in rebase apply mode.
+	It just return the existence of a corresponding file and does not
+	refer the real situation. See |Vital.VCS.Git.Core.get_mode()| for
+	getting the real situation.
+
+			*Vital.VCS.Git.Core.is_rebase_applying_rebase()*
+is_rebase_applying_rebase({repository})
+
+	Return 0 or 1 to indicate the {repository} is in rebase apply rebase
+	mode.
+	It just return the existence of a corresponding file and does not
+	refer the real situation. See |Vital.VCS.Git.Core.get_mode()| for
+	getting the real situation.
+
+			*Vital.VCS.Git.Core.is_rebase_applying_am()*
+is_rebase_applying_am({repository})
+
+	Return 0 or 1 to indicate the {repository} is in rebase apply am mode.
+	It just return the existence of a corresponding file and does not
+	refer the real situation. See |Vital.VCS.Git.Core.get_mode()| for
+	getting the real situation.
+
+					*Vital.VCS.Git.Core.get_mode()*
+get_mode({repository})
+
+	Return a |String| which indicate the current mode of the {repository}
+	in.
+	It use a similar method to determine the mode as '__git_ps1' function
+	of 'git-prompt.sh' provided by git itself.
+	https://github.com/git/git/blob/dd160d7/contrib/completion/git-prompt.sh#L391-L460
 
 				*Vital.VCS.Git.Core.get_commit_editmsg()*
 get_commit_editmsg({repository})
@@ -158,7 +281,6 @@ get_branch_merge({config}, {local_branch})
 	let merge = s:Core.get_branch_merge(config, 'master')
 	let remote_branch_name = substitute(merge, '^refs/heads', '', '')
 <
-
 				*Vital.VCS.Git.Core.get_remote_fetch()*
 get_remote_fetch({config}, {remote})
 
@@ -175,7 +297,7 @@ get_comment_char({config})
 	Return an comment character used in commit message.
 
 system({args} [, {opts}])		*Vital.VCS.Git.Core.system()*
-	
+
 	Execute exterenal commands specified in {args} (|List|) via |system()| or
 	|vimproc#system()| if available. The {args} will be flatten via
 	|Vital.Data.List.flatten()| internally.
@@ -184,7 +306,7 @@ system({args} [, {opts}])		*Vital.VCS.Git.Core.system()*
 	execution.
 
 	{opts}
-	
+
 		'stdin'
 		A |String| which will be used as a 'input' argument of
 		|system()| or |vimproc#system()| function. If empty string is
@@ -194,11 +316,6 @@ system({args} [, {opts}])		*Vital.VCS.Git.Core.system()*
 		'timeout'
 		A |Number| which will be used as a 'timeout' argument of
 		|vimproc#system()| function if available.
-
-		'cwd'
-		A |String| which will be used for temporary working directory
-		in command execution. If empty string is specified, the
-		execution will be performed in the current directory.
 
 	{result}
 
@@ -216,6 +333,31 @@ system({args} [, {opts}])		*Vital.VCS.Git.Core.system()*
 		'opts'
 		A |Dictionary| equals to {opts}
 
+				*Vital.VCS.Git.Core.system_interactive()*
+system_interactive({args})
+
+	An experimental function.
+	Execute external commands specified in {args} (|List|) via |:!| to
+	allow interactive commands. The {args} will be flatten via
+	|Vital.Data.List.flatten()| internally.
+	It return {result} (|Dictionary|) which contains 'status', 'stdout',
+	'args', and 'opts'.
+
+	{result}
+
+		'status'
+		A |Number| which indicate the execution exit status.
+
+		'stdout'
+		A |String| which indicate stdout of the execution. A trailing
+		newline ('\n' or '\r\n') are removed.
+
+		'args'
+		A |List| which indicate an actual {args} passed into
+		|system()| or |vimproc#system()|
+
+		'opts'
+		A |Dictionary| equals to {opts}
 
 exec({args} [, {opts}])			*Vital.VCS.Git.Core.exec()*
 
@@ -223,7 +365,15 @@ exec({args} [, {opts}])			*Vital.VCS.Git.Core.exec()*
 	|Vital.VCS.Git.Core.system()| function.
 	|Vital.VCS.Git.Core.executable| and |Vital.VCS.Git.Core.arguments|
 	will be added to {args} before execution. {opts} is a |Dictionary|
-	equals to {opts} in |Vital.VCS.Git.Core.system()|.
+	similar to {opts} in |Vital.VCS.Git.Core.system()|. The function
+	special argument is listed below:
+
+	{opts}
+
+		'interactive'
+		Use |Vital.VCS.Git.Core.system_interactive()| rather than
+		|Vital.VCS.Git.Core.system()| to allow interactive commands.
+		(Experimentally)
 
 get_version()				*Vital.VCS.Git.Core.get_version()*
 

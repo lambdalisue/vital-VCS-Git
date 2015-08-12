@@ -169,21 +169,6 @@ Describe VCS.Git.Core
     End
   End
 
-  Context .get_merge_mode({repository})
-    It should return an empty string if MERGE_MODE is missing
-      let ret = s:C.get_merge_mode(repository)
-      Assert Equals(ret, '')
-    End
-
-    It should return a string of MERGE_MODE content
-      let filename = s:P.join(repository, 'MERGE_MODE')
-      call writefile(['foo'], filename)
-      let ret = s:C.get_merge_mode(repository)
-      Assert Equals(ret, 'foo')
-      call delete(filename)
-    End
-  End
-
   Context .get_rebase_merge_head({repository})
     Before
       let dirname = s:P.join(repository, 'rebase-merge')
