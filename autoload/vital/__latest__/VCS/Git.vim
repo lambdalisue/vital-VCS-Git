@@ -529,32 +529,35 @@ endfunction " }}}
 function! s:git.get_meta() abort " {{{
   let meta = {}
   let meta.head = self.get_head()
-  let meta.fetch_head = self.get_fetch_head()
-  let meta.orig_head = self.get_orig_head()
-  let meta.merge_head = self.get_merge_head()
-  let meta.commit_editmsg = self.get_commit_editmsg()
-  let meta.last_commitmsg =
-        \ empty(meta.commit_editmsg)
+
+  " commit msg
+  let commit_editmsg = self.get_commit_editmsg()
+  let meta.last_commitmsg = empty(commit_editmsg)
         \ ? self.get_last_commitmsg()
-        \ : meta.commit_editmsg
-  let meta.merge_msg = self.get_merge_msg()
-  let meta.current_branch = meta.head =~? 'refs/heads/'
-        \ ? matchstr(meta.head, 'refs/heads/\zs.\+$')
-        \ : meta.head[:6]
-  let meta.current_branch_hash = self.get_local_hash(meta.current_branch)
-  let meta.repository_config = self.get_repository_config()
-  let meta.current_branch_remote = self.get_branch_remote(meta.current_branch)
-  let meta.current_branch_merge = self.get_branch_merge(meta.current_branch)
-  let meta.current_remote_fetch = self.get_remote_fetch(meta.current_branch_remote)
-  let meta.current_remote_url = self.get_remote_url(meta.current_branch_remote)
-  let meta.comment_char = self.get_comment_char()
-  let meta.current_remote_branch = matchstr(meta.current_branch_merge, 'refs/heads/\zs.\+$')
-  let meta.current_remote_branch_hash = self.get_remote_hash(
-        \ meta.current_branch_remote,
-        \ meta.current_remote_branch,
+        \ : commit_editmsg
+
+  " local
+  let meta.local = {}
+  let meta.local.name = fnamemodify(self.worktree, ':t')
+  let meta.local.branch_name = meta.head =~? '^refs/heads/'
+        \ ? matchstr(meta.head, '^refs/heads/\zs.\+$')
+        \ : meta.head[:7]
+  let meta.local.branch_hash = self.get_local_hash(meta.local.branch_name)
+
+  " remote
+  let branch_remote = self.get_branch_remote(meta.local.branch_name)
+  let branch_merge  = self.get_branch_merge(meta.local.branch_name)
+  let meta.remote = {}
+  let meta.remote.name = branch_remote
+  let meta.remote.branch_name = empty(branch_remote) ? '' :
+        \ branch_merge =~? '^refs/heads/'
+        \ ? matchstr(branch_merge, '^refs/heads/\zs.\+$')
+        \ : branch_merge[:7]
+  let meta.remote.branch_hash = self.get_remote_hash(
+        \ branch_remote,
+        \ meta.remote.branch_name,
         \)
-  let meta.commits_ahead_of_remote = self.count_commits_ahead_of_remote()
-  let meta.commits_behind_remote = self.count_commits_behind_remote()
+  let meta.remote.url = self.get_remote_url(branch_remote)
   return meta
 endfunction " }}}
 

@@ -81,23 +81,19 @@ let git = s:G.find(expand('%'))
 ```
 
 Then you can get meta information of the repository with
-`Vital.VCS.Git-instance.get_meta()`
+`Vital.VCS.Git-instance.get_XXXXX()`
 
 ```vim
-let meta = git.get_meta()
+let head = git.get_meta()
 " echo current branch
-echo meta.current_branch
+echo meta.local.branch_name
 " echo remote branch of current branch
-echo meta.current_remote_branch
+echo meta.remote.branch_name
 ```
 
-To call a git command, check `Vital.VCS.Git-git-commands` to find if the command
-is already exists or call `Vital.VCS.Git-instance.exec()`.
+To call a git command, call `Vital.VCS.Git-instance.exec()`.
 
 ```vim
-" add is already prepared
-call git.add({'force': 1}, ['file1.txt', 'file2.txt'])
-" rev-parse is not
 call git.exec(['rev-parse', '--is-inside-work-tree'])
 ```
 

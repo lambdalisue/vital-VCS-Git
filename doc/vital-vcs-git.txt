@@ -100,9 +100,9 @@ Then you can get meta information of the repository with
 >
 	let meta = git.get_meta()
 	" echo current branch
-	echo meta.current_branch
+	echo meta.local.branch_name
 	" echo remote branch of current branch
-	echo meta.current_remote_branch
+	echo meta.remote.branch_name
 <
 To call a git command, call |Vital.VCS.Git-instance.exec()|.
 >
@@ -463,66 +463,40 @@ get_meta()		*Vital.VCS.Git-instance.get_meta()*
 	'head'
 	A value returnd from |Vital.VCS.Git.get_head()|
 
-	'fetch_head'
-	A value returnd from |Vital.VCS.Git.get_fetch_head()|
-
-	'orig_head'
-	A value returnd from |Vital.VCS.Git.get_orig_head()|
-
-	'merge_head'
-	A value returnd from |Vital.VCS.Git.get_merge_head()|
-
-	'commit_editmsg'
-	A value returnd from |Vital.VCS.Git.get_commit_editmsg()|
-
-	'merge_msg'
-	A value returnd from |Vital.VCS.Git.get_merge_msg()|
-
 	'last_commitmsg'
 	A last commitmsg. If 'commit_editmsg' is not empty, it return that.
 	Otherwise it call |Vital.VCS.Git-instance.get_last_commitmsg()|.
 	Note: COMMIT_EDITMSG does not refer a correct last commit message when
 	user just close/pull the branch.
 
-	'current_branch'
-	A current branch name.
+	'local'
+	A |Dictionary| of local repository information which has the following attributes
 
-	'current_branch_hash'
-	A hash reference of a current branch.
+		'name'
+		A current repository name determined from the directory name
+		of the repository
 
-	'repository_config'
-	A value returnd from |Vital.VCS.Git.get_repository_config()|.
+		'branch_name'
+		A current branch name.
+		
+		'branch_hash'
+		A hash reference of a current branch.
 
-	'current_branch_remote'
-	A value returnd from |Vital.VCS.Git.get_branch_remote()| of current
-	branch.
+	'remote'
+	A |Dictionary| of remote repository of current branch information which has the
+	following attributes
 
-	'current_branch_merge'
-	A value returnd from |Vital.VCS.Git.get_branch_merge()| of current
-	branch.
+		'name'
+		A name of the remote. Usually it is 'origin'
 
-	'current_remote_fetch'
-	A value returnd from |Vital.VCS.Git.get_remote_fetch()| of current
-	branch remote.
+		'branch_name'
+		A remote branch name which is connected to the current local
+		branch.
+		
+		'branch_hash'
+		A hash reference of a current remote branch.
 
-	'current_remote_url'
-	A value returnd from |Vital.VCS.Git.get_remote_url()| of current branch
-	remote.
-
-	'comment_char'
-	A value returnd from |Vital.VCS.Git.get_comment_char()|.
-
-	'current_remote_branch'
-	A remote branch which the current branch connected.
-
-	'current_remote_branch_hash'
-	A hash reference of a current remote branch.
-
-	'commits_ahead_of_remote'
-	A value returned from |Vital.VCS.Git.count_commits_ahead_of_remote|.
-
-	'commits_behind_remote'
-	A value returned from |Vital.VCS.Git.count_commits_behind_remote|.
-
+		'url'
+		A url of the remote.
 
 vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl
