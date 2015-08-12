@@ -539,8 +539,8 @@ function! s:git.get_meta() abort " {{{
   " local
   let meta.local = {}
   let meta.local.name = fnamemodify(self.worktree, ':t')
-  let meta.local.branch_name = meta.head =~? '^refs/heads/'
-        \ ? matchstr(meta.head, '^refs/heads/\zs.\+$')
+  let meta.local.branch_name = meta.head =~? 'refs/heads/'
+        \ ? matchstr(meta.head, 'refs/heads/\zs.\+$')
         \ : meta.head[:7]
   let meta.local.branch_hash = self.get_local_hash(meta.local.branch_name)
 
@@ -550,8 +550,8 @@ function! s:git.get_meta() abort " {{{
   let meta.remote = {}
   let meta.remote.name = branch_remote
   let meta.remote.branch_name = empty(branch_remote) ? '' :
-        \ branch_merge =~? '^refs/heads/'
-        \ ? matchstr(branch_merge, '^refs/heads/\zs.\+$')
+        \ branch_merge =~? 'refs/heads/'
+        \ ? matchstr(branch_merge, 'refs/heads/\zs.\+$')
         \ : branch_merge[:7]
   let meta.remote.branch_hash = self.get_remote_hash(
         \ branch_remote,
