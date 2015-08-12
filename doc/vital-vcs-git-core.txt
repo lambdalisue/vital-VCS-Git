@@ -240,6 +240,19 @@ get_mode({repository})
 	of 'git-prompt.sh' provided by git itself.
 	https://github.com/git/git/blob/dd160d7/contrib/completion/git-prompt.sh#L391-L460
 
+	One of the following values possibly be returned.
+
+	'REBASE-i step/total'	interactive merge rebase with step/total
+	'REBASE-m step/total'	merge rebase with step/total
+	'REBASE step/total'	rebase with step/total
+	'AM step/total'		am with step/total
+	'AM/REBASE step/total'	am/rebase with step/total
+	'MERGING'		merge
+	'CHERRY-PICKING'	cherry pick
+	'REVERTING'		revert
+	'BISECTING'		bisect
+	''			otherwise
+
 				*Vital.VCS.Git.Core.get_commit_editmsg()*
 get_commit_editmsg({repository})
 

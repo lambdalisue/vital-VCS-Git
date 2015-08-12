@@ -200,6 +200,10 @@ find({path}[, {opts}])		*Vital.VCS.Git.find()*
 ------------------------------------------------------------------------------
 METHODS						*Vital.VCS.Git-methods*
 
+Note:
+Most of functions are just ported from |Vital.VCS.Git.Core| so check the
+documentation of that for detail.
+
 			*Vital.VCS.Git-instance.is_updated()*
 is_updated({filename})
 
@@ -247,6 +251,94 @@ get_merge_head()
 
 	Return a SHAs of the branch you're merging from during a merge.
 	The return value will be cached until a corresponding file is updated.
+
+				*Vital.VCS.Git-instance.get_cherry_pick_head()*
+get_cherry_pick_head()
+
+	Return a SHAs of the branch you're picking during a cherry pick.
+	The return value will be cached until a corresponding file is updated.
+
+				*Vital.VCS.Git-instance.get_revert_head()*
+get_recert_head()
+
+	Return a SHAs of the branch you're reverting during a revert.
+	The return value will be cached until a corresponding file is updated.
+
+				*Vital.VCS.Git-instance.get_bisect_log()*
+get_bisect_log()
+
+	Return a log content of the bisect.
+	The return value will be cached until a corresponding file is updated.
+
+				*Vital.VCS.Git-instance.is_merging()*
+is_merging()
+
+	Return 0 or 1 to indicate if the branch is in merge mode.
+
+				*Vital.VCS.Git-instance.is_cherry_picking()*
+is_cherry_picking()
+
+	Return 0 or 1 to indicate if the branch is in cherry pick mode.
+
+				*Vital.VCS.Git-instance.is_reverting()*
+is_reverting()
+
+	Return 0 or 1 to indicate if the branch is in revert mode.
+
+				*Vital.VCS.Git-instance.is_bisecting()*
+is_bisecting()
+
+	Return 0 or 1 to indicate if the branch is in bisect mode.
+
+				*Vital.VCS.Git-instance.is_rebase_merging()*
+is_rebase_merging()
+
+	Return 0 or 1 to indicate if the branch is in rebase merge mode.
+
+			*Vital.VCS.Git-instance.is_rebase_merging_interactive()*
+is_rebase_merging_interactive()
+
+	Return 0 or 1 to indicate if the branch is in interactive rebase merge
+	mode.
+
+				*Vital.VCS.Git-instance.is_rebase_applying()*
+is_rebase_applying()
+
+	Return 0 or 1 to indicate if the branch is in rebase apply mode.
+
+			*Vital.VCS.Git-instance.is_rebase_applying_rebase()*
+is_rebase_applying_rebase()
+
+	Return 0 or 1 to indicate if the branch is in rebase apply rebase
+	mode.
+
+			*Vital.VCS.Git-instance.is_rebase_applying_am()*
+is_rebase_applying_am()
+
+	Return 0 or 1 to indicate if the branch is in rebase apply AM
+	mode.
+
+					*Vital.VCS.Git-instance.get_mode()*
+get_mode()
+
+	Return a |String| which indicate the current mode of the {repository}
+	in.
+	It use a similar method to determine the mode as '__git_ps1' function
+	of 'git-prompt.sh' provided by git itself.
+	https://github.com/git/git/blob/dd160d7/contrib/completion/git-prompt.sh#L391-L460
+
+	One of the following values possibly be returned.
+
+	'REBASE-i step/total'	interactive merge rebase with step/total
+	'REBASE-m step/total'	merge rebase with step/total
+	'REBASE step/total'	rebase with step/total
+	'AM step/total'		am with step/total
+	'AM/REBASE step/total'	am/rebase with step/total
+	'MERGING'		merge
+	'CHERRY-PICKING'	cherry pick
+	'REVERTING'		revert
+	'BISECTING'		bisect
+	''			otherwise
 
 				*Vital.VCS.Git-instance.get_commit_editmsg()*
 get_commit_editmsg()
