@@ -221,10 +221,40 @@ function! s:system(args, ...) abort " {{{
   let status = s:Process.get_last_status()
   return { 'stdout': stdout, 'status': status, 'args': args, 'opts': original_opts }
 endfunction " }}}
+function! s:system_interactive(args, ...) abort " {{{
+  let args = s:List.flatten(a:args)
+  let opts = get(a:000, 0, {})
+  let saved_shell = &shell
+  let saved_shellcmdflag = &shellcmdflag
+  set shell&
+  set shellcmdflag& shellcmdflag+=il
+  try
+    redir => stdout
+    execute printf('!%s', join(args, ' '))
+    redir END
+  finally
+    let &shell = saved_shell
+    let &shellcmdflag = saved_shellcmdflag
+  endtry
+  let stdout_lines = split(stdout, '\v%(\r?\n)')
+  let stdout_lines = stdout_lines[1:-1]
+  if stdout_lines[-1] =~# '^shell returned'
+    let status = matchstr(stdout_lines[-1], '\v^shell returned \zs\d\ze') + 0
+    let stdout_lines = stdout_lines[0:-3]
+  else
+    let status = 0
+  endif
+  let stdout = join(stdout_lines, "\n")
+  return { 'stdout': stdout, 'status': status, 'args': args, 'opts': opts }
+endfunction " }}}
 function! s:exec(args, ...) abort " {{{
   let args = [s:_config.executable, s:_config.arguments, a:args]
   let opts = get(a:000, 0, {})
-  return s:system(args, opts)
+  if get(opts, 'interactive', 0)
+    return s:system_interactive(args, opts)
+  else
+    return s:system(args, opts)
+  endif
 endfunction " }}}
 
 " Version
