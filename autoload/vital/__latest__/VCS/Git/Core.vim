@@ -144,8 +144,11 @@ function! s:get_remote_hash(repository, remote, branch) abort " {{{
   if empty(hash)
     " sometime the file is missing
     let filename = s:Path.join(a:repository, 'packed-refs')
-    let packed_refs = filter(s:_readfile(filename),
-                      \      'v:val[0] != "#" && v:val[-'.len(target).':] == target')
+    let filter_code = printf(
+          \ 'v:val[0] != "#" && v:val[-%d:] ==# target',
+          \ len(target)
+          \)
+    let packed_refs = filter(s:_readfile(filename), filter_code)
     return get(split(get(packed_refs, 0, '')), 0, '')
   endif
   return hash
