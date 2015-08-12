@@ -49,8 +49,7 @@ FUNCTIONS				*Vital.VCS.Git.Finder-functions*
 new([{cache}])			*Vital.VCS.Git.Finder.new()*
 
 	Create a new instance of finder. The {cache} is one of
-	unified cache system (lambdalisue/vital-System-Cache-Unified)
-	instance.
+	unified cache system |Vital.System.Cache| instance.
 >
 	let s:F = s:V.import('VCS.Git.Finder')
 	let s:C = s:V.import('System.Cache.Memory')
