@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 : ${VIMTHEMIS:=~/.vim/bundle/vim-themis}
 : ${VIMPROC:=~/.vim/bundle/vimproc.vim}
 : ${VITALVIM:=~/.vim/bundle/vital.vim}

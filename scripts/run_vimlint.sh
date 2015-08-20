@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 : ${VIMLINT:=~/.vim/bundle/vim-vimlint}
 : ${VIMLPARSER:=~/.vim/bundle/vim-vimlparser}
 
