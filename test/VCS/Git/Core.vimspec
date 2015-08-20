@@ -167,6 +167,7 @@ Describe VCS.Git.Core
       Assert Equals(ret, 'foo')
       call delete(filename)
     End
+
   End
 
   Context .get_rebase_merge_head({repository})
@@ -175,6 +176,7 @@ Describe VCS.Git.Core
       let filename = s:P.join(dirname, 'head-name')
       call mkdir(dirname, 'p')
     End
+
     After
       call s:F.rmdir(dirname)
     End
@@ -656,6 +658,19 @@ Describe VCS.Git.Core
       Assert Equals(ret, 'hash reference')
       call delete(filename)
     End
+
+    It should return a hash reference of a specified branch if the branch is found in packed-ref
+      let ref = s:P.join(repository, 'refs', 'heads', 'valid_branch')
+      let filename = s:P.join(repository, 'packed-refs')
+      call writefile([
+            \ '# pack-refs with: peeled fully-peeled ',
+            \ '7xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx refs/heads/master',
+            \ '78052aba0f0839d05c4b8c8c93f304cb00cd51b5 refs/heads/valid_branch',
+            \], filename)
+      let ret = s:C.get_local_hash(repository, 'valid_branch')
+      Assert Equals(ret, '78052aba0f0839d05c4b8c8c93f304cb00cd51b5')
+      call delete(filename)
+    End
   End
 
   Context .get_remote_hash({repository}, {remote}, {branch})
@@ -676,15 +691,15 @@ Describe VCS.Git.Core
     End
 
     It should return a hash reference of a specified branch from packed-refs
+      let ref = s:P.join(repository, 'refs', 'remotes', 'origin', 'valid_branch')
       let filename = s:P.join(repository, 'packed-refs')
       call writefile([
-            \ '# pack-refs with: peeled fully-peeled',
-            \ 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa refs/remotes/valid_remote/master',
-            \ 'hash-reference refs/remotes/valid_remote/valid_branch',
-            \ 'cccccccccccccccccccccccccccccccccccccccc refs/remotes/valid_remote/other_branch',
+            \ '# pack-refs with: peeled fully-peeled ',
+            \ '7xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx refs/heads/master',
+            \ '78052aba0f0839d05c4b8c8c93f304cb00cd51b5 refs/remotes/origin/valid_branch',
             \], filename)
-      let ret = s:C.get_remote_hash(repository, 'valid_remote', 'valid_branch')
-      Assert Equals(ret, 'hash-reference')
+      let ret = s:C.get_remote_hash(repository, 'origin', 'valid_branch')
+      Assert Equals(ret, '78052aba0f0839d05c4b8c8c93f304cb00cd51b5')
       call delete(filename)
     End
   End
