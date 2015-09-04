@@ -47,71 +47,20 @@ git blame --porcelain command.
 INTERFACE				*Vital.VCS.Git.BlameParser-interface*
 
 -------------------------------------------------------------------------------
-VARIABLES				*Vital.VCS.Git.BlameParser-variables*
-
-HEADLINE_PATTERN		*Vital.VCS.Git.BlameParser.HEADLINE_PATTERN*
-
-	A readonly regex pattern string which is used to parse a head line.
-
-INFOLINE_PATTERN		*Vital.VCS.Git.BlameParser.INFOLINE_PATTERN*
-
-	A readonly regex pattern string which is used to parse a information
-	line.
-
-CONTENTS_PATTERN		*Vital.VCS.Git.BlameParser.CONTENTS_PATTERN*
-
-	A readonly regex pattern string which is used to parse a contents
-	line.
-
--------------------------------------------------------------------------------
 FUNCTIONS				*Vital.VCS.Git.BlameParser-functions*
 
-parse_headline({line})		*Vital.VCS.Git.BlameParser.parse_headline()*
-
-	Parse a {line} of 'git blame --porcelain'. The {line} must match to a
-	|Vital.VCS.Git.BlameParser.HEADLINE_PATTERN| regex.
-	It return a nested |Dictionary| described below
-
-	'revision'
-	A 40-byte SHA-1 of the commit the line is attributed to
-
-	'linenum'
-	A |Dictionary| which contains the following informations
-
-		'original'
-		The line number of the line in the original file
-		
-		'final'
-		The line number of the line in the final file
-
-	'nlines'
-	The number of lines in the chunk (group)
-	This attribute might be missing
-
-
-parse_infoline({line})		*Vital.VCS.Git.BlameParser.parse_infoline()*
-
-	Parse a {line} of 'git blame --porcelain'. The {line} must match to a
-	|Vital.VCS.Git.BlameParser.INFOLINE_PATTERN| regex.
-	It return a |Dictionary|.
-
-parse_contents({line})		*Vital.VCS.Git.BlameParser.parse_contents()*
-
-	Parse a {line} of 'git blame --porcelain'. The {line} must match to a
-	|Vital.VCS.Git.BlameParser.CONTENTS_PATTERN| regex.
-	It return a |String| of the contents.
-
-parse({blame}[, {opts}])	*Vital.VCS.Git.BlameParser.parse()*
+parse({blame}[, {callback}])	*Vital.VCS.Git.BlameParser.parse()*
 	
-	Parse a stdout |String| of 'git blame --porcelain' ({blame}).
-	It throw an exception when the parsing a line has failed. Give
-	{ 'fail_silently': 1 } to {opts} if you just want to skip the line
-	failed.
-	It return a ||Dictionary|. The dictionary contains the following
-	attributes
+	Parse {blame}, a stdout |String| or |List| of 'git blame --porcelain'.
+	When {callback} |Dictionary| is specified, {callback}.func will be
+	called with (revisions, lineinfo) each after parsing an individual
+	lineinfo has done. If {callback} has 'args' attribute,
+	it will be passed to {callback}.func as well.
+	The function return a ||Dictionary|. The dictionary contains the
+	following attributes.
 
 	'revisions'
-	A |Dictionary| which key and values are a revision string and revision
+	A |Dictionary| which key and values are a 40-byte SHA-1 revision and
 	information dictionary described below
 
 		'author'
@@ -142,7 +91,6 @@ parse({blame}[, {opts}])	*Vital.VCS.Git.BlameParser.parse()*
 		A first line of the commit log message
 
 		'previous'
-
 		A 40-byte SHA-1 and filename of the previous commit
 
 		'filename'
@@ -172,7 +120,79 @@ parse({blame}[, {opts}])	*Vital.VCS.Git.BlameParser.parse()*
 		This attribute might be missing
 
 		'contents'
-		A contents of the line
+		A contents of the line (|String|)
+
+				*Vital.VCS.Git.BlameParser.parse_to_chunks()*
+parse_to_chunks({blame}[, {callback}])
+	
+	Parse {blame}, a stdout |String| or |List| of 'git blame --porcelain'.
+	When {callback} |Dictionary| is specified, {callback}.func will be
+	called with (revisions, chunk) each after parsing an individual
+	chunk has done. If {callback} has 'args' attribute, it will be
+	passed to {callback}.func as well.
+	The function return a ||Dictionary|. The dictionary contains the
+	following attributes.
+
+	'revisions'
+	A |Dictionary| which key and values are a 40-byte SHA-1 revision and
+	information dictionary described below
+
+		'author'
+		A name of the author
+
+		'author_mail'
+		An email address of the author
+
+		'author_time'
+		A timestamp of the author
+
+		'author_tz'
+		A timezone of the author
+
+		'committer'
+		A name of the committer
+
+		'committer_mail'
+		An email address of the committer
+
+		'committer_time'
+		A timestamp of the committer
+
+		'committer_tz'
+		A timezone of the committer
+
+		'summary'
+		A first line of the commit log message
+
+		'previous'
+		A 40-byte SHA-1 and filename of the previous commit
+
+		'filename'
+		A filename
+
+		'boundary'
+		1 if the commit is a boundary commit
+
+	'chunks'
+	A |List| which contains a chunk dictionary of each chunks.
+
+		'revision'
+		A 40-byte SHA-1 of the commit the line is attributed to
+
+		'linenum'
+		A |Dictionary| which contains the following informations
+
+			'original'
+			The line number of the line in the original file
+			
+			'final'
+			The line number of the line in the final file
+
+		'nlines'
+		The number of lines in the chunk
+
+		'contents'
+		A contents of the chunks (|Dictionary|)
 
 
 ==============================================================================
