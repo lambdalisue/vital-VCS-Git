@@ -112,9 +112,9 @@ Describe VCS.Git
     End
 
     Context .is_updated({pathspec})
-      It should return 1 for filenames which does not exists in a git repository
+      It should return 0 for filenames which does not exists in a git repository
         let ret = s:git.is_updated('invalid_filename')
-        Assert Equals(ret, 1)
+        Assert Equals(ret, 0)
       End
 
       It should return 1 for valid filename in a first time execution
